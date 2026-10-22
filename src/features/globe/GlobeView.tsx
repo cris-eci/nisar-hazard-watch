@@ -13,10 +13,11 @@ import { findFrameAt } from "@/features/frames/frames";
 import { createViewer, pickLonLat } from "@/features/globe/cesium";
 import {
   addFrameEntities,
-  addOverlayEntity,
+  addOverlayLayer,
   HOVER_COLOR,
   paddedRectangle,
   removeEntities,
+  removeLayer,
   SELECTED_COLOR,
 } from "@/features/globe/frameEntities";
 import { FrameTooltip } from "@/features/globe/FrameTooltip";
@@ -128,8 +129,8 @@ export const GlobeView = ({
 
   useEffect(() => {
     if (viewer === undefined || overlay === undefined) return;
-    const entity = addOverlayEntity(viewer, overlay);
-    return () => removeEntities(viewer, [entity]);
+    const layer = addOverlayLayer(viewer, overlay);
+    return () => removeLayer(viewer, layer);
   }, [viewer, overlay]);
 
   // A new analysis area pulls the camera closer, so the burn scar fills the view.

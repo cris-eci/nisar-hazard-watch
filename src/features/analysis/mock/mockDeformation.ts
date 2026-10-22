@@ -19,13 +19,17 @@ import type { Frame } from "@/features/frames/frame.types";
 const TOWARD: Rgba = [220, 38, 38, 0]; // red: ground moved toward the satellite
 const AWAY: Rgba = [37, 99, 235, 0]; // blue: away from it
 
-// White at zero fading to red or blue; near-zero motion is transparent so the terrain shows.
+// Fades from transparent to red or blue. Motion under 10 % of the scale is atmospheric noise; painting
+// it washed a whitish veil over the whole area. Alpha stays >= 2 so the colour survives the canvas.
+const NOISE_FLOOR = 0.1;
+
 const diverging = (valueCm: number, scaleCm: number): Rgba => {
   const t = Math.max(-1, Math.min(1, valueCm / scaleCm));
   const [r, g, b] = t >= 0 ? TOWARD : AWAY;
   const k = Math.abs(t);
   const mix = (end: number): number => Math.round(255 + (end - 255) * k);
-  return [mix(r), mix(g), mix(b), Math.round(230 * k)];
+  const visible = Math.max(0, (k - NOISE_FLOOR) / (1 - NOISE_FLOOR));
+  return [mix(r), mix(g), mix(b), Math.max(2, Math.round(235 * visible))];
 };
 
 // Wrapped phase as a hue wheel: each full colour cycle is half a wavelength of LOS motion.

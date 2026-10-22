@@ -1,8 +1,9 @@
 import {
   Cartesian3,
   Color,
-  ImageMaterialProperty,
+  ImageryLayer,
   Rectangle,
+  SingleTileImageryProvider,
   type Entity,
   type Viewer,
 } from "cesium";
@@ -44,10 +45,16 @@ export const paddedRectangle = ([west, south, east, north]: BBox, padding = 0.4)
   );
 };
 
-export const addOverlayEntity = (viewer: Viewer, { url, bounds }: GlobeOverlay): Entity =>
-  viewer.entities.add({
-    rectangle: {
-      coordinates: Rectangle.fromDegrees(...bounds),
-      material: new ImageMaterialProperty({ image: url, transparent: true }),
-    },
-  });
+// Analysis rasters go in as an imagery layer, composited with the base map like any map tile. An
+// entity rectangle is shaded by the globe's lighting and left a dark veil over the data.
+export const addOverlayLayer = (viewer: Viewer, { url, bounds }: GlobeOverlay): ImageryLayer => {
+  const layer = ImageryLayer.fromProviderAsync(
+    SingleTileImageryProvider.fromUrl(url, { rectangle: Rectangle.fromDegrees(...bounds) }),
+  );
+  viewer.imageryLayers.add(layer);
+  return layer;
+};
+
+export const removeLayer = (viewer: Viewer, layer: ImageryLayer): void => {
+  if (!viewer.isDestroyed()) viewer.imageryLayers.remove(layer);
+};
