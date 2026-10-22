@@ -7,11 +7,13 @@ import {
 } from "cesium";
 import { useEffect, useRef, useState } from "react";
 
+import type { GlobeOverlay } from "@/features/analysis/overlay.types";
 import type { Frame, PassDirection } from "@/features/frames/frame.types";
 import { findFrameAt } from "@/features/frames/frames";
 import { createViewer, pickLonLat } from "@/features/globe/cesium";
 import {
   addFrameEntities,
+  addOverlayEntity,
   HOVER_COLOR,
   paddedRectangle,
   removeEntities,
@@ -29,6 +31,7 @@ type GlobeViewProps = {
   frames: Frame[];
   pass: PassDirection;
   selectedFrame: Frame | undefined;
+  overlay: GlobeOverlay | undefined;
   onSelect: (frame: Frame) => void;
   onShowWholeGlobe: () => void;
 };
@@ -45,6 +48,7 @@ export const GlobeView = ({
   frames,
   pass,
   selectedFrame,
+  overlay,
   onSelect,
   onShowWholeGlobe,
 }: GlobeViewProps) => {
@@ -121,6 +125,26 @@ export const GlobeView = ({
     });
     return () => removeEntities(viewer, entities);
   }, [viewer, selectedFrame]);
+
+  useEffect(() => {
+    if (viewer === undefined || overlay === undefined) return;
+    const entity = addOverlayEntity(viewer, overlay);
+    return () => removeEntities(viewer, [entity]);
+  }, [viewer, overlay]);
+
+  // A new analysis area pulls the camera closer, so the burn scar fills the view.
+  // Switching layers keeps the same bounds and does not move the camera.
+  const overlayBounds = overlay?.bounds;
+  const overlayKey = overlayBounds?.join(",");
+  useEffect(() => {
+    if (viewer === undefined || overlayBounds === undefined) return;
+    viewer.camera.flyTo({
+      destination: paddedRectangle(overlayBounds, 0.15),
+      duration: flyDuration(),
+    });
+    // overlayKey stands in for the bounds array, which is a new object on every layer switch.
+    // oxlint-disable-next-line react/exhaustive-deps
+  }, [viewer, overlayKey]);
 
   const showWholeGlobe = (): void => {
     if (viewer !== undefined) flyHome(viewer);

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mockBurnAnalysis, pickComparisonPair } from "@/features/analysis/burnAnalysis";
+import { pickComparisonPair } from "@/features/analysis/comparisonPair";
 import { parseAcquisitions } from "@/features/frames/observationPlanApi";
 import { hasCrossPol } from "@/features/frames/radarMode";
 
@@ -55,11 +55,5 @@ describe("pickComparisonPair", () => {
 
   it("returns undefined with fewer than two usable passes", () => {
     expect(pickComparisonPair(passes, "2026-09-10")).toBeUndefined();
-  });
-
-  it("mock analysis is stable per frame", () => {
-    const pair = pickComparisonPair(passes, "2026-10-31");
-    if (pair === undefined) throw new Error("expected a pair");
-    expect(mockBurnAnalysis("47-3", pair)).toEqual(mockBurnAnalysis("47-3", pair));
   });
 });

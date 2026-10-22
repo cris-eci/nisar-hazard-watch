@@ -22,6 +22,7 @@ export class GlobePage {
   readonly burnAnalysis: Locator;
   readonly passList: Locator;
   readonly wholeGlobe: Locator;
+  readonly burnedArea: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -33,6 +34,11 @@ export class GlobePage {
     this.burnAnalysis = page.getByTestId("burn-analysis");
     this.passList = page.getByTestId("pass-list");
     this.wholeGlobe = page.getByTestId("whole-globe");
+    this.burnedArea = page.getByTestId("burned-area");
+  }
+
+  analysisLayer(layer: "severity" | "before" | "after"): Locator {
+    return this.page.getByTestId(`analysis-layer-${layer}`);
   }
 
   passToggle(pass: "A" | "D"): Locator {

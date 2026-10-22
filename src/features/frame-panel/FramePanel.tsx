@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 
+import type { GlobeOverlay } from "@/features/analysis/overlay.types";
 import { BurnAnalysisCard } from "@/features/frame-panel/BurnAnalysisCard";
 import { PassList } from "@/features/frame-panel/PassList";
 import type { Frame } from "@/features/frames/frame.types";
@@ -8,9 +9,14 @@ import { PASS_LABEL } from "@/features/frames/passLabel";
 import { fetchAcquisitions } from "@/features/frames/observationPlanApi";
 import { useAsync } from "@/lib/useAsync";
 
-type FramePanelProps = { frame: Frame; today: string; onClose: () => void };
+type FramePanelProps = {
+  frame: Frame;
+  today: string;
+  onClose: () => void;
+  onOverlayChange: (overlay: GlobeOverlay | undefined) => void;
+};
 
-export const FramePanel = ({ frame, today, onClose }: FramePanelProps) => {
+export const FramePanel = ({ frame, today, onClose, onOverlayChange }: FramePanelProps) => {
   const { state, retry } = useAsync(
     (signal) => fetchAcquisitions(frame.track, frame.frame, signal),
     frame.id,
@@ -72,7 +78,12 @@ export const FramePanel = ({ frame, today, onClose }: FramePanelProps) => {
 
       {state?.status === "success" && (
         <>
-          <BurnAnalysisCard frameId={frame.id} acquisitions={state.data} today={today} />
+          <BurnAnalysisCard
+            frame={frame}
+            acquisitions={state.data}
+            today={today}
+            onOverlayChange={onOverlayChange}
+          />
           <PassList acquisitions={state.data} today={today} />
         </>
       )}

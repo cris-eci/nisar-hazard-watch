@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 
+import type { GlobeOverlay } from "@/features/analysis/overlay.types";
 import { PassToggle } from "@/features/controls/PassToggle";
 import { FramePanel } from "@/features/frame-panel/FramePanel";
 import type { Frame, PassDirection } from "@/features/frames/frame.types";
@@ -27,6 +28,7 @@ export const App = () => {
   // Undefined until the user picks one, so a shared link opens on the linked frame's pass.
   const [chosenPass, setChosenPass] = useState<PassDirection>();
   const [selectedId, setSelectedId] = useState(readFrameParam);
+  const [overlay, setOverlay] = useState<GlobeOverlay>();
 
   const frames = framesState?.status === "success" ? framesState.data : NO_FRAMES;
   const selectedFrame = useMemo(
@@ -47,6 +49,7 @@ export const App = () => {
         frames={frames}
         pass={pass}
         selectedFrame={selectedFrame}
+        overlay={overlay}
         onSelect={select}
         onShowWholeGlobe={closePanel}
       />
@@ -72,6 +75,7 @@ export const App = () => {
           frame={selectedFrame}
           today={today}
           onClose={closePanel}
+          onOverlayChange={setOverlay}
         />
       )}
     </main>

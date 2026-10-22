@@ -27,9 +27,21 @@ test.describe("Globe frame explorer", () => {
     await globe.clickCenter();
 
     await expect(globe.panelTitle).toHaveText(CENTER_FRAME.title);
-    await expect(globe.burnAnalysis).toContainText("Mock data");
+    await expect(globe.burnAnalysis).toContainText("Demo data");
+    await expect(globe.burnedArea).toContainText("ha");
     await expect(globe.passList).toContainText("39 passes in the plan");
     await expect(page).toHaveURL(new RegExp(`frame=${CENTER_FRAME.id}`));
+  });
+
+  test("the analysis layer toggle switches between severity, before and after", async () => {
+    await globe.mockObservationPlan();
+    await globe.goto(`?frame=${CENTER_FRAME.id}`);
+    await expect(globe.burnedArea).toBeVisible();
+    await expect(globe.analysisLayer("severity")).toHaveAttribute("aria-pressed", "true");
+
+    await globe.analysisLayer("after").click();
+    await expect(globe.analysisLayer("after")).toHaveAttribute("aria-pressed", "true");
+    await expect(globe.burnAnalysis).toContainText("HV backscatter on");
   });
 
   test("Escape closes the panel and clears the link", async ({ page }) => {
