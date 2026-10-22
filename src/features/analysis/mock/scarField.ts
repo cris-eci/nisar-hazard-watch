@@ -134,7 +134,7 @@ export const generateScarField = (seed: string, size = GRID_SIZE): ScarField => 
 export const summarizeField = (
   { changeDb, severity }: ScarField,
   pixelAreaHa: number,
-): { burnedAreaHa: number; meanHvChangeDb: number; severityHa: SeverityHa } => {
+): { affectedAreaHa: number; meanChangeDb: number; severityHa: SeverityHa } => {
   const counts = [0, 0, 0, 0];
   let changeSum = 0;
   for (let i = 0; i < severity.length; i++) {
@@ -145,8 +145,8 @@ export const summarizeField = (
   const [, low = 0, moderate = 0, high = 0] = counts;
   const burnedPixels = low + moderate + high;
   return {
-    burnedAreaHa: Math.round(burnedPixels * pixelAreaHa),
-    meanHvChangeDb: burnedPixels === 0 ? 0 : Number((changeSum / burnedPixels).toFixed(1)),
+    affectedAreaHa: Math.round(burnedPixels * pixelAreaHa),
+    meanChangeDb: burnedPixels === 0 ? 0 : Number((changeSum / burnedPixels).toFixed(1)),
     severityHa: {
       low: Math.round(low * pixelAreaHa),
       moderate: Math.round(moderate * pixelAreaHa),

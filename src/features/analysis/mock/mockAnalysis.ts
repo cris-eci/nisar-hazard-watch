@@ -1,4 +1,8 @@
-import type { BurnAnalysis, BurnAnalysisRequest } from "@/features/analysis/analysis.types";
+import type {
+  AnalysisRequest,
+  HazardAnalysis,
+  SeverityHa,
+} from "@/features/analysis/analysis.types";
 import { renderLayers } from "@/features/analysis/mock/renderLayers";
 import {
   CHANGE_THRESHOLD_DB,
@@ -46,11 +50,13 @@ const wait = (ms: number, signal: AbortSignal): Promise<void> =>
     });
   });
 
-export const mockBurnAnalysis = async (
+// Wildfire demo: a seeded HV scene pair with a burn scar.
+export const mockWildfireAnalysis = async (
   frame: Frame,
-  request: BurnAnalysisRequest,
+  request: AnalysisRequest,
   signal: AbortSignal,
-): Promise<BurnAnalysis> => {
+  colors: Record<keyof SeverityHa, string>,
+): Promise<HazardAnalysis> => {
   await wait(SIMULATED_LATENCY_MS, signal);
 
   const bounds = analysisBounds(frame.bbox);
@@ -58,6 +64,7 @@ export const mockBurnAnalysis = async (
   const pixelAreaHa = areaHa(bounds) / GRID_SIZE ** 2;
 
   return {
+    hazard: "wildfire",
     track: frame.track,
     frame: frame.frame,
     pass: frame.pass,
@@ -70,7 +77,7 @@ export const mockBurnAnalysis = async (
       pixelSizeM: Math.round(Math.sqrt(pixelAreaHa * 10_000)),
     },
     ...summarizeField(field, pixelAreaHa),
-    layers: { bounds, ...renderLayers(field, GRID_SIZE) },
+    layers: { bounds, ...renderLayers(field, GRID_SIZE, colors) },
     generatedAt: new Date().toISOString(),
     isDemo: true,
   };

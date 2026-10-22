@@ -49,11 +49,16 @@ describe("pickComparisonPair", () => {
   ];
 
   it("picks the two latest cross-pol passes up to today, skipping HH-only ones", () => {
-    const pair = pickComparisonPair(passes, "2026-10-01");
+    const pair = pickComparisonPair(passes, "2026-10-01", true);
     expect(pair?.map((a) => a.date)).toEqual(["2026-09-01", "2026-09-25"]);
   });
 
   it("returns undefined with fewer than two usable passes", () => {
-    expect(pickComparisonPair(passes, "2026-09-10")).toBeUndefined();
+    expect(pickComparisonPair(passes, "2026-09-10", true)).toBeUndefined();
+  });
+
+  it("uses HH-only passes too when the hazard does not need HV", () => {
+    const pair = pickComparisonPair(passes, "2026-10-01", false);
+    expect(pair?.map((a) => a.date)).toEqual(["2026-09-13", "2026-09-25"]);
   });
 });

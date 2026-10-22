@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 
+import type { HazardDefinition } from "@/features/analysis/hazards";
 import type { GlobeOverlay } from "@/features/analysis/overlay.types";
-import { BurnAnalysisCard } from "@/features/frame-panel/BurnAnalysisCard";
+import { AnalysisCard } from "@/features/frame-panel/AnalysisCard";
 import { PassList } from "@/features/frame-panel/PassList";
 import type { Frame } from "@/features/frames/frame.types";
 import { CrossPolBadge } from "@/features/frames/FrameLabels";
@@ -10,13 +11,14 @@ import { fetchAcquisitions } from "@/features/frames/observationPlanApi";
 import { useAsync } from "@/lib/useAsync";
 
 type FramePanelProps = {
+  hazard: HazardDefinition;
   frame: Frame;
   today: string;
   onClose: () => void;
   onOverlayChange: (overlay: GlobeOverlay | undefined) => void;
 };
 
-export const FramePanel = ({ frame, today, onClose, onOverlayChange }: FramePanelProps) => {
+export const FramePanel = ({ hazard, frame, today, onClose, onOverlayChange }: FramePanelProps) => {
   const { state, retry } = useAsync(
     (signal) => fetchAcquisitions(frame.track, frame.frame, signal),
     frame.id,
@@ -78,7 +80,8 @@ export const FramePanel = ({ frame, today, onClose, onOverlayChange }: FramePane
 
       {state?.status === "success" && (
         <>
-          <BurnAnalysisCard
+          <AnalysisCard
+            hazard={hazard}
             frame={frame}
             acquisitions={state.data}
             today={today}

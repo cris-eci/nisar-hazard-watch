@@ -37,10 +37,10 @@ describe("summarizeField", () => {
   // The panel numbers and the map come from the same field, so they must agree.
   it("adds severity classes up to the burned area and reports a loss", () => {
     const field = generateScarField("83-86:2026-09-01:2026-09-13", SIZE);
-    const { burnedAreaHa, meanHvChangeDb, severityHa } = summarizeField(field, 10);
+    const { affectedAreaHa, meanChangeDb, severityHa } = summarizeField(field, 10);
     const sum = severityHa.low + severityHa.moderate + severityHa.high;
-    expect(Math.abs(sum - burnedAreaHa)).toBeLessThanOrEqual(2);
-    expect(meanHvChangeDb).toBeLessThan(-2);
+    expect(Math.abs(sum - affectedAreaHa)).toBeLessThanOrEqual(2);
+    expect(meanChangeDb).toBeLessThan(-2);
   });
 });
 

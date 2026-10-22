@@ -1,6 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
 
+import type { HazardId } from "@/features/analysis/analysis.types";
+import { ENABLED_HAZARDS, HAZARDS } from "@/features/analysis/hazards";
 import type { GlobeOverlay } from "@/features/analysis/overlay.types";
+import { HazardPicker } from "@/features/controls/HazardPicker";
 import { PassToggle } from "@/features/controls/PassToggle";
 import { FramePanel } from "@/features/frame-panel/FramePanel";
 import type { Frame, PassDirection } from "@/features/frames/frame.types";
@@ -29,6 +32,7 @@ export const App = () => {
   const [chosenPass, setChosenPass] = useState<PassDirection>();
   const [selectedId, setSelectedId] = useState(readFrameParam);
   const [overlay, setOverlay] = useState<GlobeOverlay>();
+  const [hazardId, setHazardId] = useState<HazardId>(ENABLED_HAZARDS[0].id);
 
   const frames = framesState?.status === "success" ? framesState.data : NO_FRAMES;
   const selectedFrame = useMemo(
@@ -63,7 +67,8 @@ export const App = () => {
         <p className="mt-2 text-xs text-slate-500">
           Scroll or pinch to zoom · drag to rotate · Esc closes the panel and zooms out
         </p>
-        <div className="mt-3">
+        <div className="mt-3 space-y-2">
+          <HazardPicker hazards={ENABLED_HAZARDS} value={hazardId} onChange={setHazardId} />
           <PassToggle value={pass} onChange={setChosenPass} />
         </div>
         <FramesStatus state={framesState} count={frames.length} onRetry={retry} />
@@ -72,6 +77,7 @@ export const App = () => {
       {selectedFrame !== undefined && (
         <FramePanel
           key={selectedFrame.id}
+          hazard={HAZARDS[hazardId]}
           frame={selectedFrame}
           today={today}
           onClose={closePanel}

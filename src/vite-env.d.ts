@@ -4,4 +4,5 @@
 // oxlint-disable-next-line typescript/consistent-type-definitions
 interface ImportMetaEnv {
   readonly VITE_ANALYSIS_API_URL?: string;
+  readonly VITE_ENABLED_HAZARDS?: string;
 }

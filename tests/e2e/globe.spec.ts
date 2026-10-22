@@ -12,6 +12,8 @@ test.describe("Globe frame explorer", () => {
   test("loads the NISAR frames snapshot", async () => {
     await globe.goto();
     await expect(globe.framesStatus).toContainText("16,663 frames");
+    // Only wildfire is enabled, so the hazard picker stays hidden.
+    await expect(globe.hazardPicker).toHaveCount(0);
   });
 
   test("hovering the globe shows the frame under the cursor", async () => {
@@ -27,8 +29,8 @@ test.describe("Globe frame explorer", () => {
     await globe.clickCenter();
 
     await expect(globe.panelTitle).toHaveText(CENTER_FRAME.title);
-    await expect(globe.burnAnalysis).toContainText("Demo data");
-    await expect(globe.burnedArea).toContainText("ha");
+    await expect(globe.analysisCard).toContainText("Demo data");
+    await expect(globe.affectedArea).toContainText("ha");
     await expect(globe.passList).toContainText("39 passes in the plan");
     await expect(page).toHaveURL(new RegExp(`frame=${CENTER_FRAME.id}`));
   });
@@ -36,12 +38,12 @@ test.describe("Globe frame explorer", () => {
   test("the analysis layer toggle switches between severity, before and after", async () => {
     await globe.mockObservationPlan();
     await globe.goto(`?frame=${CENTER_FRAME.id}`);
-    await expect(globe.burnedArea).toBeVisible();
+    await expect(globe.affectedArea).toBeVisible();
     await expect(globe.analysisLayer("severity")).toHaveAttribute("aria-pressed", "true");
 
     await globe.analysisLayer("after").click();
     await expect(globe.analysisLayer("after")).toHaveAttribute("aria-pressed", "true");
-    await expect(globe.burnAnalysis).toContainText("HV backscatter on");
+    await expect(globe.analysisCard).toContainText("HV backscatter on");
   });
 
   test("Escape closes the panel and clears the link", async ({ page }) => {

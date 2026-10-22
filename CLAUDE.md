@@ -28,11 +28,13 @@ pnpm frames:fetch   # refresh public/data/frames.json from the Observation Plan 
   does not depend on the API being up. Short keys (`t`, `f`, `p`, `x`, `r`) keep it small.
 - **Passes:** fetched live per frame on click (`observationPlanApi.ts`). A pass can list several
   mode codes (`148,212,156`); it is HH+HV when any of them is L-band cross-pol.
-- **Burn analysis:** `analysisApi.ts` calls the pipeline when `VITE_ANALYSIS_API_URL` is set and
-  falls back to demo data otherwise (`features/analysis/mock/`: a seeded, simulated HV scene pair
-  whose image and numbers come from the same field). The contract is
-  `analysis.types.ts` + `docs/analysis-api.md`; change both together. Keep the "Demo data" badge
-  while `isDemo` is true.
+- **Hazard analysis:** multi-hazard by design, wildfire only for the hackathon. Per-hazard
+  settings (label, polarization, colours, copy, demo) live in `features/analysis/hazards.ts`; the UI
+  never hard-codes a hazard. `VITE_ENABLED_HAZARDS` (feature flag) picks which ones show; the
+  picker only renders with more than one. `analysisApi.ts` calls the pipeline when
+  `VITE_ANALYSIS_API_URL` is set and otherwise runs the hazard's demo (`features/analysis/mock/`,
+  seeded, so map and numbers agree). Contract: `analysis.types.ts` + `docs/analysis-api.md`, change
+  both together. Keep the "Demo data" badge while `isDemo` is true.
 
 ## Code conventions
 

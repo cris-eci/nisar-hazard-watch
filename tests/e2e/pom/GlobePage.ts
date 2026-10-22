@@ -19,10 +19,11 @@ export class GlobePage {
   readonly panel: Locator;
   readonly panelTitle: Locator;
   readonly panelClose: Locator;
-  readonly burnAnalysis: Locator;
+  readonly analysisCard: Locator;
   readonly passList: Locator;
   readonly wholeGlobe: Locator;
-  readonly burnedArea: Locator;
+  readonly affectedArea: Locator;
+  readonly hazardPicker: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -31,10 +32,11 @@ export class GlobePage {
     this.panel = page.getByTestId("frame-panel");
     this.panelTitle = page.getByTestId("frame-panel-title");
     this.panelClose = page.getByTestId("frame-panel-close");
-    this.burnAnalysis = page.getByTestId("burn-analysis");
+    this.analysisCard = page.getByTestId("analysis-card");
     this.passList = page.getByTestId("pass-list");
     this.wholeGlobe = page.getByTestId("whole-globe");
-    this.burnedArea = page.getByTestId("burned-area");
+    this.affectedArea = page.getByTestId("affected-area");
+    this.hazardPicker = page.getByRole("group", { name: "Hazard" });
   }
 
   analysisLayer(layer: "severity" | "before" | "after"): Locator {
