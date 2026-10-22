@@ -1,17 +1,16 @@
 import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
 import { useLayoutEffect, type RefObject } from "react";
 
 import type { EarthControls } from "@/pages/landing/EarthHero";
-
-gsap.registerPlugin(ScrollTrigger);
+import {
+  prefersReducedMotion,
+  refreshWhenLoaded,
+  revealSections,
+  startSmoothScroll,
+} from "@/pages/site/siteMotion";
 
 // Matches the narrow-screen block in landing.css, where layer C sits above the planet.
 const narrow = (): boolean => window.matchMedia("(max-width: 40rem)").matches;
-
-export const prefersReducedMotion = (): boolean =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 type Story = {
   controls: { current: EarthControls };
@@ -37,11 +36,7 @@ export const useLandingMotion = (
       return;
     }
 
-    const lenis = new Lenis({ lerp: 0.1 });
-    lenis.on("scroll", ScrollTrigger.update);
-    const tick = (time: number) => lenis.raf(time * 1000);
-    gsap.ticker.add(tick);
-    gsap.ticker.lagSmoothing(0);
+    const stopSmoothScroll = startSmoothScroll();
 
     const P = controls.current;
     const count = { n: 0 };
@@ -174,28 +169,15 @@ export const useLandingMotion = (
         },
       });
 
-      for (const section of gsap.utils.toArray<HTMLElement>("[data-section]")) {
-        gsap.from(section.querySelectorAll("[data-reveal]"), {
-          y: 28,
-          opacity: 0,
-          duration: 0.9,
-          ease: "power3.out",
-          stagger: 0.08,
-          scrollTrigger: { trigger: section, start: "top 78%", once: true },
-        });
-      }
+      revealSections();
     }, element);
 
-    // Pinned lengths depend on the final fonts and image sizes.
-    const refresh = () => ScrollTrigger.refresh();
-    void document.fonts.ready.then(refresh);
-    window.addEventListener("load", refresh);
+    const stopRefreshing = refreshWhenLoaded();
 
     return () => {
-      window.removeEventListener("load", refresh);
+      stopRefreshing();
       context.revert();
-      gsap.ticker.remove(tick);
-      lenis.destroy();
+      stopSmoothScroll();
     };
   }, [root, controls, setCloudCover, home, target]);
 };

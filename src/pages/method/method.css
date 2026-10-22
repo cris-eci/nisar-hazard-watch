@@ -1,0 +1,468 @@
+/*
+ * Method & validation v4: a scrollytelling of the four steps (text on the left, a sticky figure
+ * that cross-fades per step on the right), then validation, limits and one closing action.
+ * Tokens and shared parts live in site/site.css.
+ */
+
+.m-intro {
+  padding: clamp(8rem, 6rem + 8vw, 13rem) var(--margin) 0;
+  text-align: center;
+}
+
+.m-intro__title {
+  margin: 1rem auto 0;
+  max-width: 13ch;
+  font-size: clamp(3rem, 1rem + 6vw, 7rem);
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+}
+
+.m-intro__lead {
+  margin: 1.5rem auto 0;
+  max-width: 42ch;
+  font-size: var(--step-lead);
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+/* Hazard switch: a pill track with the picked hazard in ink. */
+.m-tabs {
+  margin: 2.5rem auto 0;
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(235, 233, 228, 0.08);
+}
+
+.m-tabs__tab {
+  padding: 0.6em 1.4em;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 240ms var(--ease-out),
+    color 240ms var(--ease-out);
+}
+
+.m-tabs__tab:hover {
+  color: var(--ink);
+}
+
+.m-tabs__tab[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--space);
+}
+
+/* Steps */
+.m-steps {
+  padding: clamp(4rem, 3rem + 4vw, 7rem) var(--margin) 0;
+}
+
+.m-steps__grid {
+  max-width: 76rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: clamp(2rem, 4vw, 5rem);
+}
+
+.m-step {
+  min-height: 72svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0.28;
+  transition: opacity 400ms var(--ease-out);
+}
+
+.m-step[aria-current="step"] {
+  opacity: 1;
+}
+
+.m-step__num {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+
+.m-step__title {
+  margin-top: 0.75rem;
+  font-size: clamp(2rem, 1.3rem + 2.2vw, 3.25rem);
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.m-step__body {
+  margin-top: 1rem;
+  max-width: 36ch;
+  color: var(--muted);
+}
+
+.m-step__formula {
+  margin-top: 1.25rem;
+  align-self: flex-start;
+  padding: 0.6em 1em;
+  border-radius: 12px;
+  background: var(--night);
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+}
+
+/* Figure */
+.m-figure {
+  position: sticky;
+  top: max(5.5rem, calc(50svh - 17rem));
+}
+
+.m-figure__frame {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--deep);
+}
+
+.m-figure__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 600ms var(--ease-out),
+    transform 900ms var(--ease-out);
+}
+
+.m-figure__layer[data-active="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+.m-figure__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.m-figure__image[data-place="left"],
+.m-figure__image[data-place="right"] {
+  width: 49%;
+}
+
+.m-figure__image[data-place="right"] {
+  left: 51%;
+}
+
+.m-figure__timeline,
+.m-figure__summary {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.m-figure__rail {
+  position: relative;
+  height: 2px;
+  background: rgba(235, 233, 228, 0.15);
+}
+
+.m-figure__mark {
+  --tone: var(--ink);
+  position: absolute;
+  top: -7px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  translate: -50% 0;
+}
+
+.m-figure__mark[data-tone="event"] {
+  --tone: #dc2626;
+}
+
+.m-figure__mark[data-tone="after"] {
+  --tone: var(--gold);
+}
+
+.m-figure__dot {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--tone);
+  border-radius: 50%;
+  background: var(--space);
+}
+
+.m-figure__mark:not([data-tone="before"]) .m-figure__dot {
+  background: var(--tone);
+}
+
+.m-figure__date {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  color: var(--tone);
+}
+
+.m-figure__label {
+  font-size: var(--step-small);
+  white-space: nowrap;
+  color: var(--muted);
+}
+
+.m-figure__note {
+  margin-top: 6.5rem;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.m-figure__summary {
+  gap: 1.75rem;
+}
+
+.m-figure__value {
+  font-size: clamp(2.5rem, 1.6rem + 2.6vw, 4rem);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The explorer's displacement colours: red toward the satellite, blue away. */
+.m-figure__value[data-tone="toward"] {
+  color: #ef4444;
+}
+
+.m-figure__value[data-tone="away"] {
+  color: #60a5fa;
+}
+
+.m-figure__value-label {
+  margin-top: 0.35rem;
+  color: var(--muted);
+}
+
+.m-figure__loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.m-figure__caption {
+  position: absolute;
+  left: 0.875rem;
+  right: 0.875rem;
+  bottom: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.m-figure__caption .s-chip {
+  background: rgba(4, 7, 14, 0.7);
+  font-size: 0.6875rem;
+}
+
+/* Over the grey radar pictures the amber tint alone is unreadable: the same tint on dark glass. */
+.m-figure__caption .m-demo-chip {
+  background:
+    linear-gradient(rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.18)), rgba(4, 7, 14, 0.7);
+  backdrop-filter: blur(8px);
+}
+
+.m-demo-chip {
+  display: inline-block;
+  padding: 0.35em 0.8em;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.18);
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  color: var(--demo);
+}
+
+.m-figure__progress {
+  margin-top: 0.875rem;
+  display: flex;
+  gap: 6px;
+}
+
+.m-figure__progress > div {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(235, 233, 228, 0.15);
+  transition: background-color 300ms var(--ease-out);
+}
+
+.m-figure__progress > [data-done="true"] {
+  background: var(--gold);
+}
+
+/* Validation */
+.m-validation__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+.m-validation__note {
+  max-width: 36ch;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.m-validation__note .m-demo-chip {
+  margin-right: 0.5rem;
+  padding: 0.15em 0.6em;
+}
+
+.m-validation__grid {
+  margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: rgba(235, 233, 228, 0.1);
+}
+
+.m-validation__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: clamp(1.5rem, 2.5vw, 2.5rem);
+  background: var(--deep);
+}
+
+.m-validation__value {
+  font-size: clamp(3.5rem, 2rem + 4vw, 6rem);
+  font-weight: 300;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.m-validation__what {
+  margin-top: 1rem;
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.m-validation__metric {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.m-validation__against {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+/* Limits */
+.m-limits {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 2rem clamp(2rem, 4vw, 5rem);
+}
+
+.m-limits__item {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(235, 233, 228, 0.1);
+  color: var(--ink-2);
+}
+
+.m-limits__num {
+  padding-top: 0.2rem;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  color: var(--gold);
+}
+
+/* Close */
+.m-close {
+  padding-bottom: clamp(5rem, 4rem + 4vw, 8rem);
+  text-align: center;
+}
+
+.m-close__heading {
+  font-size: clamp(2.75rem, 1rem + 5vw, 6rem);
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+}
+
+.m-close__actions {
+  margin-top: 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.m-close__link {
+  font-weight: 500;
+}
+
+/*
+ * Narrow screens: one column. The figure goes first and sticks under the nav so each step still
+ * shows its picture; a flex column (not grid) lets it stick across the whole list. The step that
+ * counts as current moves down to the visible part (useMethodMotion).
+ */
+@media (max-width: 50rem) {
+  .m-steps__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .m-figure {
+    order: -1;
+    top: 4.5rem;
+    z-index: 1;
+    width: min(100%, 34svh);
+    margin-inline: auto;
+    padding-bottom: 0.75rem;
+    background: var(--space);
+    box-shadow: 0 0 0 100vmax var(--space);
+    clip-path: inset(0 -100vmax);
+  }
+
+  /* Short enough that the current step's text stays in the band below the figure. */
+  .m-step {
+    min-height: 45svh;
+  }
+}

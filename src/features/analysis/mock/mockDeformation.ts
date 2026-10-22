@@ -23,7 +23,7 @@ const AWAY: Rgba = [37, 99, 235, 0]; // blue: away from it
 // it washed a whitish veil over the whole area. Alpha stays >= 2 so the colour survives the canvas.
 const NOISE_FLOOR = 0.1;
 
-const diverging = (valueCm: number, scaleCm: number): Rgba => {
+export const displacementColor = (valueCm: number, scaleCm: number): Rgba => {
   const t = Math.max(-1, Math.min(1, valueCm / scaleCm));
   const [r, g, b] = t >= 0 ? TOWARD : AWAY;
   const k = Math.abs(t);
@@ -86,7 +86,9 @@ export const mockDeformationAnalysis = async (
     deformedThresholdCm: DEFORMED_THRESHOLD_CM,
     layers: {
       bounds,
-      displacementUrl: toPngUrl(GRID_SIZE, (i) => diverging(field.losCm[i] ?? 0, colorScaleCm)),
+      displacementUrl: toPngUrl(GRID_SIZE, (i) =>
+        displacementColor(field.losCm[i] ?? 0, colorScaleCm),
+      ),
       fringesUrl: toPngUrl(GRID_SIZE, (i) => fringeColor(field.losCm[i] ?? 0)),
       colorScaleCm,
     },

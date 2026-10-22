@@ -1,223 +1,8 @@
-@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
-
 /*
  * Landing page v4: one scroll-driven story over a fixed Earth, then the proof (compare, pipeline,
- * events, mission) and one closing action. Deep space blacks and blues with starlight ink; gold is
- * the only accent (actions, key figures, the orbit, the marker). Text over imagery gets a shadow
- * for contrast; callouts and the nav pill are glass.
+ * events, mission) and one closing action. Text over imagery gets a shadow for contrast; the
+ * callout is glass. Tokens and shared parts live in site/site.css.
  */
-
-.landing {
-  --space: #04070e;
-  --deep: #08101f;
-  --night: #0e1930;
-  --ink: #ebe9e4;
-  --ink-2: #d4d2cc;
-  --muted: #a9a69e;
-  --gold: #c9b48b;
-  --gold-hover: #dccaa3;
-  --gold-ink: #16120a;
-  --demo: #fcd34d;
-  --hairline: rgba(235, 233, 228, 0.12);
-  --glass: rgba(8, 16, 31, 0.78);
-
-  --text: "Albert Sans", system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, monospace;
-
-  --step-small: 0.875rem;
-  --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
-  --step-lead: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
-  --step-title: clamp(1.75rem, 1.3rem + 1.2vw, 2.5rem);
-  --step-head: clamp(2.5rem, 1.4rem + 3.6vw, 5rem);
-  --step-display: clamp(3.25rem, 1rem + 7vw, 8.5rem);
-
-  --margin: clamp(1rem, 0.5rem + 2vw, 2rem);
-  --gap-section: clamp(6rem, 4rem + 6vw, 11rem);
-  --gap-section-wide: clamp(7rem, 5rem + 6vw, 12rem);
-  --radius: clamp(14px, 1.6vw, 28px);
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-
-  background: var(--space);
-  color: var(--ink);
-  font-family: var(--text);
-  font-size: var(--step-body);
-  line-height: 1.55;
-  /* clip, not hidden: hidden would break the sticky story and events. */
-  overflow-x: clip;
-}
-
-/* Base resets use :where() (zero specificity) so every component class below can override them. */
-:where(.landing) :where(h1, h2, h3) {
-  font-weight: 500;
-  margin: 0;
-  text-wrap: balance;
-}
-
-:where(.landing) :where(p, figure, ol, ul) {
-  margin: 0;
-}
-
-:where(.landing) :where(ol, ul) {
-  padding: 0;
-  list-style: none;
-}
-
-:where(.landing) a {
-  color: inherit;
-  text-decoration: none;
-  transition: color 160ms var(--ease-out);
-}
-
-:where(.landing) a:hover {
-  color: var(--gold-hover);
-}
-
-.landing :focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
-}
-
-.l-skip {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  z-index: 40;
-  padding: 0.6rem 1rem;
-  border-radius: 999px;
-  background: var(--gold);
-  color: var(--gold-ink);
-  transform: translateY(-200%);
-}
-
-.l-skip:focus {
-  transform: none;
-}
-
-/* Type */
-.l-display {
-  font-size: var(--step-display);
-  font-weight: 500;
-  letter-spacing: -0.045em;
-  line-height: 0.92;
-}
-
-.l-head {
-  font-size: var(--step-head);
-  letter-spacing: -0.035em;
-  line-height: 0.98;
-}
-
-.l-subhead {
-  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.75rem);
-  letter-spacing: -0.03em;
-  line-height: 1.05;
-}
-
-.l-mono-label {
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-
-.l-caption {
-  font-size: var(--step-small);
-  color: var(--muted);
-}
-
-/* Actions: a gold pill, and a gold text link. */
-.l-button {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.85em 1.6em;
-  border-radius: 999px;
-  background: var(--gold);
-  color: var(--gold-ink);
-  font-weight: 500;
-  white-space: nowrap;
-  transition:
-    background-color 160ms var(--ease-out),
-    transform 160ms var(--ease-out);
-}
-
-.landing .l-button:hover {
-  background: var(--gold-hover);
-  color: var(--gold-ink);
-}
-
-.l-button:active {
-  transform: scale(0.97);
-}
-
-.l-button--large {
-  padding: 0.95em 1.9em;
-  font-size: 1.0625rem;
-}
-
-.l-gold-link {
-  display: inline-flex;
-  font-weight: 500;
-  color: var(--gold);
-}
-
-.l-chip {
-  padding: 0.35em 0.8em;
-  border-radius: 999px;
-  background: rgba(4, 7, 14, 0.6);
-  backdrop-filter: blur(8px);
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-}
-
-/* Nav */
-.l-nav {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem var(--margin);
-}
-
-.l-nav__mark {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
-.l-nav__links {
-  display: flex;
-  align-items: center;
-  gap: clamp(1rem, 2vw, 2rem);
-  font-size: 0.9375rem;
-}
-
-.landing .l-nav__link {
-  color: var(--muted);
-}
-
-.landing .l-nav__link:hover {
-  color: var(--ink);
-}
-
-.l-nav__pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.55em 1.1em;
-  border-radius: 999px;
-  background: rgba(235, 233, 228, 0.1);
-  backdrop-filter: blur(12px);
-  white-space: nowrap;
-  transition: background-color 160ms var(--ease-out);
-}
-
-.landing .l-nav__pill:hover {
-  background: rgba(235, 233, 228, 0.18);
-  color: var(--ink);
-}
 
 /* Story: a pinned stage, the Earth behind four text layers driven by the scroll timeline. */
 .l-story {
@@ -251,7 +36,7 @@
   text-align: center;
 }
 
-.l-layer--hero .l-display {
+.l-layer--hero .s-display {
   max-width: 11ch;
   text-shadow: 0 2px 30px rgba(4, 7, 14, 0.7);
 }
@@ -339,7 +124,7 @@
   letter-spacing: -0.02em;
 }
 
-.l-layer--b .l-subhead {
+.l-layer--b .s-subhead {
   margin-top: 1.5rem;
 }
 
@@ -422,20 +207,6 @@
 
 .l-callout__demo {
   color: var(--demo);
-}
-
-/* Sections */
-.l-section {
-  padding: var(--gap-section) var(--margin) 0;
-}
-
-.l-section--wide {
-  padding: var(--gap-section-wide) var(--margin) 0;
-}
-
-.l-container {
-  max-width: 76rem;
-  margin: 0 auto;
 }
 
 /* Compare */
@@ -775,55 +546,6 @@
   margin-top: 2rem;
 }
 
-/* Footer */
-.l-footer {
-  padding: 2.5rem var(--margin) 2rem;
-  border-top: 1px solid rgba(235, 233, 228, 0.1);
-  font-size: var(--step-small);
-  color: var(--muted);
-}
-
-.l-footer__cols {
-  max-width: 76rem;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: 2rem;
-}
-
-.l-footer__identity,
-.l-footer__credits {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.l-footer__name {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.l-footer__links {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-content: start;
-  gap: 0.4rem 1.5rem;
-}
-
-.landing .l-footer__links a:hover {
-  color: var(--ink);
-}
-
-.l-footer__credits a {
-  color: var(--ink-2);
-}
-
-.l-footer__pictures {
-  max-width: 76rem;
-  margin: 2rem auto 0;
-  font-size: 0.8125rem;
-}
-
 /*
  * Reduced motion: no pinning. The hero and layers A, B and C stack as plain sections over a static
  * globe that stays put behind them; the events become a native horizontal scroll.
@@ -893,31 +615,6 @@
 .landing[data-motion="reduced"] .l-events__track > li {
   flex: none;
   scroll-snap-align: start;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing *,
-  .landing *::before,
-  .landing *::after {
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* Narrow screens: the design is laid out for landscape; these keep it readable on a phone. */
-@media (max-width: 30rem) {
-  .l-nav__mark {
-    font-size: 1rem;
-    white-space: nowrap;
-  }
-
-  .l-nav__links {
-    gap: 0.75rem;
-    font-size: 0.875rem;
-  }
-
-  .l-nav__link[href="#events"] {
-    display: none;
-  }
 }
 
 @media (max-width: 40rem) {

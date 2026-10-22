@@ -127,10 +127,10 @@ export const CompareSlider = ({ reducedMotion }: CompareSliderProps) => {
           <span aria-hidden="true">◂ ▸</span>
         </div>
       </div>
-      <span className="l-chip l-compare__chip l-compare__chip--left">
+      <span className="s-chip l-compare__chip l-compare__chip--left">
         NISAR RADAR · 23 AUG 2025
       </span>
-      <span className="l-chip l-compare__chip l-compare__chip--right">
+      <span className="s-chip l-compare__chip l-compare__chip--right">
         SENTINEL-2 · 24 AUG 2025
       </span>
     </div>

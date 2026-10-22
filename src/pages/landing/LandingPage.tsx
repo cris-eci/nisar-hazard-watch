@@ -1,3 +1,4 @@
+import "@/pages/site/site.css";
 import "@/pages/landing/landing.css";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -11,10 +12,13 @@ import { toPngUrl } from "@/features/analysis/mock/png";
 import { GRID_SIZE } from "@/features/analysis/mock/scarField";
 import { FEATURED_EVENTS } from "@/features/events/events";
 import { Link } from "@/lib/Link";
+import { whenIdle } from "@/lib/whenIdle";
 import { CompareSlider } from "@/pages/landing/CompareSlider";
 import { EarthHero, type EarthControls, type Project } from "@/pages/landing/EarthHero";
 import { facingRotation, lonLatToVec } from "@/pages/landing/geo";
-import { prefersReducedMotion, useLandingMotion } from "@/pages/landing/useLandingMotion";
+import { useLandingMotion } from "@/pages/landing/useLandingMotion";
+import { SiteNav } from "@/pages/site/SiteNav";
+import { prefersReducedMotion } from "@/pages/site/siteMotion";
 
 const reducedMotion = prefersReducedMotion();
 
@@ -105,12 +109,7 @@ const useDemoFringes = (): DemoFringes | undefined => {
       const url = toPngUrl(GRID_SIZE, (i) => fringeColor(field.losCm[i] ?? 0));
       setFringes({ url, maxTowardCm });
     };
-    if ("requestIdleCallback" in window) {
-      const id = window.requestIdleCallback(build, { timeout: 2000 });
-      return () => window.cancelIdleCallback(id);
-    }
-    const id = setTimeout(build, 200);
-    return () => clearTimeout(id);
+    return whenIdle(build);
   }, []);
   return fringes;
 };
@@ -144,27 +143,12 @@ export const LandingPage = () => {
   const events = FEATURED_EVENTS.filter(({ id }) => id in EVENT_LINES);
 
   return (
-    <div ref={root} className="landing" data-motion={reducedMotion ? "reduced" : "full"}>
-      <a href="#main" className="l-skip">
+    <div ref={root} className="site landing" data-motion={reducedMotion ? "reduced" : "full"}>
+      <a href="#main" className="s-skip">
         Skip to content
       </a>
 
-      <nav className="l-nav" aria-label="Main">
-        <Link to="/" className="l-nav__mark">
-          NISAR Hazard Watch
-        </Link>
-        <div className="l-nav__links">
-          <a href="#events" className="l-nav__link">
-            Events
-          </a>
-          <Link to="/method" className="l-nav__link">
-            Method
-          </Link>
-          <Link to="/explore" className="l-nav__pill" testId="nav-explore">
-            Open the globe
-          </Link>
-        </div>
-      </nav>
+      <SiteNav page="landing" />
 
       <main id="main">
         <section className="l-story" aria-label="What NISAR sees">
@@ -177,7 +161,7 @@ export const LandingPage = () => {
             />
 
             <header className="l-layer l-layer--hero" data-layer="hero">
-              <h1 className="l-display" data-intro>
+              <h1 className="s-display" data-intro>
                 Earth, without the clouds.
               </h1>
               <p className="l-hero__lead" data-intro>
@@ -185,7 +169,7 @@ export const LandingPage = () => {
                 moving ground, through cloud, smoke and night.
               </p>
               <div className="l-hero__actions" data-intro>
-                <Link to="/explore" className="l-button" testId="cta-explore">
+                <Link to="/explore" className="s-button" testId="cta-explore">
                   Open the globe
                 </Link>
                 <a href="#compare" className="l-hero__more">
@@ -195,8 +179,8 @@ export const LandingPage = () => {
             </header>
 
             <div className="l-layer l-layer--a" data-layer="a">
-              <p className="l-mono-label">L-BAND · 24 CM WAVELENGTH</p>
-              <h2 className="l-head l-layer__head--a">Radar brings its own light.</h2>
+              <p className="s-mono-label">L-BAND · 24 CM WAVELENGTH</p>
+              <h2 className="s-head l-layer__head--a">Radar brings its own light.</h2>
               <p className="l-layer__body l-layer__body--a">
                 So NISAR sees the ground at night and through clouds and smoke.
               </p>
@@ -207,7 +191,7 @@ export const LandingPage = () => {
                 <span data-count>{reducedMotion ? 12 : 0}</span>
                 <span className="l-counter__unit">days</span>
               </p>
-              <h2 className="l-subhead">Every place, every twelve days.</h2>
+              <h2 className="s-subhead">Every place, every twelve days.</h2>
               <p className="l-layer__body">
                 NISAR maps almost all of Earth&apos;s land and ice on a twelve-day cycle, day or
                 night, from 747 km up.
@@ -215,12 +199,12 @@ export const LandingPage = () => {
             </div>
 
             <div className="l-layer l-layer--side l-layer--c" data-layer="c">
-              <h2 className="l-head">Down to the centimetre.</h2>
+              <h2 className="s-head">Down to the centimetre.</h2>
               <p className="l-layer__body l-layer__body--c">
                 Comparing two passes, NISAR can measure ground motion of about a centimetre. Here,
                 the M7.5 earthquake at Catia La Mar, Venezuela.
               </p>
-              <Link to={`/explore?event=${STORY_EVENT_ID}`} className="l-gold-link l-layer__link">
+              <Link to={`/explore?event=${STORY_EVENT_ID}`} className="s-gold-link l-layer__link">
                 Open this event on the globe →
               </Link>
             </div>
@@ -255,13 +239,13 @@ export const LandingPage = () => {
 
         <section
           id="compare"
-          className="l-section l-compare"
+          className="s-section l-compare"
           data-section
           aria-labelledby="compare-heading"
         >
-          <div className="l-container">
+          <div className="s-container">
             <div className="l-compare__head">
-              <h2 id="compare-heading" className="l-head" data-reveal>
+              <h2 id="compare-heading" className="s-head" data-reveal>
                 Same fields. One day apart.
               </h2>
               <p className="l-compare__lead" data-reveal>
@@ -270,7 +254,7 @@ export const LandingPage = () => {
               </p>
             </div>
             <CompareSlider reducedMotion={reducedMotion} />
-            <p className="l-caption l-compare__caption">
+            <p className="s-caption l-compare__caption">
               Farmland along the Forest River, North Dakota. Centre-pivot fields show as gold
               circles on the radar side. Labels by NASA.
             </p>
@@ -278,12 +262,12 @@ export const LandingPage = () => {
         </section>
 
         <section
-          className="l-section l-section--wide l-pipeline"
+          className="s-section s-section--wide l-pipeline"
           data-section
           aria-labelledby="pipeline-heading"
         >
-          <div className="l-container">
-            <h2 id="pipeline-heading" className="l-head l-pipeline__heading" data-reveal>
+          <div className="s-container">
+            <h2 id="pipeline-heading" className="s-head l-pipeline__heading" data-reveal>
               From orbit to your map.
             </h2>
             <p className="l-pipeline__lead" data-reveal>
@@ -314,7 +298,7 @@ export const LandingPage = () => {
         <section id="events" className="l-events" aria-labelledby="events-heading">
           <div className="l-events__stage">
             <div className="l-events__head">
-              <h2 id="events-heading" className="l-head">
+              <h2 id="events-heading" className="s-head">
                 Real events, real passes.
               </h2>
               <p className="l-events__note">
@@ -354,8 +338,8 @@ export const LandingPage = () => {
           </div>
         </section>
 
-        <section className="l-section l-mission" data-section aria-labelledby="mission-heading">
-          <div className="l-container">
+        <section className="s-section l-mission" data-section aria-labelledby="mission-heading">
+          <div className="s-container">
             <figure className="l-mission__figure" data-reveal>
               <img
                 data-parallax
@@ -369,7 +353,7 @@ export const LandingPage = () => {
                 Twelve metres of gold mesh.
               </h2>
             </figure>
-            <p className="l-caption l-mission__caption">Artist&apos;s concept, NASA/JPL-Caltech.</p>
+            <p className="s-caption l-mission__caption">Artist&apos;s concept, NASA/JPL-Caltech.</p>
             <div className="l-mission__cols">
               {MISSION.map(({ heading, body }) => (
                 <div key={heading} data-reveal>
@@ -381,8 +365,8 @@ export const LandingPage = () => {
           </div>
         </section>
 
-        <section className="l-section--wide l-close" data-section aria-labelledby="close-heading">
-          <p className="l-mono-label" data-reveal>
+        <section className="s-section--wide l-close" data-section aria-labelledby="close-heading">
+          <p className="s-mono-label" data-reveal>
             16,663 FRAMES ON NISAR&apos;S PLAN
           </p>
           <h2 id="close-heading" className="l-close__heading" data-reveal>
@@ -393,20 +377,20 @@ export const LandingPage = () => {
             with a real earthquake.
           </p>
           <div className="l-close__action" data-reveal>
-            <Link to="/explore" className="l-button l-button--large" testId="cta-band">
+            <Link to="/explore" className="s-button s-button--large" testId="cta-band">
               Open the globe
             </Link>
           </div>
         </section>
       </main>
 
-      <footer className="l-footer">
-        <div className="l-footer__cols">
-          <div className="l-footer__identity">
-            <p className="l-footer__name">NISAR Hazard Watch</p>
+      <footer className="s-footer">
+        <div className="s-footer__cols">
+          <div className="s-footer__identity">
+            <p className="s-footer__name">NISAR Hazard Watch</p>
             <p>Built for the NASA International Space Apps Challenge 2026. Chía, Colombia.</p>
           </div>
-          <nav className="l-footer__links" aria-label="Footer">
+          <nav className="s-footer__links" aria-label="Footer">
             <Link to="/explore">Explorer</Link>
             <Link to="/method">Method</Link>
             <a href="https://github.com/cris-eci/nisar-hazard-watch">Source code</a>
@@ -416,7 +400,7 @@ export const LandingPage = () => {
             <a href="https://search.asf.alaska.edu/">ASF data search</a>
             <a href="https://science.nasa.gov/mission/nisar/">NISAR mission</a>
           </nav>
-          <div className="l-footer__credits">
+          <div className="s-footer__credits">
             {CREDITS.map(({ role, name, href }) => (
               <p key={role}>
                 <span>{role}: </span>
@@ -425,7 +409,7 @@ export const LandingPage = () => {
             ))}
           </div>
         </div>
-        <p className="l-footer__pictures">
+        <p className="s-footer__pictures">
           Pictures: NISAR first image of North Dakota and artist&apos;s concept of NISAR
           (NASA/JPL-Caltech); Blue Marble and cloud imagery (NASA Visible Earth), all public domain.
           Optical view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via NASA

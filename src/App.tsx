@@ -10,7 +10,7 @@ const LandingPage = lazy(async () => ({
   default: (await import("@/pages/landing/LandingPage")).LandingPage,
 }));
 const MethodPage = lazy(async () => ({
-  default: (await import("@/pages/MethodPage")).MethodPage,
+  default: (await import("@/pages/method/MethodPage")).MethodPage,
 }));
 
 // Links shared before the landing page existed point at /?frame=..., so they still open the explorer.

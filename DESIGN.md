@@ -13,9 +13,13 @@ Two surfaces share one product:
   epicentre and a callout shows the demo fringes. After the story: a draggable optical/radar
   comparison, a pipeline timeline that fills as you scroll, a horizontal events carousel, the
   mission and a closing call to action. Mood: calm, product-grade, space; deep space blacks and
-  blues with one gold accent. Tokens live in `src/pages/landing/landing.css`; the scene in
+  blues with one gold accent. Tokens live in `src/pages/site/site.css`; the scene in
   `EarthHero.tsx`, the motion in `useLandingMotion.ts`.
-- **Explorer (`/explore`) and Method (`/method`)**: the app, described below.
+- **Method (`/method`)**: same system as the landing. A scrollytelling of the four steps per
+  hazard (wildfire, earthquake; a pill switch, `?hazard=` in the URL): the steps scroll on the left
+  and a sticky square figure cross-fades the explorer's demo rasters on the right. Then validation
+  in a gold-figure grid, limits, and one closing action. Layout in `src/pages/method/method.css`.
+- **Explorer (`/explore`)**: the app, described below.
 
 The app is a **mission-control look over a real planet**. The globe is the hero and fills the screen; every
 control floats above it on dark, translucent cards. Colour is reserved for **data**: the UI chrome
@@ -27,10 +31,13 @@ landing hero.
 
 ### Direction: one system for landing and app
 
-The landing v4 sets the system the explorer and method pages will move to: Albert Sans everywhere,
-JetBrains Mono for data labels, the gold accent in place of `sky-500`, pill buttons and glass
-panels. **Only the landing implements it today.** The app keeps the tokens below (General Sans,
-sky, slate) until the explorer redesign lands; don't mix the two inside one page before then.
+The landing v4 sets the system the explorer will move to: Albert Sans everywhere, JetBrains Mono
+for data labels, the gold accent in place of `sky-500`, pill buttons and glass panels. **The
+landing and method pages implement it** through `src/pages/site/` (`site.css` holds the tokens,
+type, pills, chips, nav and footer as `s-*` classes; `SiteNav.tsx`; `siteMotion.ts` for smooth
+scroll and section entrances). Each page keeps only its layout (`l-*`, `m-*`). The explorer keeps
+the tokens below (General Sans, sky, slate) until its redesign lands; don't mix the two inside one
+page before then.
 
 ## Colors
 
@@ -91,7 +98,7 @@ UI chrome.
 ### Font Family
 
 **General Sans** (Fontshare) everywhere in the app, falling back to `system-ui`, `sans-serif`. The
-landing page loads its pair from Google Fonts in `landing.css`: **Albert Sans** 300/400/500/600 for
+landing page loads its pair from Google Fonts in `site/site.css`: **Albert Sans** 300/400/500/600 for
 all text, and **JetBrains Mono** 400/500 for data labels only (uppercase, letter-spacing
 0.04–0.06em, 11–13 px).
 
@@ -109,7 +116,7 @@ all text, and **JetBrains Mono** 400/500 for data labels only (uppercase, letter
 
 ### Landing scale
 
-Defined in `landing.css`:
+Defined in `site/site.css`:
 
 | Step    | Size                                         | Weight / tracking / leading |
 | ------- | -------------------------------------------- | --------------------------- |
@@ -320,7 +327,7 @@ least 4.5:1 (text over the planet keeps its shadow); every section has a heading
 landing scale; the story checked at several scroll points; real pictures (NASA public domain, and
 the HLS/Sentinel-2 optical frame), credited in the footer; motion uses transform and opacity only and stops under
 `prefers-reduced-motion`. Component classes must win over base styles: base resets in
-`landing.css` use `:where()` for zero specificity.
+`site.css` use `:where()` for zero specificity.
 
 ## Known Gaps
 

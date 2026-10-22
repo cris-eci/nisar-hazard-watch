@@ -145,7 +145,21 @@ test.describe("Onboarding and pages", () => {
     await globe.maxDisplacement.waitFor({ timeout: 30_000 });
 
     await page.getByRole("link", { name: "Method", exact: true }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Method & validation");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "How two radar passes become a map.",
+    );
+  });
+
+  test("the method page switches its steps between wildfire and earthquake", async ({ page }) => {
+    await page.goto("/method");
+    await expect(page.getByRole("heading", { name: "Find the passes" })).toBeVisible();
+
+    await page.getByTestId("method-tab-earthquake").click();
+    await expect(page.getByTestId("method-tab-earthquake")).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      page.getByRole("heading", { name: "Find a pair that brackets the event" }),
+    ).toBeVisible();
+    await expect(page).toHaveURL(/\/method\?hazard=earthquake$/);
   });
 
   test("the landing compare slider moves with the arrow keys", async ({ page }) => {
@@ -176,9 +190,11 @@ test.describe("Onboarding and pages", () => {
       .getByRole("link", { name: "Method" })
       .click();
     await expect(page).toHaveURL(/\/method$/);
-    await expect(page.getByRole("heading", { name: "Validation", exact: true })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+      "How two radar passes become a map.",
+    );
 
-    await page.getByRole("link", { name: "Launch the explorer" }).click();
+    await page.getByTestId("nav-explore").click();
     await expect(page).toHaveURL(/\/explore$/);
   });
 });
