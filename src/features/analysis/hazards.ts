@@ -5,7 +5,7 @@ import type {
   Polarization,
   SeverityHa,
 } from "@/features/analysis/analysis.types";
-import { mockWildfireAnalysis } from "@/features/analysis/mock/mockAnalysis";
+import { mockChangeAnalysis } from "@/features/analysis/mock/mockAnalysis";
 import type { Frame } from "@/features/frames/frame.types";
 
 // Everything that differs between hazards lives here, so the UI stays hazard-agnostic.
@@ -22,6 +22,7 @@ export type HazardDefinition = {
 };
 
 const WILDFIRE_COLORS = { low: "#facc15", moderate: "#f97316", high: "#dc2626" };
+const FLOOD_COLORS = { low: "#7dd3fc", moderate: "#38bdf8", high: "#2563eb" };
 
 export const HAZARDS: Record<HazardId, HazardDefinition> = {
   wildfire: {
@@ -34,7 +35,24 @@ export const HAZARDS: Record<HazardId, HazardDefinition> = {
     backscatterHint: "Dark is smooth or burned ground, bright is dense canopy.",
     severityColors: WILDFIRE_COLORS,
     runDemo: (frame, request, signal) =>
-      mockWildfireAnalysis(frame, request, signal, WILDFIRE_COLORS),
+      mockChangeAnalysis(frame, request, signal, {
+        polarization: "HVHV",
+        colors: WILDFIRE_COLORS,
+      }),
+  },
+  // Off by default: enable with VITE_ENABLED_HAZARDS=wildfire,flood. Open water is smooth and
+  // turns dark in HH, so floods can use every pass, not only HH+HV ones.
+  flood: {
+    id: "flood",
+    label: "Flood",
+    analysisTitle: "Flood analysis",
+    affectedLabel: "flooded",
+    polarization: "HHHH",
+    requiresCrossPol: false,
+    backscatterHint: "Dark is open water, bright is vegetation or buildings.",
+    severityColors: FLOOD_COLORS,
+    runDemo: (frame, request, signal) =>
+      mockChangeAnalysis(frame, request, signal, { polarization: "HHHH", colors: FLOOD_COLORS }),
   },
 };
 

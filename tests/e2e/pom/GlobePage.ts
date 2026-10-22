@@ -57,6 +57,12 @@ export class GlobePage {
     );
   }
 
+  // The demo analysis takes ~1.5 s with a GPU, but software WebGL starves the main thread and
+  // stretches it to ~10 s when tests run in parallel.
+  async waitForAnalysis(): Promise<void> {
+    await this.affectedArea.waitFor({ timeout: 30_000 });
+  }
+
   async goto(query = ""): Promise<void> {
     await this.page.goto(`/${query}`);
     await this.framesStatus.filter({ hasText: "frames from the NISAR Observation Plan" }).waitFor();

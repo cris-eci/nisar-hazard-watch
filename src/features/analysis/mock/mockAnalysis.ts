@@ -1,6 +1,7 @@
 import type {
   AnalysisRequest,
   HazardAnalysis,
+  Polarization,
   SeverityHa,
 } from "@/features/analysis/analysis.types";
 import { renderLayers } from "@/features/analysis/mock/renderLayers";
@@ -37,9 +38,10 @@ const areaHa = ([west, south, east, north]: BBox): number => {
   return widthKm * heightKm * 100;
 };
 
-const demoGranuleId = (frame: Frame, date: string): string =>
+const demoGranuleId = (frame: Frame, date: string, polarization: Polarization): string =>
   `NISAR_L2_PR_GCOV_${String(frame.track).padStart(3, "0")}_${frame.pass}_` +
-  `${String(frame.frame).padStart(3, "0")}_DHDH_${date.replaceAll("-", "")}_DEMO`;
+  `${String(frame.frame).padStart(3, "0")}_${polarization === "HVHV" ? "DHDH" : "SHSH"}_` +
+  `${date.replaceAll("-", "")}_DEMO`;
 
 const wait = (ms: number, signal: AbortSignal): Promise<void> =>
   new Promise((resolve, reject) => {
@@ -50,28 +52,42 @@ const wait = (ms: number, signal: AbortSignal): Promise<void> =>
     });
   });
 
-// Wildfire demo: a seeded HV scene pair with a burn scar.
-export const mockWildfireAnalysis = async (
+export type DemoSettings = {
+  polarization: Polarization;
+  colors: Record<keyof SeverityHa, string>;
+};
+
+// Demo for any hazard: a seeded scene pair with one irregular patch of change. Real hazards differ
+// in physics, not in what the UI needs to show, so one simulation serves them all.
+export const mockChangeAnalysis = async (
   frame: Frame,
   request: AnalysisRequest,
   signal: AbortSignal,
-  colors: Record<keyof SeverityHa, string>,
+  { polarization, colors }: DemoSettings,
 ): Promise<HazardAnalysis> => {
   await wait(SIMULATED_LATENCY_MS, signal);
 
   const bounds = analysisBounds(frame.bbox);
-  const field = generateScarField(`${frame.id}:${request.beforeDate}:${request.afterDate}`);
+  const field = generateScarField(
+    `${request.hazard}:${frame.id}:${request.beforeDate}:${request.afterDate}`,
+  );
   const pixelAreaHa = areaHa(bounds) / GRID_SIZE ** 2;
 
   return {
-    hazard: "wildfire",
+    hazard: request.hazard,
     track: frame.track,
     frame: frame.frame,
     pass: frame.pass,
-    before: { date: request.beforeDate, granuleId: demoGranuleId(frame, request.beforeDate) },
-    after: { date: request.afterDate, granuleId: demoGranuleId(frame, request.afterDate) },
+    before: {
+      date: request.beforeDate,
+      granuleId: demoGranuleId(frame, request.beforeDate, polarization),
+    },
+    after: {
+      date: request.afterDate,
+      granuleId: demoGranuleId(frame, request.afterDate, polarization),
+    },
     method: {
-      polarization: "HVHV",
+      polarization,
       changeThresholdDb: CHANGE_THRESHOLD_DB,
       multilook: 2,
       pixelSizeM: Math.round(Math.sqrt(pixelAreaHa * 10_000)),

@@ -5,12 +5,13 @@ import { parseEnabledHazards } from "@/features/analysis/hazards";
 const ids = (value: string | undefined): string[] => parseEnabledHazards(value).map((h) => h.id);
 
 describe("parseEnabledHazards (VITE_ENABLED_HAZARDS feature flag)", () => {
-  it("enables the listed hazards", () => {
+  it("enables the listed hazards in order", () => {
     expect(ids("wildfire")).toEqual(["wildfire"]);
+    expect(ids("wildfire,flood")).toEqual(["wildfire", "flood"]);
   });
 
   it("ignores unknown ids, spaces and duplicates", () => {
-    expect(ids(" wildfire , flood,wildfire")).toEqual(["wildfire"]);
+    expect(ids(" wildfire , volcano,wildfire")).toEqual(["wildfire"]);
   });
 
   // A typo in the deploy config must not leave the demo without any hazard.

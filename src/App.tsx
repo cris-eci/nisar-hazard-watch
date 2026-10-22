@@ -13,6 +13,8 @@ import { useAsync, type AsyncState } from "@/lib/useAsync";
 
 const FRAME_PARAM = "frame";
 const NO_FRAMES: Frame[] = [];
+// The name follows the feature flag: a fire-only build should not promise other hazards.
+const APP_NAME = ENABLED_HAZARDS.length > 1 ? "NISAR Hazard Watch" : "NISAR Fire Watch";
 const today = new Date().toISOString().slice(0, 10);
 
 const readFrameParam = (): string | null =>
@@ -59,10 +61,10 @@ export const App = () => {
       />
 
       <div className="absolute top-4 left-4 w-80 rounded-xl border border-white/10 bg-slate-950/85 p-4 text-slate-100 shadow-2xl backdrop-blur">
-        <h1 className="text-lg">NISAR Fire Watch</h1>
+        <h1 className="text-lg">{APP_NAME}</h1>
         <p className="mt-1 text-sm text-slate-400">
-          Hover the globe to find a NISAR radar frame. Click one to see its passes and burn
-          analysis.
+          Hover the globe to find a NISAR radar frame. Click one to see its passes and{" "}
+          {HAZARDS[hazardId].analysisTitle.toLowerCase()}.
         </p>
         <p className="mt-2 text-xs text-slate-500">
           Scroll or pinch to zoom · drag to rotate · Esc closes the panel and zooms out

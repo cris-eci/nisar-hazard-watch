@@ -1,7 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI) && process.env.CI !== "false";
-const BASE_URL = "http://localhost:5173";
+// Own port and env, so tests never depend on a developer's running server or .env.local.
+const PORT = 5174;
+const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -32,8 +34,11 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev --strictPort",
+    // The production build, as deployed: no dev-server reloads mid-test.
+    command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
     url: BASE_URL,
+    // Process env beats .env files in Vite: pin the default config (wildfire only, demo data).
+    env: { VITE_ENABLED_HAZARDS: "wildfire", VITE_ANALYSIS_API_URL: "" },
     reuseExistingServer: !isCI,
     timeout: 120_000,
   },

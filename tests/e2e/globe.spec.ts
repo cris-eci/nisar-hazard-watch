@@ -29,6 +29,7 @@ test.describe("Globe frame explorer", () => {
     await globe.clickCenter();
 
     await expect(globe.panelTitle).toHaveText(CENTER_FRAME.title);
+    await globe.waitForAnalysis();
     await expect(globe.analysisCard).toContainText("Demo data");
     await expect(globe.affectedArea).toContainText("ha");
     await expect(globe.passList).toContainText("39 passes in the plan");
@@ -38,7 +39,7 @@ test.describe("Globe frame explorer", () => {
   test("the analysis layer toggle switches between severity, before and after", async () => {
     await globe.mockObservationPlan();
     await globe.goto(`?frame=${CENTER_FRAME.id}`);
-    await expect(globe.affectedArea).toBeVisible();
+    await globe.waitForAnalysis();
     await expect(globe.analysisLayer("severity")).toHaveAttribute("aria-pressed", "true");
 
     await globe.analysisLayer("after").click();
