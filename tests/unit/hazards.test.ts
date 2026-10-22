@@ -8,6 +8,7 @@ describe("parseEnabledHazards (VITE_ENABLED_HAZARDS feature flag)", () => {
   it("enables the listed hazards in order", () => {
     expect(ids("wildfire")).toEqual(["wildfire"]);
     expect(ids("wildfire,flood")).toEqual(["wildfire", "flood"]);
+    expect(ids("deforestation,wildfire")).toEqual(["deforestation", "wildfire"]);
   });
 
   it("ignores unknown ids, spaces and duplicates", () => {

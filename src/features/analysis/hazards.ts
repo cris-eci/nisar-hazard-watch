@@ -23,6 +23,8 @@ export type HazardDefinition = {
 
 const WILDFIRE_COLORS = { low: "#facc15", moderate: "#f97316", high: "#dc2626" };
 const FLOOD_COLORS = { low: "#7dd3fc", moderate: "#38bdf8", high: "#2563eb" };
+// Soil browns, light enough for the labels to stay readable on the dark panel.
+const DEFORESTATION_COLORS = { low: "#e9c46a", moderate: "#d97706", high: "#b45309" };
 
 export const HAZARDS: Record<HazardId, HazardDefinition> = {
   wildfire: {
@@ -53,6 +55,23 @@ export const HAZARDS: Record<HazardId, HazardDefinition> = {
     severityColors: FLOOD_COLORS,
     runDemo: (frame, request, signal) =>
       mockChangeAnalysis(frame, request, signal, { polarization: "HHHH", colors: FLOOD_COLORS }),
+  },
+  // Off by default. HV tracks the forest canopy, so clearing shows up as an HV drop like a burn,
+  // but slower: compare passes months apart, not weeks.
+  deforestation: {
+    id: "deforestation",
+    label: "Deforestation",
+    analysisTitle: "Forest loss analysis",
+    affectedLabel: "cleared",
+    polarization: "HVHV",
+    requiresCrossPol: true,
+    backscatterHint: "Dark is cleared or bare ground, bright is standing forest.",
+    severityColors: DEFORESTATION_COLORS,
+    runDemo: (frame, request, signal) =>
+      mockChangeAnalysis(frame, request, signal, {
+        polarization: "HVHV",
+        colors: DEFORESTATION_COLORS,
+      }),
   },
 };
 

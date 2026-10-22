@@ -4,7 +4,7 @@ import type { BBox, PassDirection } from "@/features/frames/frame.types";
 // change both together.
 
 // Add a hazard here, in HAZARDS (hazards.ts) and in the pipeline. Nothing else in the UI changes.
-export type HazardId = "wildfire" | "flood";
+export type HazardId = "wildfire" | "flood" | "deforestation";
 
 export type Polarization = "HHHH" | "HVHV";
 
