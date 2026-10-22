@@ -183,7 +183,7 @@ Copy `.env.example` to `.env.local` to override the defaults in `.env`.
 
 ```text
 src/
-├── pages/            Landing, Explorer, Method & validation
+├── pages/            Landing (pages/landing/), Explorer, Method & validation
 ├── features/
 │   ├── analysis/     Contract, hazard registry, API client, demo simulations
 │   ├── events/       Featured events (real earthquakes, demo fire)
@@ -226,6 +226,9 @@ tests/                Unit (Vitest) and E2E (Playwright, page objects)
 - **NASA NISAR Observation Plan** (frames and planned passes).
 - **USGS** [earthquake catalogue](https://earthquake.usgs.gov/earthquakes/search/).
 - **NASA FIRMS** and **HLS** (planned validation sources).
+- Landing pictures, all public domain: NISAR's first image of North Dakota and the reflector
+  deployment (NASA/JPL-Caltech), the NISAR eruption time-lapse (NASA Scientific Visualization
+  Studio), Blue Marble and cloud imagery (NASA Visible Earth), via Wikimedia Commons and NASA.
 - Base imagery © Esri, Maxar, Earthstar Geographics. Globe by [CesiumJS](https://cesium.com/platform/cesiumjs/).
 
 Built for the **NASA International Space Apps Challenge 2026** (_NISAR surface change_ challenge).

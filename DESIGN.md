@@ -5,7 +5,16 @@ different people (and agents) look like one product.
 
 ## Overview
 
-A **mission-control look over a real planet**. The globe is the hero and fills the screen; every
+Two surfaces share one product:
+
+- **Landing page (`/`)**: a poster-like page built on **one motif, the circle of NISAR's 12 m
+  gold reflector**, used at every scale: the hero disc framing a 3D Earth, the photo masks, the
+  round buttons, the stats tiles' cut corner, the closing band and the footer's arches. Its own
+  tokens live in `src/pages/landing/landing.css`. No gradients, thin rules, shadows at rest, glass,
+  eyebrows, emoji or accent words in headlines on this page.
+- **Explorer (`/explore`) and Method (`/method`)**: the app, described below.
+
+The app is a **mission-control look over a real planet**. The globe is the hero and fills the screen; every
 control floats above it on dark, translucent cards. Colour is reserved for **data**: the UI chrome
 stays neutral slate so burn scars, flood extents and interferogram fringes are the brightest thing
 on screen.
@@ -72,7 +81,7 @@ UI chrome.
 
 ### Font Family
 
-`Inter`, falling back to `system-ui`, `sans-serif`. No second family.
+**General Sans** (Fontshare) everywhere, falling back to `system-ui`, `sans-serif`. No second family.
 
 ### Hierarchy
 
@@ -87,9 +96,21 @@ UI chrome.
 | Body                | `text-sm` on cards, `text-lg` for landing leads  |
 | Overline labels     | `text-xs uppercase tracking-wide text-slate-500` |
 
+### Landing scale
+
+Five steps, defined in `landing.css`: display (5.6vw + 1rem, max 116 px, weight 700, tracking
+-0.02em, leading 0.95), head (`--step-head`), lead, body (17–19 px), small. Headlines never run
+past two lines at any width. The closing band's single word is the only size outside the scale.
+
+### Landing colours
+
+Night `#0b1222` ground, ink `#eef1f6`, reflector gold `#e6a93a` accent (buttons and the motif),
+ocean `#1d4f7a` and land `#c8b38a` as whole fields. Each section keeps to one ground.
+
 ### Principles
 
-- **Regular weight only.** Hierarchy comes from size and colour, not bold.
+- **App: regular weight only.** Hierarchy comes from size and colour, not bold. The landing page's
+  display type is the one place for weight 700.
 - **Sentence case** for headings, buttons and labels ("Burn analysis", "Launch the explorer").
   This is deliberate and consistent; do not mix in Title Case.
 - `tabular-nums` on every number that changes or is compared (areas, centimetres, dates).
@@ -232,6 +253,14 @@ Data layers are draped over their lon/lat bounds on the globe and scale with it;
 2. A new hazard only adds an entry in `hazards.ts` (label, colours, copy); the UI must not change.
 3. Check focus, reduced motion and every async state before calling a screen done.
 4. Verify in the browser with screenshots at 1440×900, not just in code.
+
+## Landing page checks
+
+Before shipping a landing change: no headline over two lines at 1440, 768 and 390 px; contrast at
+least 4.5:1; every section has a heading; five type sizes; real pictures (NASA public domain),
+credited in the footer; motion uses transform and opacity only and stops under
+`prefers-reduced-motion`. Component classes must win over base styles: base resets in
+`landing.css` use `:where()` for zero specificity.
 
 ## Known Gaps
 

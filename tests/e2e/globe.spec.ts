@@ -148,11 +148,23 @@ test.describe("Onboarding and pages", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Method & validation");
   });
 
+  test("the landing toggle swaps optical and radar views", async ({ page }) => {
+    await page.goto("/");
+    const heading = page.locator("#showcase-heading");
+    await expect(heading).toHaveText("Cloud hides the ground");
+    await page.getByTestId("view-radar").click();
+    await expect(heading).toHaveText("Radar sees the ground");
+    await expect(page.getByTestId("view-radar")).toHaveAttribute("aria-pressed", "true");
+  });
+
   test("the landing page leads to the explorer and the method page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("See how Earth changes");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Earth, without the clouds");
 
-    await page.getByRole("link", { name: "Method & validation" }).click();
+    await page
+      .getByRole("navigation", { name: "Main" })
+      .getByRole("link", { name: "Method" })
+      .click();
     await expect(page).toHaveURL(/\/method$/);
     await expect(page.getByRole("heading", { name: "Validation", exact: true })).toBeVisible();
 

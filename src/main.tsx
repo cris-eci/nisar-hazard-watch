@@ -1,5 +1,3 @@
-import "@/features/globe/cesiumBaseUrl";
-import "cesium/Build/Cesium/Widgets/widgets.css";
 import "@/index.css";
 
 import { StrictMode } from "react";

@@ -1,3 +1,7 @@
+// Must run before any Cesium viewer exists: it tells Cesium where its workers and assets live.
+import "@/features/globe/cesiumBaseUrl";
+import "cesium/Build/Cesium/Widgets/widgets.css";
+
 import {
   type Cartesian2,
   Cartographic,
