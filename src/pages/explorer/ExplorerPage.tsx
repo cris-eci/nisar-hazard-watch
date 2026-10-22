@@ -1,3 +1,6 @@
+import "@/pages/site/site.css";
+import "@/pages/explorer/explorer.css";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { HazardId } from "@/features/analysis/analysis.types";
@@ -11,10 +14,12 @@ import { FramePanel } from "@/features/frame-panel/FramePanel";
 import type { Frame, PassDirection } from "@/features/frames/frame.types";
 import { loadFrames } from "@/features/frames/frames";
 import { GlobeView } from "@/features/globe/GlobeView";
-import { DidYouKnow } from "@/features/onboarding/DidYouKnow";
-import { WelcomeDialog } from "@/features/onboarding/WelcomeDialog";
+import { IntroCard } from "@/features/onboarding/IntroCard";
+import { rememberIntroSeen, wasIntroSeen } from "@/features/onboarding/introSeen";
+import { TourCard } from "@/features/onboarding/TourCard";
 import { APP_NAME } from "@/lib/appName";
 import { Link } from "@/lib/Link";
+import { SegmentedControl } from "@/lib/SegmentedControl";
 import { useAsync, type AsyncState } from "@/lib/useAsync";
 
 const NO_FRAMES: Frame[] = [];
@@ -27,18 +32,29 @@ const DEFAULT_HAZARD = ENABLED_HAZARDS[0].id;
 const isEnabledHazard = (id: string | null): id is HazardId =>
   id !== null && enabledIds.has(id as HazardId);
 
+// Intro on a first visit; a guided tour of the featured events; or free exploration.
+type Mode = "intro" | "tour" | "explore";
+
+const MODE_OPTIONS: Array<{ value: Exclude<Mode, "intro">; label: string }> = [
+  { value: "tour", label: "Guided tour" },
+  { value: "explore", label: "Explore" },
+];
+
 // The view lives in the URL (?event=id, or ?frame=track-frame&hazard=id) so it can be shared.
+// A shared link skips the intro and opens straight on what it points at.
 const readParams = () => {
   const params = new URLSearchParams(window.location.search);
   const event = findEvent(params.get("event"));
   if (event !== undefined && enabledIds.has(event.hazard)) {
-    return { event, frameId: event.frameId, hazard: event.hazard };
+    return { event, frameId: event.frameId, hazard: event.hazard, mode: "explore" as Mode };
   }
   const hazard = params.get("hazard");
+  const frameId = params.get("frame");
   return {
     event: undefined,
-    frameId: params.get("frame"),
+    frameId,
     hazard: isEnabledHazard(hazard) ? hazard : DEFAULT_HAZARD,
+    mode: (frameId !== null || wasIntroSeen() ? "explore" : "intro") as Mode,
   };
 };
 
@@ -64,6 +80,9 @@ export const ExplorerPage = () => {
   const [event, setEvent] = useState<FeaturedEvent | undefined>(initial.event);
   const [overlay, setOverlay] = useState<GlobeOverlay>();
   const [hazardId, setHazardId] = useState<HazardId>(initial.hazard);
+  const [mode, setMode] = useState<Mode>(initial.mode);
+  const [tourIndex, setTourIndex] = useState(0);
+  const [homeRequest, setHomeRequest] = useState(0);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -97,49 +116,112 @@ export const ExplorerPage = () => {
     if (event !== undefined && event.hazard !== next) setEvent(undefined);
   };
 
-  const startTour = () => {
-    const [first] = VISIBLE_EVENTS;
-    if (first !== undefined) openEvent(first);
+  const explore = useCallback(() => {
+    rememberIntroSeen();
+    setMode("explore");
+  }, []);
+
+  // Past the last event the tour hands over to free exploration, on that event.
+  const goTour = useCallback(
+    (index: number) => {
+      const next = VISIBLE_EVENTS[index];
+      if (next === undefined) {
+        explore();
+        return;
+      }
+      rememberIntroSeen();
+      setMode("tour");
+      setTourIndex(index);
+      openEvent(next);
+    },
+    [explore, openEvent],
+  );
+
+  const showWholeGlobe = () => {
+    closePanel();
+    setHomeRequest((n) => n + 1);
   };
 
   return (
-    <main className="relative h-dvh w-screen overflow-hidden bg-slate-950">
+    <main className="site explorer">
       <GlobeView
         frames={frames}
         pass={pass}
         selectedFrame={selectedFrame}
         overlay={overlay}
+        interactive={mode === "explore"}
+        events={VISIBLE_EVENTS}
+        homeRequest={homeRequest}
         onSelect={select}
-        onShowWholeGlobe={closePanel}
+        onOpenEvent={openEvent}
       />
 
-      <div className="absolute top-4 bottom-24 left-4 w-80 [scrollbar-width:thin] overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-slate-950/85 p-4 text-slate-100 shadow-2xl backdrop-blur">
-        <div className="flex items-baseline justify-between">
-          <h1 className="text-lg">
-            <Link to="/" className="hover:text-sky-300">
-              {APP_NAME}
-            </Link>
-          </h1>
-          <Link to="/method" className="text-xs text-sky-300 hover:underline">
+      <header className="x-top">
+        <Link to="/" className="x-pill x-pill--mark">
+          {APP_NAME}
+        </Link>
+        {mode !== "intro" && (
+          <SegmentedControl
+            label="Mode"
+            options={MODE_OPTIONS}
+            value={mode}
+            onChange={(next) => (next === "tour" ? goTour(0) : explore())}
+            testIdPrefix="mode"
+            variant="bar"
+          />
+        )}
+        <nav className="x-top__actions" aria-label="Main">
+          <button
+            type="button"
+            data-testid="whole-globe"
+            onClick={showWholeGlobe}
+            className="x-pill"
+          >
+            Whole globe
+          </button>
+          <Link to="/method" className="x-pill">
             Method
           </Link>
-        </div>
-        <p className="mt-1 text-sm text-slate-400">
-          Hover the globe to find a NISAR radar frame. Click one to see its passes and{" "}
-          {HAZARDS[hazardId].analysisTitle.toLowerCase()}.
-        </p>
-        <p className="mt-2 text-xs text-slate-500">
-          Scroll or pinch to zoom · drag to rotate · Esc closes the panel and zooms out
-        </p>
-        <div className="mt-3 space-y-2">
-          <HazardPicker hazards={ENABLED_HAZARDS} value={hazardId} onChange={changeHazard} />
-          <PassToggle value={pass} onChange={setChosenPass} />
-        </div>
-        <FramesStatus state={framesState} count={frames.length} onRetry={retry} />
-        <EventsList events={VISIBLE_EVENTS} activeId={event?.id} onOpen={openEvent} />
-      </div>
+        </nav>
+      </header>
 
-      {selectedFrame !== undefined ? (
+      {mode === "intro" && (
+        <IntroCard
+          frameCount={framesState?.status === "success" ? frames.length : undefined}
+          eventCount={VISIBLE_EVENTS.length}
+          onStartTour={() => goTour(0)}
+          onExplore={explore}
+        />
+      )}
+
+      {mode === "tour" && (
+        <TourCard events={VISIBLE_EVENTS} index={tourIndex} onGo={goTour} onExit={explore} />
+      )}
+
+      {mode === "explore" && (
+        <section aria-label="Explore" className="x-dock x-explore x-glass">
+          <h1 className="x-explore__help">
+            Point at any land to see a NISAR frame. Click it to compare its latest two passes.
+          </h1>
+          <HazardPicker hazards={ENABLED_HAZARDS} value={hazardId} onChange={changeHazard} />
+          <div className="x-explore__row">
+            <PassToggle value={pass} onChange={setChosenPass} />
+            {VISIBLE_EVENTS.length > 0 && (
+              <button
+                type="button"
+                onClick={() => goTour(0)}
+                className="x-text-button x-text-button--gold"
+              >
+                Back to tour
+              </button>
+            )}
+          </div>
+          <FramesStatus state={framesState} count={frames.length} onRetry={retry} />
+          <EventsList events={VISIBLE_EVENTS} activeId={event?.id} onOpen={openEvent} />
+        </section>
+      )}
+
+      {selectedFrame !== undefined && (
         <FramePanel
           key={`${selectedFrame.id}:${event?.id ?? ""}:${hazardId}`}
           hazard={HAZARDS[hazardId]}
@@ -149,11 +231,7 @@ export const ExplorerPage = () => {
           onClose={closePanel}
           onOverlayChange={setOverlay}
         />
-      ) : (
-        <DidYouKnow />
       )}
-
-      <WelcomeDialog appName={APP_NAME} onStartTour={startTour} />
     </main>
   );
 };
@@ -167,16 +245,16 @@ type FramesStatusProps = {
 const FramesStatus = ({ state, count, onRetry }: FramesStatusProps) => {
   if (state?.status === "error") {
     return (
-      <div role="alert" data-testid="frames-status" className="mt-3 text-sm text-red-300">
+      <div role="alert" data-testid="frames-status" className="x-mono x-explore__status">
         Could not load NISAR frames.{" "}
-        <button type="button" onClick={onRetry} className="underline">
+        <button type="button" onClick={onRetry} className="x-text-button x-text-button--gold">
           Try again
         </button>
       </div>
     );
   }
   return (
-    <p role="status" data-testid="frames-status" className="mt-3 text-xs text-slate-500">
+    <p role="status" data-testid="frames-status" className="x-mono x-explore__status">
       {state?.status === "success"
         ? `${count.toLocaleString("en-US")} frames from the NISAR Observation Plan`
         : "Loading NISAR frames…"}

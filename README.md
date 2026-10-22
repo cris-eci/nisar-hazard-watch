@@ -65,7 +65,8 @@ ground motion, from real satellite passes to maps anyone can read.
 - **Satellite passes per frame**, live from the Observation Plan, flagging the HH+HV passes that
   burn mapping needs.
 - **Shareable views**: `/explore?event=venezuela-2026`, `/explore?frame=47-3`.
-- **Guided onboarding**: welcome dialog, _Did you know?_ facts, and a method & validation page.
+- **Guided tour**: an intro card, a step-by-step tour of the featured events, then free
+  exploration; plus a method & validation page.
 - **Multi-hazard feature flag**: `VITE_ENABLED_HAZARDS` turns hazards on and off per deployment.
 
 ## Screenshots
@@ -95,7 +96,7 @@ ground motion, from real satellite passes to maps anyone can read.
 | Earthquakes in the featured events (date, magnitude, depth, epicentre)     | USGS earthquake catalogue                                           |
 | Before/after interferogram pairs for those earthquakes                     | NISAR L2 GUNW products on ASF DAAC (verified 2026-10-21)            |
 | Choice of the passes to compare (latest HH+HV pair for fires)              | App logic over the live pass data                                   |
-| Hazard feature flag, pages, onboarding, _Did you know?_ facts              | The app itself (facts from public NISAR mission information)        |
+| Hazard feature flag, pages, intro and guided tour                          | The app itself (copy from public NISAR mission information)         |
 | Client for the analysis API (`VITE_ANALYSIS_API_URL`)                      | Working code; there is no backend to call yet                       |
 
 ### 🟡 Demo (simulated, labelled in the app)
@@ -183,15 +184,14 @@ Copy `.env.example` to `.env.local` to override the defaults in `.env`.
 
 ```text
 src/
-├── pages/            Landing (pages/landing/), Explorer, Method & validation
+├── pages/            Landing, Explorer, Method (one folder each) and the shared site/ system
 ├── features/
 │   ├── analysis/     Contract, hazard registry, API client, demo simulations
 │   ├── events/       Featured events (real earthquakes, demo fire)
 │   ├── frame-panel/  Frame details, passes, analysis results
 │   ├── frames/       Frames snapshot, hit-testing, Observation Plan client
 │   ├── globe/        CesiumJS viewer, entities, camera
-│   └── onboarding/   Welcome dialog, Did you know
-├── content/          NISAR facts
+│   └── onboarding/   Intro and guided tour cards
 └── lib/              Router, async state, shared UI
 docs/                 API contract and screenshots
 scripts/              Frames snapshot generator

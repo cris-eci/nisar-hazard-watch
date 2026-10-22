@@ -7,7 +7,7 @@ test.describe("Globe frame explorer", () => {
 
   test.beforeEach(async ({ page }) => {
     globe = new GlobePage(page);
-    await globe.skipWelcome();
+    await globe.skipIntro();
   });
 
   test("loads the NISAR frames snapshot", async () => {
@@ -26,13 +26,16 @@ test.describe("Globe frame explorer", () => {
   });
 
   test("clicking a frame opens its passes and burn analysis", async ({ page }) => {
+    // Zooming in loads close-up imagery tiles, which software WebGL renders slowly.
+    test.slow();
     await globe.mockObservationPlan();
     await globe.goto();
-    await globe.clickCenter();
+    await globe.clickCenterFrameZoomedIn();
 
     await expect(globe.panelTitle).toHaveText(CENTER_FRAME.title);
     await globe.waitForAnalysis();
     await expect(globe.analysisCard).toContainText("Demo data");
+    await expect(globe.panelMeta).toContainText("Ascending pass · HH+HV");
     await expect(globe.affectedArea).toContainText("ha");
     await expect(globe.passList).toContainText("39 passes in the plan");
     await expect(page).toHaveURL(new RegExp(`frame=${CENTER_FRAME.id}`));
@@ -111,8 +114,9 @@ test.describe("Globe frame explorer", () => {
     await globe.goto();
     await globe.event("venezuela-2026").click();
 
-    await expect(globe.panelTitle).toHaveText("Track 162 · Frame 7");
-    await expect(globe.eventBanner).toContainText("M7.5 earthquake");
+    await expect(globe.panelTitle).toHaveText("M7.5 earthquake, Catia La Mar, Venezuela");
+    await expect(globe.panelMeta).toContainText("Track 162 A · Frame 7");
+    await expect(globe.eventBanner).toContainText("Shallow (10 km)");
     await expect(globe.analysisCard).toContainText("2026-06-13 → 2026-06-25");
     await globe.maxDisplacement.waitFor({ timeout: 30_000 });
     await expect(globe.maxDisplacement).toContainText("cm");
@@ -124,22 +128,28 @@ test.describe("Globe frame explorer", () => {
 });
 
 test.describe("Onboarding and pages", () => {
-  test("the welcome dialog can start the tour on a featured event", async ({ page }) => {
+  test("the intro starts a guided tour through the featured events", async ({ page }) => {
     const globe = new GlobePage(page);
     await globe.mockObservationPlan();
     await page.goto("/explore");
-    await expect(globe.welcome).toBeVisible();
+    await expect(globe.intro).toBeVisible();
 
-    await page.getByTestId("welcome-tour").click();
-    await expect(globe.welcome).toBeHidden();
+    await page.getByTestId("intro-tour").click();
+    await expect(globe.intro).toBeHidden();
+    await expect(globe.tour).toContainText("Event 1 of 4");
     await expect(globe.eventBanner).toBeVisible();
+    await expect(page).toHaveURL(/event=venezuela-2026/);
+
+    await page.getByTestId("tour-next").click();
+    await expect(globe.tour).toContainText("Event 2 of 4");
+    await expect(page).toHaveURL(/event=kumamoto-2026/);
   });
 
   // Regression: leaving the explorer with an analysis on the globe crashed the app (blank page),
   // because entity cleanup ran after the Cesium viewer was destroyed.
   test("leaving the explorer with an analysis open shows the method page", async ({ page }) => {
     const globe = new GlobePage(page);
-    await globe.skipWelcome();
+    await globe.skipIntro();
     await globe.mockObservationPlan();
     await globe.goto("?event=venezuela-2026");
     await globe.maxDisplacement.waitFor({ timeout: 30_000 });

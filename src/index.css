@@ -5,15 +5,15 @@ body,
 #root {
   margin: 0;
   height: 100%;
-  font-family: "General Sans", system-ui, sans-serif;
-  background: #020617;
+  font-family: "Albert Sans", system-ui, sans-serif;
+  background: #04070e;
   color-scheme: dark;
 }
 
 @layer base {
   /* One visible focus ring for every control, keyboard only (no ring on mouse click). */
   :focus-visible {
-    outline: 2px solid var(--color-sky-400);
+    outline: 2px solid #c9b48b; /* the site's gold */
     outline-offset: 2px;
   }
 
@@ -29,10 +29,4 @@ body,
   h3 {
     text-wrap: balance;
   }
-}
-
-/* Cesium credits sit under the left card otherwise. */
-.cesium-viewer-bottom {
-  left: auto !important;
-  right: 0.5rem;
 }

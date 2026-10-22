@@ -63,8 +63,8 @@ Mirrors the conventions used at work (consoles-ui-monorepo), kept as simple as t
 - **E2E (Playwright):** `tests/e2e/`, **Page Object Model** in `tests/e2e/pom/`, locators by
   `data-testid`, network mocked with `page.route()` from `tests/e2e/mocks/`.
 - E2E runs against the **production build** on port 5174 with pinned env (`wildfire,earthquake`,
-  demo data), so local `.env.local` or a running dev server cannot change results. The welcome
-  dialog is skipped with `GlobePage.skipWelcome()` except in its own test.
+  demo data), so local `.env.local` or a running dev server cannot change results. The explorer's
+  intro is skipped with `GlobePage.skipIntro()` (explore mode) except in its own test.
 - Tests run with `reducedMotion: "reduce"`, which stops the idle spin so the frame under the screen
   centre (47-3, over Colombia) is predictable.
 - Headless Chromium renders Cesium with software WebGL (SwiftShader), so E2E is slow. Keep

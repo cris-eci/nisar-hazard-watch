@@ -4,7 +4,7 @@ import { usePathname } from "@/lib/navigation";
 
 // Pages load on demand: the landing page must not pull in Cesium (the explorer) or vice versa.
 const ExplorerPage = lazy(async () => ({
-  default: (await import("@/pages/ExplorerPage")).ExplorerPage,
+  default: (await import("@/pages/explorer/ExplorerPage")).ExplorerPage,
 }));
 const LandingPage = lazy(async () => ({
   default: (await import("@/pages/landing/LandingPage")).LandingPage,
@@ -26,7 +26,7 @@ const CurrentPage = ({ pathname }: { pathname: string }) => {
 export const App = () => {
   const pathname = usePathname();
   return (
-    <Suspense fallback={<div className="h-dvh bg-[#0b1222]" aria-busy="true" />}>
+    <Suspense fallback={<div className="h-dvh bg-[#04070e]" aria-busy="true" />}>
       <CurrentPage pathname={pathname} />
     </Suspense>
   );

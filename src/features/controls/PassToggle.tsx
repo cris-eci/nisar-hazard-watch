@@ -14,5 +14,6 @@ export const PassToggle = ({ value, onChange }: PassToggleProps) => (
     value={value}
     onChange={onChange}
     testIdPrefix="pass-toggle"
+    variant="small"
   />
 );

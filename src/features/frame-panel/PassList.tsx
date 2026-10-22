@@ -1,50 +1,37 @@
 import type { Acquisition } from "@/features/frames/frame.types";
-import { CrossPolBadge } from "@/features/frames/FrameLabels";
 
 const RECENT_COUNT = 6;
 const UPCOMING_COUNT = 3;
 
 type PassListProps = { acquisitions: Acquisition[]; today: string };
 
-const PassRows = ({ items }: { items: Acquisition[] }) => (
-  <ul className="mt-1 divide-y divide-white/5">
-    {items.map(({ date, hasCrossPol }) => (
-      <li key={date} className="flex items-center justify-between py-1.5 text-sm">
-        <time className="tabular-nums" dateTime={date}>
-          {date}
-        </time>
-        <CrossPolBadge hasCrossPol={hasCrossPol} />
-      </li>
-    ))}
-  </ul>
-);
-
+// Oldest first, so the grid reads like a timeline that runs into the upcoming (gold) passes.
 export const PassList = ({ acquisitions, today }: PassListProps) => {
-  const past = acquisitions.filter((a) => a.date <= today);
-  const upcoming = acquisitions.filter((a) => a.date > today);
+  const past = acquisitions.filter((a) => a.date <= today).slice(-RECENT_COUNT);
+  const upcoming = acquisitions.filter((a) => a.date > today).slice(0, UPCOMING_COUNT);
   const crossPolCount = acquisitions.filter((a) => a.hasCrossPol).length;
+  const allCrossPol = crossPolCount === acquisitions.length;
 
   return (
-    <section data-testid="pass-list">
-      <h3 className="text-sm text-slate-300">Satellite passes</h3>
-      <p className="mt-1 text-xs text-slate-400">
-        {acquisitions.length} passes in the plan · {crossPolCount} with HH+HV
+    <details data-testid="pass-list" className="x-panel__section x-passes">
+      <summary>
+        <span className="x-panel__section-title">Satellite passes</span>
+        <span className="x-mono x-passes__count">{acquisitions.length} passes in the plan</span>
+      </summary>
+      <ul className="x-passes__grid">
+        {[...past, ...upcoming].map(({ date, hasCrossPol }) => (
+          <li key={date} data-upcoming={date > today} data-cross-pol={hasCrossPol}>
+            <time dateTime={date}>{date}</time>
+          </li>
+        ))}
+      </ul>
+      <p className="x-passes__note">
+        {allCrossPol
+          ? "All HH+HV."
+          : `${crossPolCount} of ${acquisitions.length} with HH+HV; dimmed dates are HH only.`}{" "}
+        Gold dates are upcoming. Source: NASA NISAR Observation Plan, which says when the satellite
+        looks, not whether the data is processed yet.
       </p>
-
-      <h4 className="mt-3 text-xs tracking-wide text-slate-500 uppercase">Recent</h4>
-      <PassRows items={past.slice(-RECENT_COUNT).reverse()} />
-
-      {upcoming.length > 0 && (
-        <>
-          <h4 className="mt-3 text-xs tracking-wide text-slate-500 uppercase">Upcoming</h4>
-          <PassRows items={upcoming.slice(0, UPCOMING_COUNT)} />
-        </>
-      )}
-
-      <p className="mt-3 text-xs text-slate-500">
-        Source: NASA NISAR Observation Plan. The plan says when the satellite looks, not whether the
-        data is already processed; the pipeline confirms that.
-      </p>
-    </section>
+    </details>
   );
 };

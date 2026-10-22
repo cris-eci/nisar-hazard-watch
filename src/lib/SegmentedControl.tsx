@@ -1,4 +1,4 @@
-type Option<T extends string> = { value: T; label: string };
+type Option<T extends string> = { value: T; label: string; swatch?: string };
 
 type SegmentedControlProps<T extends string> = {
   label: string;
@@ -6,20 +6,22 @@ type SegmentedControlProps<T extends string> = {
   value: T;
   onChange: (value: T) => void;
   testIdPrefix: string;
+  variant?: "pills" | "small" | "grid" | "bar";
 };
 
+// Pills on a faint track, the picked one in ink. `grid` wraps many options in two columns.
 export const SegmentedControl = <T extends string>({
   label,
   options,
   value,
   onChange,
   testIdPrefix,
+  variant = "pills",
 }: SegmentedControlProps<T>) => (
-  // More than three options wrap into a 2-column grid instead of overflowing a narrow card.
   <div
     role="group"
     aria-label={label}
-    className={`rounded-lg bg-white/5 p-1 ${options.length > 3 ? "grid grid-cols-2 gap-1" : "flex"}`}
+    className={variant === "pills" ? "x-segments" : `x-segments x-segments--${variant}`}
   >
     {options.map((option) => (
       <button
@@ -28,8 +30,15 @@ export const SegmentedControl = <T extends string>({
         data-testid={`${testIdPrefix}-${option.value}`}
         aria-pressed={value === option.value}
         onClick={() => onChange(option.value)}
-        className="flex-1 rounded-md px-3 py-1 text-sm text-slate-400 hover:text-slate-100 focus-visible:outline-2 focus-visible:outline-sky-400 aria-pressed:bg-white/10 aria-pressed:text-slate-100"
+        className="x-segment"
       >
+        {option.swatch !== undefined && (
+          <span
+            className="x-segment__swatch"
+            style={{ background: option.swatch }}
+            aria-hidden="true"
+          />
+        )}
         {option.label}
       </button>
     ))}

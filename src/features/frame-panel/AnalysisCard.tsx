@@ -60,54 +60,56 @@ export const AnalysisCard = ({
   );
   const analysis = state?.status === "success" ? state.data : undefined;
   const isDeformation = hazard.kind === "deformation";
-  const signal = isDeformation
-    ? "interferogram"
-    : `${polarizationShort(hazard.polarization)} change`;
+  const pol = polarizationShort(hazard.polarization);
 
   if (request === undefined) {
     return (
-      <section className="rounded-lg border border-white/10 p-4 text-sm text-slate-400">
-        Not enough {hazard.requiresCrossPol ? "HH+HV " : ""}passes yet to compare before and after
-        on this frame.
-      </section>
+      <>
+        <h3 className="x-panel__section-title">{hazard.analysisTitle}</h3>
+        <p className="x-panel__note">
+          Not enough {hazard.requiresCrossPol ? "HH+HV " : ""}passes yet to compare before and after
+          on this frame.
+        </p>
+      </>
     );
   }
 
   return (
-    <section data-testid="analysis-card" className="rounded-lg border border-white/10 p-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm text-slate-300">{hazard.analysisTitle}</h3>
+    <>
+      <div className="x-panel__section-head">
+        <h3 className="x-panel__section-title">{hazard.analysisTitle}</h3>
         {analysis?.isDemo === true && (
           <span
             title="Generated in the browser until the NISAR pipeline API is connected"
-            className="rounded bg-amber-500/20 px-1.5 py-0.5 text-xs text-amber-300"
+            className="x-chip-demo"
           >
             Demo data
           </span>
         )}
       </div>
-      <p className="mt-1 text-xs text-slate-400">
-        {request.beforeDate} → {request.afterDate} · {signal} between two passes
+      <p className="x-mono x-panel__pair">
+        {request.beforeDate} → {request.afterDate} ·{" "}
+        {isDeformation ? "interferogram" : `${pol} change`}
       </p>
 
       {state?.status === "loading" && (
-        <div role="status" className="mt-4 space-y-3">
-          <p className="text-sm text-slate-300">
+        <div role="status" className="x-loading">
+          <p>
             {isDeformation
               ? "Unwrapping the interferogram between both passes…"
-              : `Comparing ${polarizationShort(hazard.polarization)} backscatter between both passes…`}
+              : `Comparing ${pol} backscatter between both passes…`}
           </p>
-          <div className="h-8 w-40 rounded bg-white/10 motion-safe:animate-pulse" />
-          <div className="h-2 rounded-full bg-white/10 motion-safe:animate-pulse" />
+          <div className="x-shimmer" style={{ height: 44, width: 180 }} />
+          <div className="x-shimmer" style={{ height: 8, borderRadius: 4 }} />
         </div>
       )}
 
       {state?.status === "error" && (
-        <div role="alert" className="mt-3 text-sm">
+        <div role="alert" className="x-panel__error">
           <p>
             The {hazard.analysisTitle.toLowerCase()} failed: {state.error.message}
           </p>
-          <button type="button" onClick={retry} className="mt-2 underline">
+          <button type="button" onClick={retry} className="x-panel__retry">
             Try again
           </button>
         </div>
@@ -119,6 +121,6 @@ export const AnalysisCard = ({
       {analysis?.kind === "deformation" && (
         <DeformationResult analysis={analysis} onOverlayChange={onOverlayChange} />
       )}
-    </section>
+    </>
   );
 };

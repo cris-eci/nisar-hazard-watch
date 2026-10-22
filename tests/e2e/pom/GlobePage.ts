@@ -26,7 +26,9 @@ export class GlobePage {
   readonly hazardPicker: Locator;
   readonly maxDisplacement: Locator;
   readonly eventBanner: Locator;
-  readonly welcome: Locator;
+  readonly panelMeta: Locator;
+  readonly intro: Locator;
+  readonly tour: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -42,7 +44,9 @@ export class GlobePage {
     this.hazardPicker = page.getByRole("group", { name: "Hazard" });
     this.maxDisplacement = page.getByTestId("max-displacement");
     this.eventBanner = page.getByTestId("event-banner");
-    this.welcome = page.getByTestId("welcome-dialog");
+    this.panelMeta = page.getByTestId("frame-panel-meta");
+    this.intro = page.getByTestId("intro-card");
+    this.tour = page.getByTestId("tour-card");
   }
 
   event(id: string): Locator {
@@ -73,8 +77,8 @@ export class GlobePage {
     await this.affectedArea.waitFor({ timeout: 30_000 });
   }
 
-  // Marks the welcome dialog as seen so it does not cover the globe; its own test clears this.
-  async skipWelcome(): Promise<void> {
+  // Marks the intro as seen so the explorer opens in explore mode; the intro's own test skips this.
+  async skipIntro(): Promise<void> {
     await this.page.addInitScript(() =>
       window.localStorage.setItem("nisar-watch:welcome-dismissed", "1"),
     );
@@ -99,5 +103,15 @@ export class GlobePage {
   async clickCenter(): Promise<void> {
     const { x, y } = this.center();
     await this.page.mouse.click(x, y);
+  }
+
+  // At whole-globe zoom frame 47-3 is ~14 px across and the Andes event marker covers it, so a
+  // click there opens the event. Zoom in first, then click just south of the centre, inside 47-3.
+  async clickCenterFrameZoomedIn(): Promise<void> {
+    const { x, y } = this.center();
+    await this.page.mouse.move(x, y);
+    for (let i = 0; i < 6; i++) await this.page.mouse.wheel(0, -400);
+    await this.page.waitForTimeout(2000);
+    await this.page.mouse.click(x, y + 20);
   }
 }

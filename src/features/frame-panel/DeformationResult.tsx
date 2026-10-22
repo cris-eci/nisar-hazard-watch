@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import type { DeformationAnalysis } from "@/features/analysis/analysis.types";
 import type { GlobeOverlay } from "@/features/analysis/overlay.types";
+import { MapLegend } from "@/features/frame-panel/MapLegend";
 import { MethodDetails } from "@/features/frame-panel/MethodDetails";
 import { SegmentedControl } from "@/lib/SegmentedControl";
 
@@ -20,6 +21,7 @@ type DeformationResultProps = {
 export const DeformationResult = ({ analysis, onOverlayChange }: DeformationResultProps) => {
   const [layer, setLayer] = useState<Layer>("displacement");
   const { layers, method } = analysis;
+  const cycleCm = (method.wavelengthCm / 2).toFixed(1);
 
   useEffect(() => {
     const url = layer === "displacement" ? layers.displacementUrl : layers.fringesUrl;
@@ -29,19 +31,19 @@ export const DeformationResult = ({ analysis, onOverlayChange }: DeformationResu
 
   return (
     <>
-      <p data-testid="max-displacement" className="mt-3 text-3xl tabular-nums">
+      <p data-testid="max-displacement" className="x-result__big">
         {analysis.maxTowardCm} cm
       </p>
-      <p className="text-sm text-slate-400">
+      <p className="x-result__sub">
         peak motion toward the satellite · {analysis.maxAwayCm} cm away
       </p>
-      <p className="mt-2 text-sm text-slate-300">
+      <p className="x-result__area">
         {analysis.deformedAreaKm2.toLocaleString("en-US")} km² moved more than{" "}
         {analysis.deformedThresholdCm} cm
       </p>
 
-      <div className="mt-4">
-        <p className="mb-1.5 text-xs text-slate-500">Map layer on the globe</p>
+      <div className="x-layer">
+        <p className="x-mono">Layer on the globe</p>
         <SegmentedControl
           label="Map layer"
           options={LAYER_OPTIONS}
@@ -50,26 +52,17 @@ export const DeformationResult = ({ analysis, onOverlayChange }: DeformationResu
           testIdPrefix="analysis-layer"
         />
         {layer === "displacement" ? (
-          <div className="mt-2 text-xs text-slate-400">
-            <div className="h-1.5 rounded-full bg-gradient-to-r from-blue-600 via-white to-red-600" />
-            <div className="mt-1 flex justify-between">
-              <span>−{layers.colorScaleCm} cm away</span>
-              <span>0</span>
-              <span>+{layers.colorScaleCm} cm toward</span>
-            </div>
-            <p className="mt-1">
-              Line-of-sight motion of the ground. Red lobes rose or moved toward the satellite, blue
-              ones sank or moved away.
-            </p>
-          </div>
+          <MapLegend
+            bar="linear-gradient(90deg, #2563eb, #fff, #dc2626)"
+            scale={[`−${layers.colorScaleCm} cm away`, "0", `+${layers.colorScaleCm} cm toward`]}
+            text="Line-of-sight motion of the ground. Red lobes rose or moved toward the satellite, blue ones sank or moved away."
+          />
         ) : (
-          <div className="mt-2 text-xs text-slate-400">
-            <div className="h-1.5 rounded-full bg-[linear-gradient(90deg,red,yellow,lime,cyan,blue,magenta,red)]" />
-            <p className="mt-1">
-              Each full colour cycle is {(method.wavelengthCm / 2).toFixed(1)} cm of motion: count
-              the rings to read how far the ground moved.
-            </p>
-          </div>
+          <MapLegend
+            bar="linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red)"
+            scale={["0", `${cycleCm} cm`]}
+            text={`Each full colour cycle is ${cycleCm} cm of motion: count the rings to read how far the ground moved.`}
+          />
         )}
       </div>
 

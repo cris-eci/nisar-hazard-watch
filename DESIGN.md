@@ -19,54 +19,42 @@ Two surfaces share one product:
   hazard (wildfire, earthquake; a pill switch, `?hazard=` in the URL): the steps scroll on the left
   and a sticky square figure cross-fades the explorer's demo rasters on the right. Then validation
   in a gold-figure grid, limits, and one closing action. Layout in `src/pages/method/method.css`.
-- **Explorer (`/explore`)**: the app, described below.
+- **Explorer (`/explore`)**: the app. A **mission-control look over a real planet**: the Cesium
+  globe fills the screen and glass cards float over it. A top bar (wordmark pill, Guided tour /
+  Explore switch, Whole globe, Method), one card at the bottom left and the frame panel on the
+  right. Three modes: an **intro** card on a first visit, a **guided tour** through the featured
+  events (chapter, title, dots, Next event), and **explore** (hazard, pass direction, featured
+  events; hover a real NISAR frame, click it to analyse it). Layout in
+  `src/pages/explorer/explorer.css`.
 
-The app is a **mission-control look over a real planet**. The globe is the hero and fills the screen; every
-control floats above it on dark, translucent cards. Colour is reserved for **data**: the UI chrome
-stays neutral slate so burn scars, flood extents and interferogram fringes are the brightest thing
-on screen.
+Three words: **calm, scientific, legible**. Colour is reserved for **data** and the one gold
+accent: chrome stays ink on deep blue, so burn scars, flood extents and interferogram fringes are
+the brightest thing on screen.
 
-Three words: **calm, scientific, legible**. Nothing should look like a marketing page except the
-landing hero.
+### One system
 
-### Direction: one system for landing and app
-
-The landing v4 sets the system the explorer will move to: Albert Sans everywhere, JetBrains Mono
-for data labels, the gold accent in place of `sky-500`, pill buttons and glass panels. **The
-landing and method pages implement it** through `src/pages/site/` (`site.css` holds the tokens,
-type, pills, chips, nav and footer as `s-*` classes; `SiteNav.tsx`; `siteMotion.ts` for smooth
-scroll and section entrances). Each page keeps only its layout (`l-*`, `m-*`). The explorer keeps
-the tokens below (General Sans, sky, slate) until its redesign lands; don't mix the two inside one
-page before then.
+All three pages share `src/pages/site/`: `site.css` holds the tokens, type, pills, chips, nav and
+footer (`s-*` classes); `SiteNav.tsx`; `siteMotion.ts` for smooth scroll and section entrances.
+Each page keeps only its own layout (`l-*` landing, `m-*` method, `x-*` explorer). Tailwind stays
+available for one-off utilities, but new UI uses the tokens below.
 
 ## Colors
 
-All colours are Tailwind tokens; hex values are given for exports and image rendering.
+Tokens live on `.site` in `site/site.css`.
 
-### Brand & Accent
-
-| Role            | Token                       | Hex       | Use                                                                                |
-| --------------- | --------------------------- | --------- | ---------------------------------------------------------------------------------- |
-| Primary action  | `sky-500` / hover `sky-400` | `#0ea5e9` | The single main button per view (Launch the explorer, Start with a featured event) |
-| Links and focus | `sky-300` / `sky-400`       | `#7dd3fc` | Inline links, focus ring                                                           |
-
-### Surface
-
-| Role                                          | Token                            | Hex       |
-| --------------------------------------------- | -------------------------------- | --------- |
-| Page background                               | `slate-950`                      | `#020617` |
-| Floating card                                 | `slate-950/85` + `backdrop-blur` |           |
-| Card border                                   | `white/10` (hover `white/30`)    |           |
-| Inset surface (event banner, segmented track) | `white/5`                        |           |
-| Selected segment                              | `white/10`                       |           |
-
-### Text
-
-| Role                     | Token                     |
-| ------------------------ | ------------------------- |
-| Primary                  | `slate-100`               |
-| Secondary, body on cards | `slate-300` / `slate-400` |
-| Captions, labels, hints  | `slate-500`               |
+| Token      | Value                                   | Use                                                         |
+| ---------- | --------------------------------------- | ----------------------------------------------------------- |
+| `space`    | `#04070e`                               | Page background                                             |
+| `deep`     | `#08101f`                               | Image wells, panels                                         |
+| `night`    | `#0e1930`                               | Inset surfaces                                              |
+| `ink`      | `#ebe9e4`                               | Primary text; the picked segment                            |
+| `ink-2`    | `#d4d2cc`                               | Secondary text on images and panels                         |
+| `muted`    | `#a9a69e`                               | Secondary body, captions, mono labels                       |
+| `gold`     | `#c9b48b` (hover `#dccaa3`)             | The only accent: actions, key figures, selection, the orbit |
+| `gold-ink` | `#16120a`                               | Text on gold                                                |
+| `demo`     | `#fcd34d` on `rgba(245,158,11,.18)`     | DEMO DATA / DEMO VALUES chips                               |
+| `hairline` | `rgba(235,233,228,.08–.12)`             | Borders, dividers, rails                                    |
+| `glass`    | `rgba(8,16,31,.72–.80)` + blur 16–20 px | Nav pills, callouts, explorer cards and panel               |
 
 ### Semantic (data colours)
 
@@ -85,36 +73,33 @@ UI chrome.
 | Interferogram fringes      | Hue wheel, one cycle per λ/2 = 11.92 cm                                                      |
 | Backscatter (before/after) | Grayscale, −22 dB black → −4 dB white                                                        |
 
-| Status                       | Token                                                        |
-| ---------------------------- | ------------------------------------------------------------ |
-| Demo data badge, demo values | `amber-500/20` background, `amber-300` text                  |
-| Error                        | `red-500/30` border, `red-500/10` background, `red-300` text |
-| HH+HV badge                  | `sky-500/20` background, `sky-300` text                      |
-| HH only badge                | `slate-500/20` background, `slate-400` text                  |
-| Selected frame outline       | `#f97316`; hovered frame `#e2e8f0`                           |
+| Status                      | Style                                                       |
+| --------------------------- | ----------------------------------------------------------- |
+| Demo data chip, demo values | `demo` token, mono uppercase                                |
+| Error                       | `rgba(239,68,68,.3)` border on `rgba(239,68,68,.08)`, retry |
+| HH only passes              | Dimmed (50 %) in the pass grid; HH+HV is the normal case    |
+| Selected frame outline      | `gold` with a 6–8 % fill; hovered frame `#e2e8f0`           |
+| Featured event markers      | Gold points with the country label, explore mode only       |
 
 ## Typography
 
 ### Font Family
 
-**General Sans** (Fontshare) everywhere in the app, falling back to `system-ui`, `sans-serif`. The
-landing page loads its pair from Google Fonts in `site/site.css`: **Albert Sans** 300/400/500/600 for
-all text, and **JetBrains Mono** 400/500 for data labels only (uppercase, letter-spacing
-0.04–0.06em, 11–13 px).
+**Albert Sans** 300/400/500/600 for all text, and **JetBrains Mono** 400/500 for data labels only
+(uppercase, letter-spacing 0.04–0.06em, 11–13 px), both from Google Fonts in `site/site.css`.
 
-### Hierarchy
+### Explorer hierarchy
 
-| Element             | Classes                                          |
-| ------------------- | ------------------------------------------------ |
-| Page title          | `text-4xl`                                       |
-| Section title       | `text-2xl`                                       |
-| Card / panel title  | `text-lg`                                        |
-| Card section title  | `text-sm text-slate-300`                         |
-| Key figure (ha, cm) | `text-3xl tabular-nums`                          |
-| Body                | `text-sm` on cards, `text-lg` for landing leads  |
-| Overline labels     | `text-xs uppercase tracking-wide text-slate-500` |
+| Element                 | Style                                       |
+| ----------------------- | ------------------------------------------- |
+| Intro title             | `clamp(28px, 3.2vw, 40px)`, −0.035em        |
+| Tour title, panel title | 26 / 24 px, −0.03em                         |
+| Key figure (ha, cm)     | 52 px, −0.045em, `tabular-nums`             |
+| Body on cards           | 14–15 px                                    |
+| Panel section titles    | 14 px in `ink-2`                            |
+| Labels, meta, dates     | JetBrains Mono 11–12 px, uppercase, `muted` |
 
-### Landing scale
+### Content-page scale (landing, method)
 
 Defined in `site/site.css`:
 
@@ -129,30 +114,16 @@ Defined in `site/site.css`:
 Outside the scale on purpose: the "12" counter (weight 300, gold), "Pick any frame." and the
 callout's centimetre value. Headlines never run past two lines at any width.
 
-### Landing colours
-
-| Token      | Value                                   | Use                                                  |
-| ---------- | --------------------------------------- | ---------------------------------------------------- |
-| `space`    | `#04070e`                               | Page background                                      |
-| `deep`     | `#08101f`                               | Image wells, panels                                  |
-| `night`    | `#0e1930`                               | Inset surfaces                                       |
-| `ink`      | `#ebe9e4`                               | Primary text                                         |
-| `ink-2`    | `#d4d2cc`                               | Secondary text on images                             |
-| `muted`    | `#a9a69e`                               | Secondary body, captions                             |
-| `gold`     | `#c9b48b` (hover `#dccaa3`)             | The only accent: actions, key figures, orbit, marker |
-| `gold-ink` | `#16120a`                               | Text on gold                                         |
-| `demo`     | `#fcd34d`                               | DEMO DATA labels                                     |
-| `hairline` | `rgba(235,233,228,.10–.12)`             | Borders, the pipeline rail                           |
-| `glass`    | `rgba(8,16,31,.72–.80)` + blur 16–20 px | Nav pill, callouts                                   |
-
 ### Principles
 
-- **App: regular weight only.** Hierarchy comes from size and colour, not bold. The landing uses
-  500 for headings and actions, 600 for the wordmark, and 300 only for the "12" counter.
-- **Sentence case** for headings, buttons and labels ("Burn analysis", "Launch the explorer").
+- **Weights:** 400 for text, 500 for headings and actions, 600 for the wordmark, 300 only for the
+  big gold figures ("12", validation values).
+- **Sentence case** for headings, buttons and labels ("Burn analysis", "Open the globe").
   This is deliberate and consistent; do not mix in Title Case.
 - `tabular-nums` on every number that changes or is compared (areas, centimetres, dates).
 - Headings use `text-wrap: balance` (global).
+- Mono labels are written in sentence case in code and uppercased with CSS, so screen readers
+  and tests read words, not letters.
 - `…` for ellipses and loading text ("Loading NISAR frames…").
 - Dates are ISO `YYYY-MM-DD`: scientific audience, unambiguous across countries.
 
@@ -160,93 +131,90 @@ callout's centimetre value. Headlines never run past two lines at any width.
 
 ### Spacing System
 
-Tailwind's 4 px scale. Cards use `p-4` (controls) or `p-5` (details panel); stacked blocks inside a
-card use `mt-1` (tight label/value), `mt-3` (related), `mt-4`/`gap-5` (sections).
+Content pages use the clamp-based `--margin` and section gaps in `site.css`. Explorer cards sit
+16 px from the edges (12 px on phones), with 16–22 px padding and 12–22 px between blocks.
 
 ### Grid & Container
 
-- **Explorer:** full-screen globe. Left control card `w-80` (top-4, left-4), right details panel
-  `w-96` (top-4, right-4, bottom-4), map buttons bottom-left, _Did you know?_ bottom-right.
-- **Content pages:** centred `max-w-6xl` (landing) or `max-w-5xl` (method), `px-6`, sections
-  `py-16`, card grids `md:grid-cols-2` / `md:grid-cols-3` with `gap-4`.
+- **Explorer:** full-screen globe. Top bar 16 px from the top; bottom-left card 340 px (explore) or
+  up to 440 px (tour); frame panel 400 px on the right, from 76 px to 20 px off the bottom.
+- **Content pages:** `s-container`, max 76rem, centred.
 
 ### Whitespace Philosophy
 
-The globe needs room to breathe: never add a third floating card. The camera leaves space on both
-sides for the cards when it flies to a frame (`paddedRectangle`).
+The globe needs room to breathe: never add a third floating card. The camera centres a frame in the
+free band between the left card and the right panel when it flies there (`framedRectangle`).
 
 ## Elevation & Depth
 
-| Level | Use                       | Style                                                                    |
-| ----- | ------------------------- | ------------------------------------------------------------------------ |
-| 0     | Globe                     | Full bleed                                                               |
-| 1     | Floating cards and panels | `bg-slate-950/85 backdrop-blur border-white/10 shadow-2xl rounded-xl`    |
-| 2     | Tooltip, fact card        | `bg-slate-950/85–90 shadow-lg/xl`                                        |
-| 3     | Modal dialog              | Native `<dialog>`, `bg-slate-950`, `backdrop:bg-black/60`, `rounded-2xl` |
+| Level | Use                          | Style                                                 |
+| ----- | ---------------------------- | ----------------------------------------------------- |
+| 0     | Globe                        | Full bleed                                            |
+| 1     | Explorer cards, panel, pills | `glass` + 1 px hairline border, radius 24 (pills 999) |
+| 2     | Tooltip                      | `glass`, mono 11 px, radius 10, follows the cursor    |
 
 ### Decorative Depth
 
-In the app, nothing gets gradients, glows or glass beyond the card blur. The landing's depth lives
-mostly in the WebGL scene (Earth's Fresnel atmosphere, a soft blue halo, a starfield, NISAR's gold
-orbit). On the page itself it allows exactly these: a text shadow on text over the planet or a
-photo, a bottom gradient on event cards, glass on the nav pill, callout and image chips, and a soft
-gold ring on the epicentre marker.
+The landing's depth lives mostly in the WebGL scene (Earth's Fresnel atmosphere, a soft blue halo,
+a starfield, NISAR's gold orbit). Pages allow exactly these: a text shadow on text over the planet
+or a photo, a bottom gradient on event cards, glass on pills, callouts, chips and explorer cards,
+and a soft gold ring on the epicentre marker. No other gradients or glows.
 
 ## Shapes
 
 ### Border Radius Scale
 
-| Radius         | Use                                             |
-| -------------- | ----------------------------------------------- |
-| `rounded`      | Badges                                          |
-| `rounded-md`   | Small buttons, list rows, segments              |
-| `rounded-lg`   | Buttons, inner cards, segmented track           |
-| `rounded-xl`   | Floating cards, content cards                   |
-| `rounded-2xl`  | Dialog                                          |
-| `rounded-full` | Pills (_Did you know?_), severity bars, legends |
+| Radius                     | Use                                       |
+| -------------------------- | ----------------------------------------- |
+| 999                        | Buttons, pills, segmented controls, chips |
+| 24                         | Explorer cards and panel                  |
+| `clamp(14px, 1.6vw, 28px)` | Images and cards on content pages         |
+| 16                         | Callouts, the hazard grid                 |
+| 10–12                      | Tooltip, event rows, formula blocks       |
 
 ### Photography & Illustrations
 
-No stock imagery or illustrations. The only images are Earth itself (Esri imagery) and data layers.
+No stock imagery or illustrations: NASA public-domain pictures on content pages (credited in the
+footer), Esri imagery and data layers in the explorer.
 
 ## Components
 
 ### Top Navigation
 
-Content pages: app name left (link home), text links right (`text-sm text-slate-300`, hover
-white), optional primary button. The explorer has no top bar; its title lives in the control card.
+Content pages: `SiteNav` (wordmark left; Events, Method and a glass "Open the globe" pill right;
+clear over the landing's planet, glass on the method page). Explorer: its own top bar of glass
+pills (wordmark, mode switch, Whole globe, Method).
 
 ### Buttons
 
-- **Primary:** `rounded-lg bg-sky-500 px-4–6 py-2–3 text-slate-950 hover:bg-sky-400`. One per view.
-- **Secondary:** `rounded-lg border border-white/20 px-4 py-2 hover:border-white/40`.
-- **Map button:** floating card style, `text-sm`.
-- **Text button:** `underline` or `text-sky-300 hover:underline` for retry and inline actions.
+- **Primary:** gold pill (`gold` on `gold-ink`, hover `gold-hover`, active `scale(.97)`). One per
+  view.
+- **Secondary:** ghost pill with a hairline border.
+- **Text button:** `muted`, or gold for "Back to tour" and retry-style actions.
 - Every icon-only button has an `aria-label`.
 
 ### Cards & Containers
 
-Floating card (level 1) on the globe; `bg-white/[0.03] border-white/10 rounded-xl p-5–6` on content
-pages. Inset blocks inside a card use `bg-white/5 rounded-lg p-3`.
+Explorer cards and panel: level 1 glass. The panel scrolls inside; sections are split by a
+hairline. Satellite passes and method details fold into `<details>`.
 
 ### Inputs & Forms
 
-Only the dialog checkbox today: native control wrapped in its `<label>`.
+None today beyond buttons.
 
 ### Tags / Badges
 
-`rounded px-1.5 py-0.5 text-xs` with a 20 % tint background and a 300-level text colour (see
-Status). On the landing, data labels are JetBrains Mono chips (`rgba(4,7,14,.6)` + blur, radius 999)
-and the callout's DEMO DATA label is mono in `#fcd34d`.
+JetBrains Mono chips: data labels on `rgba(4,7,14,.6)` + blur; DEMO DATA on the `demo` token.
 
 ### Tab / Filter
 
-`SegmentedControl`: `role="group"` with `aria-pressed` buttons on a `bg-white/5` track; selected is
-`bg-white/10 text-slate-100`. More than three options wrap into a two-column grid.
+`SegmentedControl`: `role="group"` with `aria-pressed` buttons; the picked one is an `ink` pill on
+a faint track. Variants: `pills`, `small` (pass direction), `bar` (glass, the mode switch) and
+`grid` (two columns with colour dots, the hazard picker).
 
 ### CTA / Footer
 
-Landing: gold pill buttons (radius 999, `gold` on `gold-ink`, hover `gold-hover`, active
+Content pages: gold pill buttons (radius 999, `gold` on `gold-ink`, hover `gold-hover`, active
 `scale(.97)`); the nav's "Open the globe" is a glass pill. The page closes with a mono label, "Pick
 any frame." and one gold pill, then a footer with three auto-fit columns (identity, six links,
 "Role: Source" credits) and the picture credits line.
@@ -273,23 +241,35 @@ No Lenis, no idle spin, drift or orbit. The story becomes the hero followed by l
 plain sections over a static globe (clouds at .35, no callout); compare starts at 50; events become
 a native horizontal scroll. This is the layout the E2E tests see.
 
+## Explorer behaviour
+
+- **Real data only for geometry:** frame polygons come from `public/data/frames.json` (the
+  Observation Plan snapshot) and passes from the live Observation Plan API. Only the analysis on
+  top is demo until the pipeline serves it.
+- **Modes:** the intro shows on a first visit (remembered in localStorage); a shared link
+  (`?event=`, `?frame=`) skips it and opens in explore mode. Frames answer the pointer and event
+  markers show only in explore mode. The tour steps with ←/→ and hands over to explore after the
+  last event. Esc closes the panel and zooms out.
+- **Camera:** arrives from deep space (2.4 s, quartic out), spins slowly until the first touch,
+  flies 1.8 s to a frame and then to the analysis area; instant with reduced motion.
+
 ## Do's and Don'ts
 
 ### Do
 
-- Keep colour for data; keep chrome slate.
-- Label anything simulated with the amber **Demo data** / **Demo values** badge.
-- Design every async view's states: loading (skeleton, `motion-safe:animate-pulse`), error with a
+- Keep colour for data and the gold accent; keep chrome ink on deep blue.
+- Label anything simulated with the **Demo data** / **Demo values** chip.
+- Design every async view's states: loading (shimmer, still under reduced motion), error with a
   retry, empty, success.
 - Put shareable state in the URL (`?event=`, `?frame=`, `?hazard=`).
-- Respect `prefers-reduced-motion`: no idle spin, instant camera flights.
+- Respect `prefers-reduced-motion`: no idle spin, instant camera flights, no smooth scroll.
 - Give the camera room for the cards when framing an area.
 
 ### Don't
 
 - Don't use hazard colours for buttons, links or decoration.
 - Don't show a number without its unit and source (ha, cm, dB; which passes).
-- Don't add bold weights, a second font, or Title Case in the app (the landing's type is above).
+- Don't add a third font or Title Case.
 - Don't hide data behind hover only: the events list is the keyboard path into the globe.
 - Don't present demo results or validation figures as real.
 
@@ -297,24 +277,21 @@ a native horizontal scroll. This is the layout the E2E tests see.
 
 ### Breakpoints
 
-Built desktop-first for judging and demos (1280–1920 px). Content pages reflow at `sm` and `md`.
+Built desktop-first for judging and demos (1280–1920 px). Content pages reflow down to 390 px.
+Below 48rem the explorer drops the mode switch, the bottom card spans the width and the panel
+covers the screen when open.
 
 ### Touch Targets
 
 Buttons are at least ~36 px high; `touch-action: manipulation` on controls; pinch zooms the globe.
 
-### Collapsing Strategy
-
-The details panel caps at `max-w-[calc(100vw-2rem)]`. Below ~900 px the two explorer cards overlap
-the globe: see Known Gaps.
-
 ### Image Behavior
 
-Data layers are draped over their lon/lat bounds on the globe and scale with it; no `<img>` tags.
+Data layers are draped over their lon/lat bounds on the globe and scale with it.
 
 ## Iteration Guide
 
-1. Start from an existing component (`SegmentedControl`, floating card, `MethodDetails`) before
+1. Start from an existing component (`SegmentedControl`, glass card, `MapLegend`, `MethodDetails`) before
    creating a new one.
 2. A new hazard only adds an entry in `hazards.ts` (label, colours, copy); the UI must not change.
 3. Check focus, reduced motion and every async state before calling a screen done.
@@ -331,8 +308,7 @@ the HLS/Sentinel-2 optical frame), credited in the footer; motion uses transform
 
 ## Known Gaps
 
-- No mobile layout for the explorer: on narrow screens the control card and details panel should
-  become bottom sheets.
+- The explorer on a phone works but is not designed: the panel should become a bottom sheet.
 - The globe has no keyboard way to pick an arbitrary frame (only featured events); a
   "go to track/frame" search would close it.
 - UI copy is English only.
