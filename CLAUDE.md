@@ -28,8 +28,11 @@ pnpm frames:fetch   # refresh public/data/frames.json from the Observation Plan 
   does not depend on the API being up. Short keys (`t`, `f`, `p`, `x`, `r`) keep it small.
 - **Passes:** fetched live per frame on click (`observationPlanApi.ts`). A pass can list several
   mode codes (`148,212,156`); it is HH+HV when any of them is L-band cross-pol.
-- **Burn analysis:** mocked (`burnAnalysis.ts`) until the NISAC_Data_Lab pipeline has an API.
-  `BurnAnalysis` is the draft contract with the backend; keep the "Mock data" badge until it is real.
+- **Burn analysis:** `analysisApi.ts` calls the pipeline when `VITE_ANALYSIS_API_URL` is set and
+  falls back to demo data otherwise (`features/analysis/mock/`: a seeded, simulated HV scene pair
+  whose image and numbers come from the same field). The contract is
+  `analysis.types.ts` + `docs/analysis-api.md`; change both together. Keep the "Demo data" badge
+  while `isDemo` is true.
 
 ## Code conventions
 
