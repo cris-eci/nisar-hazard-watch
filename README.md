@@ -1,38 +1,47 @@
 <div align="center">
 
+<img src="docs/screenshots/landing-hero.jpg" alt="NISAR Hazard Watch landing page: the headline &quot;Earth, without the clouds.&quot; over a 3D Earth with its cloud cover" width="100%">
+
 # NISAR Hazard Watch
 
-**See how Earth changes, through clouds, smoke and darkness.**
+**Earth, without the clouds.**
 
-NASA-ISRO NISAR radar on an interactive 3D globe: burn scars, floods, forest loss and earthquake
-ground motion, from real satellite passes to maps anyone can read.
+NASA-ISRO NISAR radar sees the ground through cloud, smoke and night. NISAR Hazard Watch turns its
+passes into maps anyone can read: burn scars, floods, forest loss and earthquake ground motion, on
+an interactive 3D globe.
+
+[![Live demo](https://img.shields.io/badge/live%20demo-open%20the%20globe-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app)
+[![Method](https://img.shields.io/badge/method-%26%20validation-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app/method)
 
 [![CI](https://github.com/cris-eci/nisar-hazard-watch/actions/workflows/ci.yml/badge.svg)](https://github.com/cris-eci/nisar-hazard-watch/actions/workflows/ci.yml)
-[![Live demo](https://img.shields.io/badge/demo-live-0ea5e9?logo=vercel&logoColor=white)](https://nisar-hazard-watch.vercel.app)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
 ![CesiumJS](https://img.shields.io/badge/CesiumJS-3D%20globe-6caddf)
+![three.js](https://img.shields.io/badge/three.js-landing%20scene-04070e?logo=threedotjs&logoColor=white)
 ![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-0b3d91)
 
 **[Live demo](https://nisar-hazard-watch.vercel.app)** ·
+**[Guided tour](https://nisar-hazard-watch.vercel.app/explore)** ·
 **[Method & validation](https://nisar-hazard-watch.vercel.app/method)** ·
 **[API contract](docs/analysis-api.md)**
-
-![Coseismic interferogram fringes of the M7.5 Venezuela earthquake on the 3D globe](docs/screenshots/earthquake-fringes.jpg)
 
 </div>
 
 > [!IMPORTANT]
-> **Prototype status.** Everything that says _where_ and _when_ is real NASA, ASF and USGS data.
-> The analysis results (burn maps, flood extents, ground motion, validation figures) are
+> **Prototype status.** Everything that says _where_ and _when_ is real NASA, ASF and USGS data:
+> the 16,663 frame outlines, every satellite pass, the earthquakes and their radar pairs. The
+> analysis drawn on top (burn maps, flood extents, ground motion, validation figures) is
 > **simulated demo data**, labelled **Demo data** in the app, until the
 > [NISAC_Data_Lab](#architecture) pipeline is connected. See [What is real and what is demo](#what-is-real-and-what-is-demo).
 
 ## Contents
 
+- [The story](#the-story)
+- [The explorer](#the-explorer)
+- [Four hazards, one contract](#four-hazards-one-contract)
+- [Method & validation](#method--validation)
 - [Why radar](#why-radar)
 - [Features](#features)
-- [Screenshots](#screenshots)
 - [What is real and what is demo](#what-is-real-and-what-is-demo)
 - [Featured events](#featured-events)
 - [Architecture](#architecture)
@@ -44,6 +53,98 @@ ground motion, from real satellite passes to maps anyone can read.
 - [Roadmap](#roadmap)
 - [Data sources and credits](#data-sources-and-credits)
 
+## The story
+
+The landing page is one scroll over a fixed Earth. The clouds dissolve, NISAR's orbit appears while
+a counter climbs to twelve days, then the planet turns to the M7.5 epicentre in Venezuela and shows
+what two passes can measure.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/landing-orbit.jpg" alt="The planet with NISAR's gold orbit and a counter reading 12 days: every place, every twelve days"></td>
+    <td width="50%"><img src="docs/screenshots/landing-epicentre.jpg" alt="The planet turned to the Venezuela epicentre, a callout showing demo interferogram fringes and 31.3 cm of peak motion"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Every place, every twelve days</b><br><sub>NISAR's orbit and its 12-day repeat cycle</sub></td>
+    <td align="center"><b>Down to the centimetre</b><br><sub>The Venezuela M7.5 epicentre, demo fringes</sub></td>
+  </tr>
+</table>
+
+<img src="docs/screenshots/landing-compare.jpg" alt="Drag-to-compare view of North Dakota farmland: NISAR radar on the left shows every field and gold centre-pivot circles, Sentinel-2 on the right is mostly cloud" width="100%">
+
+<p align="center"><b>Same fields, one day apart.</b> Drag across NISAR radar and a cloudy Sentinel-2 view of North Dakota.<br><sub>NISAR first image (NASA/JPL-Caltech) and NASA HLS (contains modified Copernicus Sentinel-2 data).</sub></p>
+
+## The explorer
+
+A real globe of every NISAR frame. Start with a two-minute guided tour of four events, or explore
+freely: point at any land to see its frame, click to compare its latest two passes.
+
+<img src="docs/screenshots/explorer-tour.jpg" alt="Guided tour on the Venezuela M7.5 earthquake: the real NISAR frame outline in gold, demo line-of-sight displacement lobes on the coast, and the panel with 31.3 cm of peak motion" width="100%">
+
+<p align="center"><b>Guided tour, event 1 of 4:</b> the M7.5 earthquake at Catia La Mar, Venezuela, on its real NISAR frame (track 162 A, frame 7).</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/explorer-intro.jpg" alt="Explorer intro card over the globe: four real events, two minutes, with Start the tour and Explore freely"></td>
+    <td width="50%"><img src="docs/screenshots/explorer-hover.jpg" alt="Explore mode: hovering the globe shows track 47, frame 3, HH+HV, with gold markers on the featured events"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Four real events, two minutes</b><br><sub>The intro on a first visit</sub></td>
+    <td align="center"><b>16,663 frames, hover to inspect</b><br><sub>Real outlines from the NISAR Observation Plan</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/explorer-fringes.jpg" alt="Interferogram fringes of the Venezuela earthquake draped on the globe, one colour cycle per 11.9 cm of motion"></td>
+    <td width="50%"><img src="docs/screenshots/explorer-wildfire.jpg" alt="Burn analysis on track 47, frame 3: severity classes on the globe, hectares by class, and the real pass dates with upcoming passes in gold"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Interferogram fringes</b><br><sub>Count the rings: 11.9 cm of motion each (demo)</sub></td>
+    <td align="center"><b>Burn severity and live passes</b><br><sub>Hectares by class (demo); pass dates from the live plan</sub></td>
+  </tr>
+</table>
+
+## Four hazards, one contract
+
+Two families of analysis share one API contract: **surface change** from GCOV backscatter
+(hectares) and **ground motion** from GUNW interferograms (centimetres). Each hazard is one entry in
+a registry; the UI never hard-codes a hazard.
+
+<table>
+  <tr>
+    <td width="25%"><img src="docs/screenshots/explorer-wildfire.jpg" alt="Wildfire burn severity"></td>
+    <td width="25%"><img src="docs/screenshots/explorer-flood.jpg" alt="Flood extent"></td>
+    <td width="25%"><img src="docs/screenshots/explorer-deforestation.jpg" alt="Forest loss"></td>
+    <td width="25%"><img src="docs/screenshots/explorer-tour.jpg" alt="Earthquake displacement"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Wildfire</b><br><sub>HV drop · burn severity</sub></td>
+    <td align="center"><b>Flood</b><br><sub>HH drop · open water</sub></td>
+    <td align="center"><b>Forest loss</b><br><sub>HV drop · cleared canopy</sub></td>
+    <td align="center"><b>Earthquake</b><br><sub>GUNW · line-of-sight cm</sub></td>
+  </tr>
+</table>
+
+<p align="center"><sub>All four analyses are demo data until the pipeline runs on them; flood and forest loss sit behind the hazard flag.</sub></p>
+
+## Method & validation
+
+Four steps per hazard, told on the explorer's own demo rasters, then how each result is checked
+against independent data.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/method-fringes.jpg" alt="Method step 2 of 4 for earthquakes: convert phase to motion, with fringes beside the displacement map"></td>
+    <td width="50%"><img src="docs/screenshots/method-severity.jpg" alt="Method step 4 of 4 for wildfires: classify, with the severity classes over the after-fire HV image"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Convert phase to motion</b><br><sub>d = −λ / 4π × φ</sub></td>
+    <td align="center"><b>Classify the burn</b><br><sub>≤ −2 · −4 · −6 dB</sub></td>
+  </tr>
+</table>
+
+<img src="docs/screenshots/method-validation.jpg" alt="Validation grid: 87 % of FIRMS detections inside the scar, 0.71 kappa against HLS dNBR, 1.8 cm RMS against GNSS, all labelled demo values" width="100%">
+
+<p align="center"><b>Checked against independent data:</b> NASA FIRMS, HLS dNBR and GNSS stations.<br><sub>Demo values until real runs exist; the comparison method is final.</sub></p>
+
 ## Why radar
 
 |                                   |                                                                                                           |
@@ -54,6 +155,8 @@ ground motion, from real satellite passes to maps anyone can read.
 
 ## Features
 
+- **A scroll-driven landing** over a three.js Earth: the clouds dissolve, the orbit appears, the
+  planet turns to an epicentre; a drag-to-compare radar vs. optical view; reduced motion honoured.
 - **3D globe of all 16,663 NISAR frames.** Hover to find a frame, click to fly to it. Frames come
   from NASA's NISAR Observation Plan and are hit-tested locally, so hovering is instant.
 - **Two families of analysis behind one contract**
@@ -65,24 +168,11 @@ ground motion, from real satellite passes to maps anyone can read.
 - **Satellite passes per frame**, live from the Observation Plan, flagging the HH+HV passes that
   burn mapping needs.
 - **Shareable views**: `/explore?event=venezuela-2026`, `/explore?frame=47-3`.
-- **Guided tour**: an intro card, a step-by-step tour of the featured events, then free
-  exploration; plus a method & validation page.
+- **Guided tour**: an intro card, a step-by-step tour of the featured events (arrow keys work
+  too), then free exploration.
+- **Method & validation page**: the four steps per hazard on the app's own rasters, validation
+  sources and limits.
 - **Multi-hazard feature flag**: `VITE_ENABLED_HAZARDS` turns hazards on and off per deployment.
-
-## Screenshots
-
-|                                                                                        |                                                                                |
-| :------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------: |
-|                     ![Landing page](docs/screenshots/landing.jpg)                      |         ![Welcome dialog over the globe](docs/screenshots/welcome.jpg)         |
-|                                    **Landing page**                                    |                           **Welcome and onboarding**                           |
-|             ![Hovering a NISAR frame](docs/screenshots/explorer-hover.jpg)             |           ![Method and validation page](docs/screenshots/method.jpg)           |
-|                       **16,663 NISAR frames, hover to inspect**                        |                            **Method & validation**                             |
-| ![Earthquake line-of-sight displacement](docs/screenshots/earthquake-displacement.jpg) | ![Earthquake interferometric fringes](docs/screenshots/earthquake-fringes.jpg) |
-|                          **Earthquake: displacement (demo)**                           |                         **Earthquake: fringes (demo)**                         |
-|           ![Wildfire burn severity](docs/screenshots/wildfire-severity.jpg)            |       ![After-fire HV radar image](docs/screenshots/wildfire-after.jpg)        |
-|                           **Wildfire: burn severity (demo)**                           |                    **Wildfire: after-fire HV image (demo)**                    |
-|                      ![Flood extent](docs/screenshots/flood.jpg)                       |               ![Forest loss](docs/screenshots/deforestation.jpg)               |
-|                                **Flood extent (demo)**                                 |                             **Forest loss (demo)**                             |
 
 ## What is real and what is demo
 
@@ -212,7 +302,7 @@ tests/                Unit (Vitest) and E2E (Playwright, page objects)
 - [x] Globe with all NISAR frames and live passes
 - [x] Multi-hazard analysis contract (surface change + ground motion) and feature flag
 - [x] Featured events with real coseismic NISAR pairs
-- [x] Landing, method & validation, onboarding
+- [x] Landing, method & validation and explorer in one visual system (v4), with a guided tour
 - [ ] Real GCOV burn analysis from the pipeline, validated against NASA FIRMS and HLS
 - [ ] Real GUNW ground motion for Kumamoto and Venezuela, validated against GNSS
 - [ ] A real wildfire event inside the NISAR data window
@@ -226,9 +316,9 @@ tests/                Unit (Vitest) and E2E (Playwright, page objects)
 - **NASA NISAR Observation Plan** (frames and planned passes).
 - **USGS** [earthquake catalogue](https://earthquake.usgs.gov/earthquakes/search/).
 - **NASA FIRMS** and **HLS** (planned validation sources).
-- Landing pictures, all public domain: NISAR's first image of North Dakota and the reflector
-  deployment (NASA/JPL-Caltech), the NISAR eruption time-lapse (NASA Scientific Visualization
-  Studio), Blue Marble and cloud imagery (NASA Visible Earth), via Wikimedia Commons and NASA.
+- Landing pictures, all public domain: NISAR's first image of North Dakota and the artist's
+  concept of NISAR (NASA/JPL-Caltech); Blue Marble and cloud imagery (NASA Visible Earth). Optical
+  view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via NASA Worldview.
 - Base imagery © Esri, Maxar, Earthstar Geographics. Globe by [CesiumJS](https://cesium.com/platform/cesiumjs/).
 
 Built for the **NASA International Space Apps Challenge 2026** (_NISAR surface change_ challenge).
