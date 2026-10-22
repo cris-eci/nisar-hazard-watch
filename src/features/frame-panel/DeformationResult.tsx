@@ -29,7 +29,7 @@ export const DeformationResult = ({ analysis, onOverlayChange }: DeformationResu
 
   return (
     <>
-      <p data-testid="max-displacement" className="mt-3 text-3xl">
+      <p data-testid="max-displacement" className="mt-3 text-3xl tabular-nums">
         {analysis.maxTowardCm} cm
       </p>
       <p className="text-sm text-slate-400">

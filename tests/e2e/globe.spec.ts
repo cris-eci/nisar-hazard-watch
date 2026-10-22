@@ -75,6 +75,16 @@ test.describe("Globe frame explorer", () => {
     await expect(globe.panelTitle).toHaveText(CENTER_FRAME.title);
   });
 
+  test("a shared link keeps the hazard", async ({ page }) => {
+    await globe.mockObservationPlan();
+    await globe.goto(`?frame=${CENTER_FRAME.id}&hazard=flood`);
+    await expect(globe.analysisCard).toContainText("Flood analysis");
+
+    await page.getByTestId("hazard-wildfire").click();
+    await expect(page).not.toHaveURL(/hazard=/);
+    await expect(page).toHaveURL(new RegExp(`frame=${CENTER_FRAME.id}`));
+  });
+
   test("a failed plan request shows an error with retry", async () => {
     await globe.mockObservationPlan({ status: 500 });
     await globe.goto(`?frame=${CENTER_FRAME.id}`);

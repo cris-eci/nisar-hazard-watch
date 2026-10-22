@@ -45,7 +45,7 @@ export const FramePanel = ({
     <aside
       data-testid="frame-panel"
       aria-labelledby="frame-panel-title"
-      className="absolute top-4 right-4 bottom-4 flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-5 overflow-y-auto rounded-xl border border-white/10 bg-slate-950/85 p-5 text-slate-100 shadow-2xl backdrop-blur"
+      className="absolute top-4 right-4 bottom-4 flex w-96 max-w-[calc(100vw-2rem)] flex-col gap-5 overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-slate-950/85 p-5 text-slate-100 shadow-2xl backdrop-blur"
     >
       <header className="flex items-start justify-between gap-3">
         <div>

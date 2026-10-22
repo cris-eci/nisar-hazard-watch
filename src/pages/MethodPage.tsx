@@ -101,6 +101,12 @@ const Steps = ({ steps }: { steps: Step[] }) => (
 
 export const MethodPage = () => (
   <div className="min-h-dvh bg-slate-950 text-slate-100">
+    <a
+      href="#main"
+      className="sr-only rounded-md bg-sky-500 px-4 py-2 text-slate-950 focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-10"
+    >
+      Skip to content
+    </a>
     <nav className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
       <Link to="/" className="text-lg hover:text-sky-300">
         {APP_NAME}
@@ -113,7 +119,7 @@ export const MethodPage = () => (
       </Link>
     </nav>
 
-    <main className="mx-auto max-w-5xl px-6 pb-20">
+    <main id="main" className="mx-auto max-w-5xl px-6 pb-20">
       <h1 className="mt-8 text-4xl">Method &amp; validation</h1>
       <p className="mt-4 max-w-3xl text-lg text-slate-300">
         How a pair of NISAR radar passes becomes a map, and how we check that the map is right.

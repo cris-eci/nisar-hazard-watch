@@ -32,6 +32,12 @@ const Badge = ({ children }: { children: ReactNode }) => (
 
 export const LandingPage = () => (
   <div className="min-h-dvh bg-slate-950 text-slate-100">
+    <a
+      href="#main"
+      className="sr-only rounded-md bg-sky-500 px-4 py-2 text-slate-950 focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-10"
+    >
+      Skip to content
+    </a>
     <header className="relative overflow-hidden">
       <div
         aria-hidden="true"
@@ -49,7 +55,7 @@ export const LandingPage = () => (
         </div>
       </nav>
 
-      <div className="relative mx-auto max-w-4xl px-6 pt-16 pb-24 text-center">
+      <div id="main" className="relative mx-auto max-w-4xl px-6 pt-16 pb-24 text-center">
         <div className="flex flex-wrap justify-center gap-2">
           <Badge>NASA-ISRO NISAR · L-band radar</Badge>
           <Badge>Data: ASF DAAC</Badge>
@@ -92,57 +98,59 @@ export const LandingPage = () => (
       </div>
     </header>
 
-    <section className="mx-auto max-w-6xl px-6 py-16">
-      <h2 className="text-2xl">Why radar</h2>
-      <div className="mt-6 grid gap-4 md:grid-cols-3">
-        {WHY_RADAR.map(({ title, body }) => (
-          <article key={title} className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
-            <h3 className="text-lg">{title}</h3>
-            <p className="mt-2 text-slate-400">{body}</p>
-          </article>
-        ))}
-      </div>
-    </section>
+    <main>
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <h2 className="text-2xl">Why radar</h2>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {WHY_RADAR.map(({ title, body }) => (
+            <article key={title} className="rounded-xl border border-white/10 bg-white/[0.03] p-6">
+              <h3 className="text-lg">{title}</h3>
+              <p className="mt-2 text-slate-400">{body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-    <section className="mx-auto max-w-6xl px-6 py-16">
-      <h2 className="text-2xl">Featured events</h2>
-      <p className="mt-2 text-slate-400">
-        Real events with real NISAR passes before and after. Open one to fly there.
-      </p>
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        {events.map((event) => (
-          <Link
-            key={event.id}
-            to={`/explore?event=${event.id}`}
-            className="block rounded-xl border border-white/10 bg-white/[0.03] p-6 hover:border-white/30"
-          >
-            <p className="text-xs tracking-wide text-slate-500 uppercase">
-              {event.date} · {event.place}
-            </p>
-            <h3 className="mt-1 text-lg">{event.title}</h3>
-            <p className="mt-2 text-slate-400">{event.summary}</p>
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <h2 className="text-2xl">Featured events</h2>
+        <p className="mt-2 text-slate-400">
+          Real events with real NISAR passes before and after. Open one to fly there.
+        </p>
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          {events.map((event) => (
+            <Link
+              key={event.id}
+              to={`/explore?event=${event.id}`}
+              className="block rounded-xl border border-white/10 bg-white/[0.03] p-6 hover:border-white/30"
+            >
+              <p className="text-xs tracking-wide text-slate-500 uppercase">
+                {event.date} · {event.place}
+              </p>
+              <h3 className="mt-1 text-lg">{event.title}</h3>
+              <p className="mt-2 text-slate-400">{event.summary}</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 py-16">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-sky-500/10 to-orange-500/10 p-8">
+          <h2 className="text-2xl">Validated, not just visualised</h2>
+          <p className="mt-2 max-w-3xl text-slate-300">
+            Each map is checked against an independent source: burn scars against NASA FIRMS fire
+            detections and optical burn indices
+            {hasDeformation ? ", ground motion against GNSS stations" : ""}.
+          </p>
+          <p className="mt-2 text-sm text-amber-300">
+            Prototype: validation figures are demo values until the pipeline runs on the featured
+            events.
+          </p>
+          <Link to="/method" className="mt-4 inline-block text-sky-300 hover:underline">
+            Read the method and validation →
           </Link>
-        ))}
-      </div>
-    </section>
-
-    <section className="mx-auto max-w-6xl px-6 py-16">
-      <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-sky-500/10 to-orange-500/10 p-8">
-        <h2 className="text-2xl">Validated, not just visualised</h2>
-        <p className="mt-2 max-w-3xl text-slate-300">
-          Each map is checked against an independent source: burn scars against NASA FIRMS fire
-          detections and optical burn indices
-          {hasDeformation ? ", ground motion against GNSS stations" : ""}.
-        </p>
-        <p className="mt-2 text-sm text-amber-300">
-          Prototype: validation figures are demo values until the pipeline runs on the featured
-          events.
-        </p>
-        <Link to="/method" className="mt-4 inline-block text-sky-300 hover:underline">
-          Read the method and validation →
-        </Link>
-      </div>
-    </section>
+        </div>
+      </section>
+    </main>
 
     <footer className="border-t border-white/10">
       <div className="mx-auto max-w-6xl px-6 py-8 text-sm text-slate-500">

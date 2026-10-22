@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { HazardId } from "@/features/analysis/analysis.types";
 import { ENABLED_HAZARDS, HAZARDS } from "@/features/analysis/hazards";
@@ -23,19 +23,36 @@ const today = new Date().toISOString().slice(0, 10);
 const enabledIds = new Set<HazardId>(ENABLED_HAZARDS.map(({ id }) => id));
 const VISIBLE_EVENTS = FEATURED_EVENTS.filter(({ hazard }) => enabledIds.has(hazard));
 
-// The view lives in the URL (?event=id or ?frame=track-frame) so it can be shared.
+const DEFAULT_HAZARD = ENABLED_HAZARDS[0].id;
+const isEnabledHazard = (id: string | null): id is HazardId =>
+  id !== null && enabledIds.has(id as HazardId);
+
+// The view lives in the URL (?event=id, or ?frame=track-frame&hazard=id) so it can be shared.
 const readParams = () => {
   const params = new URLSearchParams(window.location.search);
   const event = findEvent(params.get("event"));
-  return event !== undefined && enabledIds.has(event.hazard)
-    ? { event, frameId: event.frameId }
-    : { event: undefined, frameId: params.get("frame") };
+  if (event !== undefined && enabledIds.has(event.hazard)) {
+    return { event, frameId: event.frameId, hazard: event.hazard };
+  }
+  const hazard = params.get("hazard");
+  return {
+    event: undefined,
+    frameId: params.get("frame"),
+    hazard: isEnabledHazard(hazard) ? hazard : DEFAULT_HAZARD,
+  };
 };
 
-const writeParams = (params: { event?: string; frame?: string }): void => {
-  const url = new URL(window.location.href);
-  url.search = new URLSearchParams(params).toString();
-  window.history.replaceState(null, "", url);
+// An event implies its frame and hazard; the default hazard is left out to keep links short.
+const viewParams = (
+  event: FeaturedEvent | undefined,
+  frameId: string | null,
+  hazard: HazardId,
+): Record<string, string> => {
+  if (event !== undefined) return { event: event.id };
+  return {
+    ...(frameId !== null && { frame: frameId }),
+    ...(hazard !== DEFAULT_HAZARD && { hazard }),
+  };
 };
 
 export const ExplorerPage = () => {
@@ -46,9 +63,13 @@ export const ExplorerPage = () => {
   const [selectedId, setSelectedId] = useState(initial.frameId);
   const [event, setEvent] = useState<FeaturedEvent | undefined>(initial.event);
   const [overlay, setOverlay] = useState<GlobeOverlay>();
-  const [hazardId, setHazardId] = useState<HazardId>(
-    initial.event?.hazard ?? ENABLED_HAZARDS[0].id,
-  );
+  const [hazardId, setHazardId] = useState<HazardId>(initial.hazard);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.search = new URLSearchParams(viewParams(event, selectedId, hazardId)).toString();
+    window.history.replaceState(null, "", url);
+  }, [event, selectedId, hazardId]);
 
   const frames = framesState?.status === "success" ? framesState.data : NO_FRAMES;
   const selectedFrame = useMemo(
@@ -60,7 +81,6 @@ export const ExplorerPage = () => {
   const select = useCallback((frame: Frame | undefined) => {
     setSelectedId(frame?.id ?? null);
     setEvent(undefined);
-    writeParams(frame === undefined ? {} : { frame: frame.id });
   }, []);
   const closePanel = useCallback(() => select(undefined), [select]);
 
@@ -69,16 +89,12 @@ export const ExplorerPage = () => {
     setHazardId(next.hazard);
     setChosenPass(undefined);
     setSelectedId(next.frameId);
-    writeParams({ event: next.id });
   }, []);
 
   const changeHazard = (next: HazardId) => {
     setHazardId(next);
     // An event belongs to one hazard; keep the frame but drop the event context.
-    if (event !== undefined && event.hazard !== next) {
-      setEvent(undefined);
-      if (selectedId !== null) writeParams({ frame: selectedId });
-    }
+    if (event !== undefined && event.hazard !== next) setEvent(undefined);
   };
 
   const startTour = () => {
@@ -97,7 +113,7 @@ export const ExplorerPage = () => {
         onShowWholeGlobe={closePanel}
       />
 
-      <div className="absolute top-4 bottom-24 left-4 w-80 [scrollbar-width:thin] overflow-y-auto rounded-xl border border-white/10 bg-slate-950/85 p-4 text-slate-100 shadow-2xl backdrop-blur">
+      <div className="absolute top-4 bottom-24 left-4 w-80 [scrollbar-width:thin] overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-slate-950/85 p-4 text-slate-100 shadow-2xl backdrop-blur">
         <div className="flex items-baseline justify-between">
           <h1 className="text-lg">
             <Link to="/" className="hover:text-sky-300">

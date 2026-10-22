@@ -46,7 +46,7 @@ export const WelcomeDialog = ({ appName, onStartTour }: WelcomeDialogProps) => {
       data-testid="welcome-dialog"
       aria-labelledby="welcome-title"
       onCancel={close}
-      className="m-auto max-w-xl rounded-2xl border border-white/10 bg-slate-950 p-8 text-slate-100 shadow-2xl backdrop:bg-black/60"
+      className="m-auto max-w-xl overscroll-contain rounded-2xl border border-white/10 bg-slate-950 p-8 text-slate-100 shadow-2xl backdrop:bg-black/60"
     >
       <h2 id="welcome-title" className="text-2xl">
         Welcome to {appName}

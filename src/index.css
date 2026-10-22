@@ -10,6 +10,27 @@ body,
   color-scheme: dark;
 }
 
+@layer base {
+  /* One visible focus ring for every control, keyboard only (no ring on mouse click). */
+  :focus-visible {
+    outline: 2px solid var(--color-sky-400);
+    outline-offset: 2px;
+  }
+
+  /* Removes the double-tap zoom delay on touch screens. */
+  a,
+  button,
+  label {
+    touch-action: manipulation;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+}
+
 /* Cesium credits sit under the left card otherwise. */
 .cesium-viewer-bottom {
   left: auto !important;

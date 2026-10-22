@@ -43,7 +43,7 @@ export const ChangeResult = ({ hazard, analysis, onOverlayChange }: ChangeResult
 
   return (
     <>
-      <p data-testid="affected-area" className="mt-3 text-3xl">
+      <p data-testid="affected-area" className="mt-3 text-3xl tabular-nums">
         {formatHa(analysis.affectedAreaHa)}
       </p>
       <p className="text-sm text-slate-400">
@@ -58,7 +58,7 @@ export const ChangeResult = ({ hazard, analysis, onOverlayChange }: ChangeResult
           />
         ))}
       </div>
-      <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
+      <dl className="mt-2 grid grid-cols-3 gap-2 text-xs tabular-nums">
         {SEVERITY_LEVELS.map(({ key, label }) => (
           <div key={key}>
             <dt style={{ color: hazard.severityColors[key] }}>{label}</dt>

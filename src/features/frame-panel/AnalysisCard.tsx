@@ -97,8 +97,8 @@ export const AnalysisCard = ({
               ? "Unwrapping the interferogram between both passes…"
               : `Comparing ${polarizationShort(hazard.polarization)} backscatter between both passes…`}
           </p>
-          <div className="h-8 w-40 animate-pulse rounded bg-white/10" />
-          <div className="h-2 animate-pulse rounded-full bg-white/10" />
+          <div className="h-8 w-40 rounded bg-white/10 motion-safe:animate-pulse" />
+          <div className="h-2 rounded-full bg-white/10 motion-safe:animate-pulse" />
         </div>
       )}
 

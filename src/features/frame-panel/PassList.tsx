@@ -10,7 +10,9 @@ const PassRows = ({ items }: { items: Acquisition[] }) => (
   <ul className="mt-1 divide-y divide-white/5">
     {items.map(({ date, hasCrossPol }) => (
       <li key={date} className="flex items-center justify-between py-1.5 text-sm">
-        <time dateTime={date}>{date}</time>
+        <time className="tabular-nums" dateTime={date}>
+          {date}
+        </time>
         <CrossPolBadge hasCrossPol={hasCrossPol} />
       </li>
     ))}
