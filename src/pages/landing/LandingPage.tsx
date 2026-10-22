@@ -1,427 +1,411 @@
 import "@/pages/landing/landing.css";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
+import {
+  generateDeformationField,
+  summarizeDeformation,
+} from "@/features/analysis/mock/deformationField";
+import { fringeColor } from "@/features/analysis/mock/mockDeformation";
+import { toPngUrl } from "@/features/analysis/mock/png";
+import { GRID_SIZE } from "@/features/analysis/mock/scarField";
 import { FEATURED_EVENTS } from "@/features/events/events";
 import { Link } from "@/lib/Link";
-import { EarthHero } from "@/pages/landing/EarthHero";
+import { CompareSlider } from "@/pages/landing/CompareSlider";
+import { EarthHero, type EarthControls, type Project } from "@/pages/landing/EarthHero";
+import { facingRotation, lonLatToVec } from "@/pages/landing/geo";
 import { prefersReducedMotion, useLandingMotion } from "@/pages/landing/useLandingMotion";
 
 const reducedMotion = prefersReducedMotion();
 
-type Mode = "optical" | "radar";
+const STORY_EVENT_ID = "venezuela-2026";
+const storyEvent = FEATURED_EVENTS.find(({ id }) => id === STORY_EVENT_ID);
+const STORY_FOCUS = storyEvent?.focus ?? [-67.221, 10.595];
+// The explorer's demo seed for this event (hazard:frame:before:after), so both pages show one value.
+const STORY_SEED = "earthquake:162-7:2026-06-13:2026-06-25";
 
-const SHOWCASE: Record<Mode, { heading: string; image: string; alt: string; caption: string }> = {
-  optical: {
-    heading: "Cloud hides the ground",
-    image: "/landing/optical-north-dakota.jpg",
-    alt: "Sentinel-2 view of farmland along the Forest River, North Dakota, mostly hidden under cumulus cloud",
-    caption:
-      "Sentinel-2, 24 August 2025. Farmland along the Forest River, North Dakota, almost all of it under cloud.",
-  },
-  radar: {
-    heading: "Radar sees the ground",
-    image: "/landing/radar-north-dakota.jpg",
-    alt: "NISAR radar image of the same North Dakota farmland, every field visible, with NASA's labels for corn, wetlands and centre-pivot fields",
-    caption:
-      "NISAR, 23 August 2025. The same farmland, every field readable; centre-pivot fields show as gold circles. Labels by NASA.",
-  },
-};
+const HOME = facingRotation(-74, 4); // Colombia
+const TARGET = facingRotation(STORY_FOCUS[0], STORY_FOCUS[1]);
+const MARKER = lonLatToVec(STORY_FOCUS[0], STORY_FOCUS[1], 1.003);
 
-type SlipGroup = { heading: string; rows: { what: string; when: string }[] };
+const CALLOUT_INSET = 16;
 
-const SLIP: SlipGroup[] = [
-  {
-    heading: "In orbit",
-    rows: [
-      { what: "First pass, the before image", when: "Day 0" },
-      { what: "NISAR returns to the same frame", when: "Day 12" },
-    ],
-  },
-  {
-    heading: "On the ground",
-    rows: [
-      { what: "ASF publishes the radar products", when: "A few days" },
-      { what: "The pipeline compares both passes", when: "Minutes" },
-    ],
-  },
-  {
-    heading: "On your screen",
-    rows: [{ what: "The change is drawn on the globe", when: "Seconds" }],
-  },
+const initialControls = (): EarthControls => ({
+  offX: 0,
+  offY: -0.56,
+  z: 3.6,
+  rx: HOME.x + 0.25,
+  ry: HOME.y,
+  ring: 0,
+  drift: 1,
+  callout: 0,
+});
+
+const STEPS: { when: string; what: string }[] = [
+  { when: "Day 0", what: "First pass, the before image" },
+  { when: "Day 12", what: "NISAR returns to the same frame" },
+  { when: "A few days", what: "ASF publishes the radar products" },
+  { when: "Minutes", what: "The pipeline compares both passes" },
+  { when: "Seconds", what: "The change is drawn on the globe" },
 ];
 
-const EVENT_LINES: Record<string, { name: string; detail: string }> = {
-  "venezuela-2026": { name: "Venezuela", detail: "M7.5, 24 June 2026" },
-  "kumamoto-2026": { name: "Kumamoto", detail: "M6.8, 28 July 2026" },
-  "panama-2026": { name: "Panama", detail: "M7.7, 9 October 2026" },
-  "andes-fire-demo": { name: "Andes fire", detail: "Demo site" },
+const EVENT_LINES: Record<string, { name: string; meta: string }> = {
+  "venezuela-2026": { name: "Venezuela", meta: "M7.5 · 2026-06-24 · TRACK 162 A" },
+  "kumamoto-2026": { name: "Kumamoto, Japan", meta: "M6.8 · 2026-07-28 · TRACK 24 A" },
+  "panama-2026": { name: "Pitaloza Arriba, Panama", meta: "M7.7 · 2026-10-09 · TRACK 76 A" },
+  "andes-fire-demo": { name: "Colombian Andes", meta: "WILDFIRE · DEMO SITE · TRACK 47 A" },
 };
+
+const MISSION: { heading: string; body: string }[] = [
+  {
+    heading: "Two radars, one mission",
+    body: "NISAR carries an L-band radar built by NASA's JPL and an S-band radar from ISRO. It launched from Sriharikota on 30 July 2025.",
+  },
+  {
+    heading: "A dish the width of a house",
+    body: "Its 12 m reflector of gold-plated wire mesh unfolded in orbit in August 2025. It focuses the radar on a strip of ground about 240 km wide.",
+  },
+  {
+    heading: "Open data, every pass",
+    body: "Every product goes to NASA's archive at the Alaska Satellite Facility, free for anyone. NISAR Hazard Watch reads that archive and turns it into maps.",
+  },
+];
 
 const CREDITS: { role: string; name: string; href: string }[] = [
   {
-    role: "Radar satellite",
-    name: "NISAR, by NASA JPL and ISRO",
-    href: "https://science.nasa.gov/mission/nisar/",
-  },
-  {
     role: "Frames and passes",
-    name: "NISAR Observation Plan API",
+    name: "NISAR Observation Plan",
     href: "https://nisar.jpl.nasa.gov/mission/get-to-know-sar/observation-plan/",
   },
-  {
-    role: "Radar products",
-    name: "Alaska Satellite Facility DAAC",
-    href: "https://search.asf.alaska.edu/",
-  },
+  { role: "Radar products", name: "ASF DAAC", href: "https://search.asf.alaska.edu/" },
   {
     role: "Earthquakes",
-    name: "USGS earthquake catalogue",
+    name: "USGS catalogue",
     href: "https://earthquake.usgs.gov/earthquakes/search/",
   },
+  { role: "Optical", name: "NASA HLS / Sentinel-2", href: "https://hls.gsfc.nasa.gov/" },
   {
-    role: "Optical comparison",
-    name: "NASA HLS, from Copernicus Sentinel-2",
-    href: "https://hls.gsfc.nasa.gov/",
-  },
-  {
-    role: "Earth and clouds",
+    role: "Earth",
     name: "NASA Blue Marble",
     href: "https://visibleearth.nasa.gov/collection/1484/blue-marble",
   },
-  {
-    role: "Eruption time-lapse",
-    name: "NASA Scientific Visualization Studio",
-    href: "https://svs.gsfc.nasa.gov/",
-  },
-  {
-    role: "Globe engine",
-    name: "CesiumJS, open source",
-    href: "https://cesium.com/platform/cesiumjs/",
-  },
+  { role: "Globe", name: "CesiumJS", href: "https://cesium.com/platform/cesiumjs/" },
 ];
+
+type DemoFringes = { url: string; maxTowardCm: number };
+
+// The 256² field takes a moment, so it waits until the browser is idle after the first paint.
+const useDemoFringes = (): DemoFringes | undefined => {
+  const [fringes, setFringes] = useState<DemoFringes>();
+  useEffect(() => {
+    const build = () => {
+      const field = generateDeformationField(STORY_SEED, GRID_SIZE);
+      // Pixel area only scales the deformed-area figure, which the callout does not show.
+      const { maxTowardCm } = summarizeDeformation(field, 0);
+      const url = toPngUrl(GRID_SIZE, (i) => fringeColor(field.losCm[i] ?? 0));
+      setFringes({ url, maxTowardCm });
+    };
+    if ("requestIdleCallback" in window) {
+      const id = window.requestIdleCallback(build, { timeout: 2000 });
+      return () => window.cancelIdleCallback(id);
+    }
+    const id = setTimeout(build, 200);
+    return () => clearTimeout(id);
+  }, []);
+  return fringes;
+};
 
 export const LandingPage = () => {
   const root = useRef<HTMLDivElement>(null);
+  const callout = useRef<HTMLDivElement>(null);
   const cloudCover = useRef(1);
+  const controls = useRef<EarthControls>(initialControls());
   const setCloudCover = useCallback((value: number) => {
     cloudCover.current = value;
   }, []);
-  const [mode, setMode] = useState<Mode>("optical");
-  const [previewId, setPreviewId] = useState<string>();
-  useLandingMotion(root, setCloudCover);
+  const fringes = useDemoFringes();
+  useLandingMotion(root, { controls, setCloudCover, home: HOME, target: TARGET });
+
+  // Moves the callout every frame with a transform, never through React state. The card slides
+  // sideways to stay on screen; the marker stays on the epicentre.
+  const followEpicentre = useCallback((project: Project, c: EarthControls) => {
+    const element = callout.current;
+    const card = element?.lastElementChild;
+    if (element === null || !(card instanceof HTMLElement)) return;
+    const { x, y } = project(MARKER);
+    const left = x + card.offsetLeft;
+    const max = window.innerWidth - CALLOUT_INSET - card.offsetWidth;
+    const shift = Math.max(CALLOUT_INSET, Math.min(max, left)) - left;
+    element.style.transform = `translate(${x}px, ${y}px)`;
+    element.style.opacity = String(c.callout);
+    card.style.translate = `${shift}px 0`;
+  }, []);
 
   const events = FEATURED_EVENTS.filter(({ id }) => id in EVENT_LINES);
 
   return (
-    <div ref={root} className="landing">
+    <div ref={root} className="landing" data-motion={reducedMotion ? "reduced" : "full"}>
       <a href="#main" className="l-skip">
         Skip to content
       </a>
 
-      <header className="l-hero">
-        <nav className="l-nav l-frame" aria-label="Main">
-          <Link to="/" className="l-nav__mark">
-            NISAR Hazard Watch
+      <nav className="l-nav" aria-label="Main">
+        <Link to="/" className="l-nav__mark">
+          NISAR Hazard Watch
+        </Link>
+        <div className="l-nav__links">
+          <a href="#events" className="l-nav__link">
+            Events
+          </a>
+          <Link to="/method" className="l-nav__link">
+            Method
           </Link>
-          <div className="l-nav__links">
-            <a href="#events" className="l-nav__link l-nav__link--secondary">
-              Events
-            </a>
-            <Link to="/method" className="l-nav__link l-nav__link--secondary">
-              Method
-            </Link>
-            <Link to="/explore" className="l-button l-button--ghost" testId="nav-explore">
-              Open the globe
-            </Link>
-          </div>
-        </nav>
-
-        <EarthHero cloudCover={cloudCover} reducedMotion={reducedMotion} />
-
-        <div id="main" className="l-hero__copy l-frame">
-          <h1 className="l-hero__title">Earth, without the clouds</h1>
-          <p className="l-hero__lead" data-reveal>
-            NISAR Hazard Watch turns NASA-ISRO radar passes into maps of burn scars, floods and
-            moving ground, through cloud, smoke and night.
-          </p>
-          <div className="l-hero__action" data-reveal>
-            <Link to="/explore" className="l-button" testId="cta-explore">
-              Open the globe
-            </Link>
-          </div>
+          <Link to="/explore" className="l-nav__pill" testId="nav-explore">
+            Open the globe
+          </Link>
         </div>
-      </header>
+      </nav>
 
-      <main>
-        <section className="l-figure l-frame" data-section aria-labelledby="figure-heading">
-          <h2 id="figure-heading" className="l-figure__claim" data-reveal>
-            Every place, every twelve days
-          </h2>
-          <p className="l-figure__number" data-reveal>
-            12<span className="l-figure__unit">days</span>
-          </p>
-          <div className="l-figure__notes" data-reveal>
-            <p>
-              NISAR maps almost all of Earth&apos;s land and ice on a twelve-day cycle, day or
-              night, so every frame on the globe gets a fresh before and after.
-            </p>
-            <p className="l-figure__source">From 747 km up, on a sun-synchronous orbit.</p>
-          </div>
-        </section>
-
-        <section
-          className="l-screen l-frame"
-          data-mode={mode}
-          data-section
-          aria-labelledby="showcase-heading"
-        >
-          <div className="l-screen__head">
-            <div>
-              <h2 id="showcase-heading" className="l-heading" data-reveal aria-live="polite">
-                {SHOWCASE[mode].heading}
-              </h2>
-              <p className="l-screen__lead" data-reveal>
-                Flip the switch. An optical satellite saw cloud over these fields; a day earlier,
-                NISAR&apos;s 24 cm radar waves went straight through to the ground.
-              </p>
-            </div>
-            <div className="l-switch" role="group" aria-label="Satellite view" data-reveal>
-              {(["optical", "radar"] as const).map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  aria-pressed={mode === key}
-                  onClick={() => setMode(key)}
-                  data-testid={`view-${key}`}
-                >
-                  {key === "optical" ? "Optical" : "Radar"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <figure className="l-screen__frame" data-reveal>
-            <img
-              className="l-screen__optical"
-              src={SHOWCASE.optical.image}
-              alt={mode === "optical" ? SHOWCASE.optical.alt : ""}
-              aria-hidden={mode !== "optical"}
-              width={1580}
-              height={851}
+      <main id="main">
+        <section className="l-story" aria-label="What NISAR sees">
+          <div className="l-story__stage">
+            <EarthHero
+              cloudCover={cloudCover}
+              controls={controls}
+              onFrame={followEpicentre}
+              reducedMotion={reducedMotion}
             />
-            <img
-              className="l-screen__radar"
-              src={SHOWCASE.radar.image}
-              alt={mode === "radar" ? SHOWCASE.radar.alt : ""}
-              aria-hidden={mode !== "radar"}
-              width={2048}
-              height={1103}
-            />
-          </figure>
-          <p className="l-screen__caption">{SHOWCASE[mode].caption}</p>
-        </section>
 
-        <section className="l-stages" data-section aria-labelledby="stages-heading">
-          <div className="l-stages__inner l-frame">
-            <div className="l-stages__copy">
-              <h2 id="stages-heading" className="l-heading" data-reveal>
-                From orbit to your map
-              </h2>
-              <p data-reveal>
-                A change map needs two radar passes over the same ground. Most of the wait is the
-                satellite coming back around; once both passes are on the archive, the rest takes
-                minutes.
+            <header className="l-layer l-layer--hero" data-layer="hero">
+              <h1 className="l-display" data-intro>
+                Earth, without the clouds.
+              </h1>
+              <p className="l-hero__lead" data-intro>
+                NISAR Hazard Watch turns NASA-ISRO radar passes into maps of burn scars, floods and
+                moving ground, through cloud, smoke and night.
               </p>
-            </div>
-            <div className="l-slip" data-reveal>
-              {SLIP.map(({ heading, rows }) => (
-                <div key={heading} className="l-slip__group">
-                  <h3>{heading}</h3>
-                  <dl>
-                    {rows.map(({ what, when }) => (
-                      <div key={what} className="l-slip__row">
-                        <dt>{what}</dt>
-                        <dd>{when}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              ))}
-              <p className="l-slip__total">
-                <span>A map of what changed</span>
-                <span>About two weeks</span>
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section className="l-about" data-section aria-labelledby="about-heading">
-          <div className="l-about__panel">
-            <div className="l-about__left">
-              <h2 id="about-heading" className="l-heading" data-reveal>
-                Twelve metres of gold mesh
-              </h2>
-              <figure className="l-about__figure" data-reveal>
-                <img
-                  src="/landing/nisar-concept.jpg"
-                  alt="Artist's concept of NISAR above Earth, its 12 m gold mesh reflector open on a long boom"
-                  width={1280}
-                  height={989}
-                />
-              </figure>
-            </div>
-            <div className="l-about__text">
-              <div data-reveal>
-                <h3>Two radars, one mission</h3>
-                <p>
-                  NISAR carries an L-band radar built by NASA&apos;s JPL and an S-band radar from
-                  ISRO. It launched from Sriharikota on 30 July 2025.
-                </p>
-              </div>
-              <div data-reveal>
-                <h3>A dish the width of a house</h3>
-                <p>
-                  Its 12 m reflector of gold-plated wire mesh unfolded in orbit in August 2025. It
-                  focuses the radar on a strip of ground about 240 km wide.
-                </p>
-              </div>
-              <div data-reveal>
-                <h3>Open data, every pass</h3>
-                <p>
-                  Every product goes to NASA&apos;s archive at the Alaska Satellite Facility, free
-                  for anyone. NISAR Hazard Watch reads that archive and turns it into maps.
-                </p>
-              </div>
-              <div data-reveal>
-                <Link to="/method" className="l-button">
-                  How it is computed
+              <div className="l-hero__actions" data-intro>
+                <Link to="/explore" className="l-button" testId="cta-explore">
+                  Open the globe
                 </Link>
+                <a href="#compare" className="l-hero__more">
+                  See through the clouds ↓
+                </a>
               </div>
-              <p className="l-about__caption">Artist&apos;s concept, NASA/JPL-Caltech.</p>
+            </header>
+
+            <div className="l-layer l-layer--a" data-layer="a">
+              <p className="l-mono-label">L-BAND · 24 CM WAVELENGTH</p>
+              <h2 className="l-head l-layer__head--a">Radar brings its own light.</h2>
+              <p className="l-layer__body l-layer__body--a">
+                So NISAR sees the ground at night and through clouds and smoke.
+              </p>
+            </div>
+
+            <div className="l-layer l-layer--side l-layer--b" data-layer="b">
+              <p className="l-counter">
+                <span data-count>{reducedMotion ? 12 : 0}</span>
+                <span className="l-counter__unit">days</span>
+              </p>
+              <h2 className="l-subhead">Every place, every twelve days.</h2>
+              <p className="l-layer__body">
+                NISAR maps almost all of Earth&apos;s land and ice on a twelve-day cycle, day or
+                night, from 747 km up.
+              </p>
+            </div>
+
+            <div className="l-layer l-layer--side l-layer--c" data-layer="c">
+              <h2 className="l-head">Down to the centimetre.</h2>
+              <p className="l-layer__body l-layer__body--c">
+                Comparing two passes, NISAR can measure ground motion of about a centimetre. Here,
+                the M7.5 earthquake at Catia La Mar, Venezuela.
+              </p>
+              <Link to={`/explore?event=${STORY_EVENT_ID}`} className="l-gold-link l-layer__link">
+                Open this event on the globe →
+              </Link>
+            </div>
+
+            <div ref={callout} className="l-callout" aria-hidden="true">
+              <div className="l-callout__marker" />
+              <div className="l-callout__card">
+                <div className="l-callout__row">
+                  {fringes !== undefined && (
+                    <img
+                      src={fringes.url}
+                      alt="Demo interferogram fringes"
+                      width={72}
+                      height={72}
+                    />
+                  )}
+                  <div>
+                    <p className="l-callout__value">
+                      {fringes === undefined ? "…" : `${fringes.maxTowardCm} cm`}
+                    </p>
+                    <p className="l-callout__label">peak motion toward the satellite</p>
+                  </div>
+                </div>
+                <div className="l-callout__meta">
+                  <span>2026-06-13 → 06-25</span>
+                  <span className="l-callout__demo">DEMO DATA</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         <section
-          id="events"
-          className="l-section l-events l-frame"
+          id="compare"
+          className="l-section l-compare"
           data-section
-          aria-labelledby="events-heading"
+          aria-labelledby="compare-heading"
         >
-          <h2 id="events-heading" className="l-heading l-events__heading" data-reveal>
-            Real events, real passes
-          </h2>
-          <div className="l-events__layout">
-            <ul className="l-events__list">
+          <div className="l-container">
+            <div className="l-compare__head">
+              <h2 id="compare-heading" className="l-head" data-reveal>
+                Same fields. One day apart.
+              </h2>
+              <p className="l-compare__lead" data-reveal>
+                Drag across the image. An optical satellite saw cloud over these fields; a day
+                earlier, NISAR&apos;s 24 cm radar waves went straight through to the ground.
+              </p>
+            </div>
+            <CompareSlider reducedMotion={reducedMotion} />
+            <p className="l-caption l-compare__caption">
+              Farmland along the Forest River, North Dakota. Centre-pivot fields show as gold
+              circles on the radar side. Labels by NASA.
+            </p>
+          </div>
+        </section>
+
+        <section
+          className="l-section l-section--wide l-pipeline"
+          data-section
+          aria-labelledby="pipeline-heading"
+        >
+          <div className="l-container">
+            <h2 id="pipeline-heading" className="l-head l-pipeline__heading" data-reveal>
+              From orbit to your map.
+            </h2>
+            <p className="l-pipeline__lead" data-reveal>
+              A change map needs two radar passes over the same ground. Most of the wait is the
+              satellite coming back around; once both passes are on the archive, the rest takes
+              minutes.
+            </p>
+            <div className="l-pipeline__track">
+              <div className="l-pipeline__rail" />
+              <div className="l-pipeline__fill" />
+              <ol className="l-pipeline__steps">
+                {STEPS.map(({ when, what }) => (
+                  <li key={when} className="l-pipeline__step" data-step>
+                    <div className="l-pipeline__dot" />
+                    <p className="l-pipeline__when">{when}</p>
+                    <p className="l-pipeline__what">{what}</p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+            <p className="l-pipeline__total" data-reveal>
+              <span>A map of what changed</span>
+              <span className="l-pipeline__total-value">About two weeks</span>
+            </p>
+          </div>
+        </section>
+
+        <section id="events" className="l-events" aria-labelledby="events-heading">
+          <div className="l-events__stage">
+            <div className="l-events__head">
+              <h2 id="events-heading" className="l-head">
+                Real events, real passes.
+              </h2>
+              <p className="l-events__note">
+                Event dates and NISAR passes are real. The analyses drawn on top are demo data until
+                the team&apos;s pipeline runs on them.
+              </p>
+            </div>
+            <ul className="l-events__track">
               {events.map((event) => {
                 const line = EVENT_LINES[event.id];
                 if (line === undefined) return null;
                 return (
-                  <li key={event.id} data-reveal>
+                  <li key={event.id}>
                     <Link
                       to={`/explore?event=${event.id}`}
-                      className="l-event"
+                      className="l-card"
                       testId={`landing-event-${event.id}`}
-                      onMouseEnter={() => setPreviewId(event.id)}
-                      onFocus={() => setPreviewId(event.id)}
-                      onMouseLeave={() => setPreviewId(undefined)}
-                      onBlur={() => setPreviewId(undefined)}
                     >
-                      <span className="l-event__name">{line.name}</span>
-                      <span className="l-event__detail">{line.detail}</span>
+                      <img
+                        src={`/landing/event-${event.id}.jpg`}
+                        alt=""
+                        width={660}
+                        height={740}
+                        loading="lazy"
+                      />
+                      <span className="l-card__text">
+                        <span className="l-card__meta">{line.meta}</span>
+                        <span className="l-card__name">{line.name}</span>
+                        <span className="l-card__summary">{event.summary}</span>
+                        <span className="l-card__action">Open on the globe →</span>
+                      </span>
                     </Link>
                   </li>
                 );
               })}
             </ul>
-            <div>
-              <div className="l-events__preview">
-                <video
-                  src="/landing/volcano-timelapse.webm"
-                  poster="/landing/volcano-poster.jpg"
-                  muted
-                  loop
-                  playsInline
-                  autoPlay={!reducedMotion}
-                  aria-label="NISAR radar time-lapse of a volcanic eruption"
-                  data-active={previewId === undefined}
-                />
-                {events.map((event) => (
-                  <img
-                    key={event.id}
-                    src={`/landing/event-${event.id}.jpg`}
-                    alt=""
-                    width={660}
-                    height={740}
-                    loading="lazy"
-                    data-active={previewId === event.id}
-                  />
-                ))}
-              </div>
-              <p className="l-events__preview-caption">
-                {previewId === undefined
-                  ? "NISAR time-lapse of a volcanic eruption, 2026. Point at an event to preview it."
-                  : (FEATURED_EVENTS.find(({ id }) => id === previewId)?.summary ?? "")}
-              </p>
+          </div>
+        </section>
+
+        <section className="l-section l-mission" data-section aria-labelledby="mission-heading">
+          <div className="l-container">
+            <figure className="l-mission__figure" data-reveal>
+              <img
+                data-parallax
+                src="/landing/nisar-concept.jpg"
+                alt="Artist's concept of NISAR above Earth, its 12 m gold mesh reflector open on a long boom"
+                width={1280}
+                height={989}
+                loading="lazy"
+              />
+              <h2 id="mission-heading" className="l-mission__heading">
+                Twelve metres of gold mesh.
+              </h2>
+            </figure>
+            <p className="l-caption l-mission__caption">Artist&apos;s concept, NASA/JPL-Caltech.</p>
+            <div className="l-mission__cols">
+              {MISSION.map(({ heading, body }) => (
+                <div key={heading} data-reveal>
+                  <h3 className="l-mission__col-heading">{heading}</h3>
+                  <p className="l-mission__col-body">{body}</p>
+                </div>
+              ))}
             </div>
           </div>
-          <p className="l-events__note" data-reveal>
-            Event dates and NISAR passes are real. The analyses drawn on top are demo data until the
-            team&apos;s pipeline runs on them.
+        </section>
+
+        <section className="l-section--wide l-close" data-section aria-labelledby="close-heading">
+          <p className="l-mono-label" data-reveal>
+            16,663 FRAMES ON NISAR&apos;S PLAN
           </p>
-        </section>
-
-        <section className="l-credits l-frame" data-section aria-labelledby="credits-heading">
-          <h2 id="credits-heading" className="l-heading" data-reveal>
-            Built on open data
+          <h2 id="close-heading" className="l-close__heading" data-reveal>
+            Pick any frame.
           </h2>
-          <figure className="l-credits__still" data-reveal>
-            <img
-              src="/landing/reflector-deployment.jpg"
-              alt="NISAR's team in a JPL control room, screens showing the reflector unfurling in orbit"
-              width={1600}
-              height={1065}
-              loading="lazy"
-            />
-            <figcaption>JPL&apos;s team watching the reflector unfurl, August 2025.</figcaption>
-          </figure>
-          <dl className="l-credits__roll">
-            {CREDITS.map(({ role, name, href }) => (
-              <div key={role} className="l-credits__line" data-reveal>
-                <dt>{role}</dt>
-                <dd>
-                  <a href={href}>{name}</a>
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-
-        <section className="l-ticket" data-section aria-labelledby="ticket-heading">
-          <div className="l-ticket__inner l-frame">
-            <p className="l-ticket__aside" data-reveal>
-              16,663 frames are on NISAR&apos;s plan. Every one of them is a place you can open.
-            </p>
-            <div className="l-ticket__card" data-reveal>
-              <h2 id="ticket-heading">Pick any frame</h2>
-              <p>
-                Point at the globe to see NISAR&apos;s frames, open one to list its passes, or start
-                with a real earthquake.
-              </p>
-              <Link to="/explore" className="l-ticket__action" testId="cta-band">
-                Open the globe
-              </Link>
-            </div>
+          <p className="l-close__body" data-reveal>
+            Point at the globe to see NISAR&apos;s frames, open one to list its passes, or start
+            with a real earthquake.
+          </p>
+          <div className="l-close__action" data-reveal>
+            <Link to="/explore" className="l-button l-button--large" testId="cta-band">
+              Open the globe
+            </Link>
           </div>
         </section>
       </main>
 
-      <footer className="l-footer l-frame">
-        <p className="l-footer__mark" aria-hidden="true">
-          NISAR Hazard Watch
-        </p>
+      <footer className="l-footer">
         <div className="l-footer__cols">
+          <div className="l-footer__identity">
+            <p className="l-footer__name">NISAR Hazard Watch</p>
+            <p>Built for the NASA International Space Apps Challenge 2026. Chía, Colombia.</p>
+          </div>
           <nav className="l-footer__links" aria-label="Footer">
             <Link to="/explore">Explorer</Link>
             <Link to="/method">Method</Link>
@@ -432,24 +416,21 @@ export const LandingPage = () => {
             <a href="https://search.asf.alaska.edu/">ASF data search</a>
             <a href="https://science.nasa.gov/mission/nisar/">NISAR mission</a>
           </nav>
-          <div className="l-footer__contact">
-            <p>Built for the NASA International Space Apps Challenge 2026.</p>
-            <p>Chía, Colombia.</p>
+          <div className="l-footer__credits">
+            {CREDITS.map(({ role, name, href }) => (
+              <p key={role}>
+                <span>{role}: </span>
+                <a href={href}>{name}</a>
+              </p>
+            ))}
           </div>
         </div>
-        <p className="l-footer__credits">
-          Pictures: NISAR first image of North Dakota, NISAR reflector deployment and artist&apos;s
-          concept of NISAR (NASA/JPL-Caltech); NISAR eruption time-lapse (NASA Scientific
-          Visualization Studio); Blue Marble and cloud imagery (NASA Visible Earth), all public
-          domain. Optical view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via
-          NASA Worldview.
+        <p className="l-footer__pictures">
+          Pictures: NISAR first image of North Dakota and artist&apos;s concept of NISAR
+          (NASA/JPL-Caltech); Blue Marble and cloud imagery (NASA Visible Earth), all public domain.
+          Optical view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via NASA
+          Worldview.
         </p>
-        <div className="l-footer__base">
-          <p>NISAR Hazard Watch, 2026</p>
-          <Link to="/explore" className="l-button">
-            Open the globe
-          </Link>
-        </div>
       </footer>
     </div>
   );

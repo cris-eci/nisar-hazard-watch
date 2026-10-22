@@ -148,18 +148,28 @@ test.describe("Onboarding and pages", () => {
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Method & validation");
   });
 
-  test("the landing toggle swaps optical and radar views", async ({ page }) => {
+  test("the landing compare slider moves with the arrow keys", async ({ page }) => {
     await page.goto("/");
-    const heading = page.locator("#showcase-heading");
-    await expect(heading).toHaveText("Cloud hides the ground");
-    await page.getByTestId("view-radar").click();
-    await expect(heading).toHaveText("Radar sees the ground");
-    await expect(page.getByTestId("view-radar")).toHaveAttribute("aria-pressed", "true");
+    const slider = page.getByTestId("compare-slider");
+    // Reduced motion skips the intro tween, so the split starts in the middle.
+    await expect(slider).toHaveAttribute("aria-valuenow", "50");
+    await slider.focus();
+    await page.keyboard.press("ArrowLeft");
+    await expect(slider).toHaveAttribute("aria-valuenow", "45");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowRight");
+    await expect(slider).toHaveAttribute("aria-valuenow", "55");
+  });
+
+  test("the landing events open the explorer on that event", async ({ page }) => {
+    await page.goto("/");
+    await page.getByTestId("landing-event-kumamoto-2026").click();
+    await expect(page).toHaveURL(/\/explore\?event=kumamoto-2026$/);
   });
 
   test("the landing page leads to the explorer and the method page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Earth, without the clouds");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Earth, without the clouds.");
 
     await page
       .getByRole("navigation", { name: "Main" })

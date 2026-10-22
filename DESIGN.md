@@ -7,13 +7,14 @@ different people (and agents) look like one product.
 
 Two surfaces share one product:
 
-- **Landing page (`/`)**: **dressed as a film**. A title card over a 3D Earth with its atmosphere
-  and a starfield, one figure owning a screen ("12 days"), the optical/radar comparison on one
-  widescreen frame, the pipeline printed as a call sheet, end credits for the data sources and a
-  ticket as the closing call to action. Mood: elegant, quiet, cinematic; deep space blacks and
-  blues, champagne gold used sparingly. Its own tokens live in `src/pages/landing/landing.css`. The
-  one glow is Earth's atmosphere, drawn in WebGL (`EarthHero.tsx`); no CSS gradients, thin rules,
-  shadows at rest, glass, eyebrows, emoji or accent words in headlines.
+- **Landing page (`/`)**: **one scroll-driven story over a fixed Earth**. The planet stays on
+  screen while the pitch plays out on it: the clouds dissolve ("Radar brings its own light"), NISAR's
+  orbit appears while a counter climbs to 12 days, then the planet turns to the Venezuela M7.5
+  epicentre and a callout shows the demo fringes. After the story: a draggable optical/radar
+  comparison, a pipeline timeline that fills as you scroll, a horizontal events carousel, the
+  mission and a closing call to action. Mood: calm, product-grade, space; deep space blacks and
+  blues with one gold accent. Tokens live in `src/pages/landing/landing.css`; the scene in
+  `EarthHero.tsx`, the motion in `useLandingMotion.ts`.
 - **Explorer (`/explore`) and Method (`/method`)**: the app, described below.
 
 The app is a **mission-control look over a real planet**. The globe is the hero and fills the screen; every
@@ -23,6 +24,13 @@ on screen.
 
 Three words: **calm, scientific, legible**. Nothing should look like a marketing page except the
 landing hero.
+
+### Direction: one system for landing and app
+
+The landing v4 sets the system the explorer and method pages will move to: Albert Sans everywhere,
+JetBrains Mono for data labels, the gold accent in place of `sky-500`, pill buttons and glass
+panels. **Only the landing implements it today.** The app keeps the tokens below (General Sans,
+sky, slate) until the explorer redesign lands; don't mix the two inside one page before then.
 
 ## Colors
 
@@ -83,8 +91,9 @@ UI chrome.
 ### Font Family
 
 **General Sans** (Fontshare) everywhere in the app, falling back to `system-ui`, `sans-serif`. The
-landing page has its own pair, loaded from Google Fonts in `landing.css`: **Imbue** (condensed
-high-contrast serif, uppercase, for titles and the big figures) and **Albert Sans** (text).
+landing page loads its pair from Google Fonts in `landing.css`: **Albert Sans** 300/400/500/600 for
+all text, and **JetBrains Mono** 400/500 for data labels only (uppercase, letter-spacing
+0.04–0.06em, 11–13 px).
 
 ### Hierarchy
 
@@ -100,22 +109,39 @@ high-contrast serif, uppercase, for titles and the big figures) and **Albert San
 
 ### Landing scale
 
-Five steps, defined in `landing.css`: display (`--step-display`, Imbue uppercase, leading 0.86),
-head (`--step-head`, Imbue uppercase), lead, body (17–19 px, Albert Sans, leading 1.55) and small
-(14 px). Headlines never run past two lines at any width. Outside the scale on purpose: the "12"
-figure, the Optical/Radar switch and the footer's full-width title.
+Defined in `landing.css`:
+
+| Step    | Size                                         | Weight / tracking / leading |
+| ------- | -------------------------------------------- | --------------------------- |
+| Display | `clamp(3.25rem, 1rem + 7vw, 8.5rem)`         | 500 / −0.045em / 0.92       |
+| Head    | `clamp(2.5rem, 1.4rem + 3.6vw, 5rem)`        | 500 / −0.035em / 0.98       |
+| Lead    | `clamp(1.125rem, 1rem + 0.5vw, 1.375rem)`    | 400 / — / 1.45              |
+| Body    | `clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem)` | 400 / — / 1.55              |
+| Small   | 14–15 px                                     | 400                         |
+
+Outside the scale on purpose: the "12" counter (weight 300, gold), "Pick any frame." and the
+callout's centimetre value. Headlines never run past two lines at any width.
 
 ### Landing colours
 
-Space `#04070e` ground, with `#08101f` (deep) and `#0e1930` (night) as whole-field steps; starlight
-ink `#ebe9e4`, muted `#a9a69e`. Champagne gold `#c9b48b` is the only accent: buttons, the pressed
-switch, the "12" figure, hovered events and the footer title. Paper `#dcdad4` with ink `#12151c`
-for the call sheet and the ticket. Each section keeps to one ground.
+| Token      | Value                                   | Use                                                  |
+| ---------- | --------------------------------------- | ---------------------------------------------------- |
+| `space`    | `#04070e`                               | Page background                                      |
+| `deep`     | `#08101f`                               | Image wells, panels                                  |
+| `night`    | `#0e1930`                               | Inset surfaces                                       |
+| `ink`      | `#ebe9e4`                               | Primary text                                         |
+| `ink-2`    | `#d4d2cc`                               | Secondary text on images                             |
+| `muted`    | `#a9a69e`                               | Secondary body, captions                             |
+| `gold`     | `#c9b48b` (hover `#dccaa3`)             | The only accent: actions, key figures, orbit, marker |
+| `gold-ink` | `#16120a`                               | Text on gold                                         |
+| `demo`     | `#fcd34d`                               | DEMO DATA labels                                     |
+| `hairline` | `rgba(235,233,228,.10–.12)`             | Borders, the pipeline rail                           |
+| `glass`    | `rgba(8,16,31,.72–.80)` + blur 16–20 px | Nav pill, callouts                                   |
 
 ### Principles
 
-- **App: regular weight only.** Hierarchy comes from size and colour, not bold. The landing page's
-  display face (Imbue) carries hierarchy by size and case, also at weight 400.
+- **App: regular weight only.** Hierarchy comes from size and colour, not bold. The landing uses
+  500 for headings and actions, 600 for the wordmark, and 300 only for the "12" counter.
 - **Sentence case** for headings, buttons and labels ("Burn analysis", "Launch the explorer").
   This is deliberate and consistent; do not mix in Title Case.
 - `tabular-nums` on every number that changes or is compared (areas, centimetres, dates).
@@ -153,9 +179,11 @@ sides for the cards when it flies to a frame (`paddedRectangle`).
 
 ### Decorative Depth
 
-Only the landing hero has decoration, and it lives in the WebGL scene: Earth's Fresnel atmosphere,
-a soft blue halo behind the planet and a starfield. Nothing else gets gradients, glows or glass
-beyond the card blur.
+In the app, nothing gets gradients, glows or glass beyond the card blur. The landing's depth lives
+mostly in the WebGL scene (Earth's Fresnel atmosphere, a soft blue halo, a starfield, NISAR's gold
+orbit). On the page itself it allows exactly these: a text shadow on text over the planet or a
+photo, a bottom gradient on event cards, glass on the nav pill, callout and image chips, and a soft
+gold ring on the epicentre marker.
 
 ## Shapes
 
@@ -201,7 +229,8 @@ Only the dialog checkbox today: native control wrapped in its `<label>`.
 ### Tags / Badges
 
 `rounded px-1.5 py-0.5 text-xs` with a 20 % tint background and a 300-level text colour (see
-Status). The landing page has no badges.
+Status). On the landing, data labels are JetBrains Mono chips (`rgba(4,7,14,.6)` + blur, radius 999)
+and the callout's DEMO DATA label is mono in `#fcd34d`.
 
 ### Tab / Filter
 
@@ -210,9 +239,32 @@ Status). The landing page has no badges.
 
 ### CTA / Footer
 
-Landing ends with end credits (role and source, centred, each source linked), a ticket card with
-the "Open the globe" bar, and a footer whose title runs the full width in gold, then links and the
-picture credits. Landing buttons are square.
+Landing: gold pill buttons (radius 999, `gold` on `gold-ink`, hover `gold-hover`, active
+`scale(.97)`); the nav's "Open the globe" is a glass pill. The page closes with a mono label, "Pick
+any frame." and one gold pill, then a footer with three auto-fit columns (identity, six links,
+"Role: Source" credits) and the picture credits line.
+
+### Landing motion
+
+- **Smooth scroll:** Lenis (`lerp: .1`) driven from `gsap.ticker`, feeding ScrollTrigger.
+- **Story:** one GSAP timeline scrubbed by the 520vh story section (`scrub: .6`); it tweens a
+  `controls` object (view offset, camera distance, planet rotation, orbit opacity, drift, callout)
+  that `EarthHero` reads every frame, so scrolling never re-renders React. The callout is moved
+  with `style.transform` from a per-frame callback.
+- **Sections:** entrances with `gsap.from` (y 28, opacity 0, `power3.out`, stagger .08, once at
+  `top 78%`), so nothing stays hidden if JS fails. Compare slides 92 → 50 once; the pipeline bar
+  and steps fill with the scroll; events slide sideways in a 300vh pinned section; the mission
+  picture has a gentle parallax.
+- **Easing:** `power3.out` for entrances, `power2.inOut` for camera moves,
+  `cubic-bezier(.22,1,.36,1)` and 160 ms for CSS hovers.
+- **Below 40rem** layer C moves above the planet and the callout card sits under the marker; the
+  callout card always slides to stay on screen.
+
+### Landing reduced motion
+
+No Lenis, no idle spin, drift or orbit. The story becomes the hero followed by layers A, B and C as
+plain sections over a static globe (clouds at .35, no callout); compare starts at 50; events become
+a native horizontal scroll. This is the layout the E2E tests see.
 
 ## Do's and Don'ts
 
@@ -230,7 +282,7 @@ picture credits. Landing buttons are square.
 
 - Don't use hazard colours for buttons, links or decoration.
 - Don't show a number without its unit and source (ha, cm, dB; which passes).
-- Don't add bold weights, a second font, or Title Case.
+- Don't add bold weights, a second font, or Title Case in the app (the landing's type is above).
 - Don't hide data behind hover only: the events list is the keyboard path into the globe.
 - Don't present demo results or validation figures as real.
 
@@ -264,7 +316,8 @@ Data layers are draped over their lon/lat bounds on the globe and scale with it;
 ## Landing page checks
 
 Before shipping a landing change: no headline over two lines at 1440, 768 and 390 px; contrast at
-least 4.5:1; every section has a heading; five type sizes; real pictures (NASA public domain, and
+least 4.5:1 (text over the planet keeps its shadow); every section has a heading; type from the
+landing scale; the story checked at several scroll points; real pictures (NASA public domain, and
 the HLS/Sentinel-2 optical frame), credited in the footer; motion uses transform and opacity only and stops under
 `prefers-reduced-motion`. Component classes must win over base styles: base resets in
 `landing.css` use `:where()` for zero specificity.

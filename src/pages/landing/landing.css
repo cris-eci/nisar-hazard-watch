@@ -1,10 +1,10 @@
-@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500&family=Imbue:opsz,wght@10..100,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /*
- * Landing page, dressed as a film: a title card over the planet, a one-figure screen, the comparison
- * on a widescreen frame, a call sheet, end credits and a ticket. Deep space blacks and blues with
- * starlight ink; champagne gold only on the actions and the reflector. The one glow on the page is
- * Earth's atmosphere, drawn in WebGL; no CSS gradients, rules, shadows or glass.
+ * Landing page v4: one scroll-driven story over a fixed Earth, then the proof (compare, pipeline,
+ * events, mission) and one closing action. Deep space blacks and blues with starlight ink; gold is
+ * the only accent (actions, key figures, the orbit, the marker). Text over imagery gets a shadow
+ * for contrast; callouts and the nav pill are glass.
  */
 
 .landing {
@@ -12,25 +12,29 @@
   --deep: #08101f;
   --night: #0e1930;
   --ink: #ebe9e4;
+  --ink-2: #d4d2cc;
   --muted: #a9a69e;
   --gold: #c9b48b;
   --gold-hover: #dccaa3;
   --gold-ink: #16120a;
-  --paper: #dcdad4;
-  --paper-ink: #12151c;
-  --paper-muted: #545862;
+  --demo: #fcd34d;
+  --hairline: rgba(235, 233, 228, 0.12);
+  --glass: rgba(8, 16, 31, 0.78);
 
-  --display: "Imbue", "Times New Roman", serif;
   --text: "Albert Sans", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
 
   --step-small: 0.875rem;
   --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
-  --step-lead: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
-  --step-head: clamp(2.75rem, 1.6rem + 4vw, 5.75rem);
-  --step-display: clamp(4rem, 1rem + 8.2vw, 10.5rem);
+  --step-lead: clamp(1.125rem, 1rem + 0.5vw, 1.375rem);
+  --step-title: clamp(1.75rem, 1.3rem + 1.2vw, 2.5rem);
+  --step-head: clamp(2.5rem, 1.4rem + 3.6vw, 5rem);
+  --step-display: clamp(3.25rem, 1rem + 7vw, 8.5rem);
 
   --margin: clamp(1rem, 0.5rem + 2vw, 2rem);
-  --gap-section: clamp(7.5rem, 5rem + 6vw, 13rem);
+  --gap-section: clamp(6rem, 4rem + 6vw, 11rem);
+  --gap-section-wide: clamp(7rem, 5rem + 6vw, 12rem);
+  --radius: clamp(14px, 1.6vw, 28px);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
   background: var(--space);
@@ -38,42 +42,48 @@
   font-family: var(--text);
   font-size: var(--step-body);
   line-height: 1.55;
+  /* clip, not hidden: hidden would break the sticky story and events. */
   overflow-x: clip;
 }
 
 /* Base resets use :where() (zero specificity) so every component class below can override them. */
 :where(.landing) :where(h1, h2, h3) {
-  font-weight: 400;
+  font-weight: 500;
+  margin: 0;
+  text-wrap: balance;
+}
+
+:where(.landing) :where(p, figure, ol, ul) {
   margin: 0;
 }
 
-:where(.landing) :where(p, figure, dl, dd) {
-  margin: 0;
+:where(.landing) :where(ol, ul) {
+  padding: 0;
+  list-style: none;
 }
 
 :where(.landing) a {
   color: inherit;
+  text-decoration: none;
+  transition: color 160ms var(--ease-out);
 }
 
-.l-frame {
-  padding-inline: var(--margin);
+:where(.landing) a:hover {
+  color: var(--gold-hover);
 }
 
-.l-heading {
-  font-family: var(--display);
-  font-size: var(--step-head);
-  font-variation-settings: "opsz" 100;
-  text-transform: uppercase;
-  letter-spacing: -0.005em;
-  line-height: 0.9;
+.landing :focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
 }
 
 .l-skip {
   position: absolute;
   top: 1rem;
   left: 1rem;
-  z-index: 20;
+  z-index: 40;
   padding: 0.6rem 1rem;
+  border-radius: 999px;
   background: var(--gold);
   color: var(--gold-ink);
   transform: translateY(-200%);
@@ -83,936 +93,853 @@
   transform: none;
 }
 
-/* The one button shape: square, like a title card's frame. */
+/* Type */
+.l-display {
+  font-size: var(--step-display);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+}
+
+.l-head {
+  font-size: var(--step-head);
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+.l-subhead {
+  font-size: clamp(1.75rem, 1.2rem + 1.6vw, 2.75rem);
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.l-mono-label {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.l-caption {
+  font-size: var(--step-small);
+  color: var(--muted);
+}
+
+/* Actions: a gold pill, and a gold text link. */
 .l-button {
   display: inline-flex;
   align-items: center;
+  padding: 0.85em 1.6em;
+  border-radius: 999px;
   background: var(--gold);
   color: var(--gold-ink);
   font-weight: 500;
-  padding: 0.9em 1.6em;
-  text-decoration: none;
   white-space: nowrap;
   transition:
-    transform 160ms var(--ease-out),
     background-color 160ms var(--ease-out),
-    color 160ms var(--ease-out);
+    transform 160ms var(--ease-out);
 }
 
-.l-button:hover {
+.landing .l-button:hover {
   background: var(--gold-hover);
+  color: var(--gold-ink);
 }
 
 .l-button:active {
   transform: scale(0.97);
 }
 
-.l-button--ghost {
-  background: var(--night);
-  color: var(--ink);
+.l-button--large {
+  padding: 0.95em 1.9em;
+  font-size: 1.0625rem;
 }
 
-.l-button--ghost:hover {
-  background: var(--ink);
-  color: var(--space);
+.l-gold-link {
+  display: inline-flex;
+  font-weight: 500;
+  color: var(--gold);
 }
 
-.landing :focus-visible {
-  outline: 2px solid var(--gold);
-  outline-offset: 3px;
+.l-chip {
+  padding: 0.35em 0.8em;
+  border-radius: 999px;
+  background: rgba(4, 7, 14, 0.6);
+  backdrop-filter: blur(8px);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
 }
 
-/* Navigation: wordmark, a few plain links, one action. */
+/* Nav */
 .l-nav {
-  position: absolute;
+  position: fixed;
   inset: 0 0 auto;
-  z-index: 10;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: 1.25rem;
+  gap: 1rem;
+  padding: 1rem var(--margin);
 }
 
 .l-nav__mark {
-  font-family: var(--display);
-  font-size: var(--step-lead);
-  text-transform: uppercase;
-  text-decoration: none;
-  line-height: 1;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .l-nav__links {
   display: flex;
   align-items: center;
   gap: clamp(1rem, 2vw, 2rem);
+  font-size: 0.9375rem;
 }
 
-.l-nav__link {
-  text-decoration: none;
+.landing .l-nav__link {
   color: var(--muted);
-  transition: color 160ms var(--ease-out);
 }
 
-.l-nav__link:hover {
+.landing .l-nav__link:hover {
   color: var(--ink);
 }
 
-/* Hero: the title card, set over the planet and its stars. */
-.l-hero {
-  position: relative;
-  min-height: 100svh;
-  display: grid;
-  align-items: end;
-  overflow: hidden;
-  background: var(--space);
+.l-nav__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55em 1.1em;
+  border-radius: 999px;
+  background: rgba(235, 233, 228, 0.1);
+  backdrop-filter: blur(12px);
+  white-space: nowrap;
+  transition: background-color 160ms var(--ease-out);
 }
 
-.l-hero__space {
+.landing .l-nav__pill:hover {
+  background: rgba(235, 233, 228, 0.18);
+  color: var(--ink);
+}
+
+/* Story: a pinned stage, the Earth behind four text layers driven by the scroll timeline. */
+.l-story {
+  position: relative;
+  height: 520vh;
+}
+
+.l-story__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+
+.l-story__space {
   position: absolute;
   inset: 0;
 }
 
-.l-hero__copy {
-  position: relative;
-  z-index: 1;
-  padding-bottom: clamp(3rem, 10svh, 7rem);
+.l-layer {
+  position: absolute;
+  pointer-events: none;
 }
 
-.l-hero__title {
-  max-width: 7.2em;
-  font-family: var(--display);
-  font-size: var(--step-display);
-  font-variation-settings: "opsz" 100;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 0.86;
+.l-layer--hero {
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: clamp(6.5rem, 16svh, 9rem) var(--margin) 0;
+  text-align: center;
+}
+
+.l-layer--hero .l-display {
+  max-width: 11ch;
+  text-shadow: 0 2px 30px rgba(4, 7, 14, 0.7);
 }
 
 .l-hero__lead {
-  margin-top: 2.25rem;
-  max-width: 34ch;
-  font-size: var(--step-lead);
-  line-height: 1.4;
-}
-
-.l-hero__action {
-  margin-top: 2.25rem;
-}
-
-/* One figure owns the screen: the claim and its notes on the left, the number filling the right. */
-.l-figure {
-  margin-top: var(--gap-section);
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: auto 1fr;
-  column-gap: 1.5rem;
-  min-height: 78svh;
-}
-
-.l-figure__claim {
-  grid-column: 1 / span 5;
-  grid-row: 1;
-  font-family: var(--display);
-  font-size: var(--step-head);
-  font-variation-settings: "opsz" 100;
-  text-transform: uppercase;
-  line-height: 0.9;
-}
-
-.l-figure__number {
-  grid-column: 6 / -1;
-  grid-row: 1 / span 2;
-  justify-self: start;
-  align-self: end;
-  display: flex;
-  align-items: flex-start;
-  font-family: var(--display);
-  font-size: clamp(12rem, 2rem + 40vw, 44rem);
-  font-variation-settings: "opsz" 100;
-  font-variant-numeric: lining-nums;
-  line-height: 0.74;
-  letter-spacing: -0.02em;
-  color: var(--gold);
-}
-
-.l-figure__unit {
-  margin-left: 0.06em;
-  margin-top: 0.04em;
-  font-size: 0.2em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.l-figure__notes {
-  grid-column: 1 / span 4;
-  grid-row: 2;
-  align-self: end;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  max-width: 34ch;
-}
-
-.l-figure__source {
-  color: var(--muted);
-}
-
-/* The comparison, projected on one widescreen frame. */
-.l-screen {
-  margin-top: var(--gap-section);
-}
-
-.l-screen__head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 2rem 3rem;
-  margin-bottom: 2.5rem;
-}
-
-.l-screen__lead {
   margin-top: 1.5rem;
-  max-width: 46ch;
-}
-
-.l-switch {
-  display: flex;
-  flex-shrink: 0;
-  padding: 0.3rem;
-  gap: 0.3rem;
-  background: var(--night);
-}
-
-.l-switch button {
-  font: inherit;
-  font-family: var(--display);
-  font-size: clamp(1.75rem, 1.2rem + 1.4vw, 2.5rem);
-  font-variation-settings: "opsz" 100;
-  text-transform: uppercase;
-  line-height: 1;
-  color: var(--muted);
-  background: transparent;
-  border: 0;
-  padding: 0.35em 0.75em 0.3em;
-  cursor: pointer;
-  transition:
-    background-color 240ms var(--ease-out),
-    color 240ms var(--ease-out),
-    transform 160ms var(--ease-out);
-}
-
-.l-switch button:hover {
-  color: var(--ink);
-}
-
-.l-switch button:active {
-  transform: scale(0.97);
-}
-
-.l-switch button[aria-pressed="true"] {
-  background: var(--gold);
-  color: var(--gold-ink);
-}
-
-.l-screen__frame {
-  position: relative;
-  aspect-ratio: 2048 / 1103;
-  overflow: hidden;
-  background: var(--deep);
-}
-
-.l-screen__frame img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-/* The radar opens over the optical view like a shutter, left to right. */
-.l-screen__radar {
-  clip-path: inset(0 100% 0 0);
-  transition: clip-path 1.1s var(--ease-out);
-}
-
-.l-screen[data-mode="radar"] .l-screen__radar {
-  clip-path: inset(0 0 0 0);
-}
-
-.l-screen__caption {
-  margin-top: 1rem;
-  max-width: 60ch;
-  color: var(--muted);
-}
-
-/* The pipeline, printed as a call sheet on a deeper field. */
-.l-stages {
-  margin-top: var(--gap-section);
-  background: var(--deep);
-  padding-block: clamp(5rem, 3rem + 6vw, 9rem) 0;
-  overflow: hidden;
-}
-
-.l-stages__inner {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: 1.5rem;
-  align-items: start;
-}
-
-.l-stages__copy {
-  grid-column: 1 / span 5;
-}
-
-.l-stages__copy p {
-  margin-top: 1.75rem;
-  max-width: 34ch;
-}
-
-.l-slip {
-  grid-column: 7 / span 6;
-  max-width: 34rem;
-  background: var(--paper);
-  color: var(--paper-ink);
-  padding: 2.5rem 2.25rem 4.5rem;
-  font-variant-numeric: tabular-nums;
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% calc(100% - 14px),
-    95% 100%,
-    90% calc(100% - 14px),
-    85% 100%,
-    80% calc(100% - 14px),
-    75% 100%,
-    70% calc(100% - 14px),
-    65% 100%,
-    60% calc(100% - 14px),
-    55% 100%,
-    50% calc(100% - 14px),
-    45% 100%,
-    40% calc(100% - 14px),
-    35% 100%,
-    30% calc(100% - 14px),
-    25% 100%,
-    20% calc(100% - 14px),
-    15% 100%,
-    10% calc(100% - 14px),
-    5% 100%,
-    0 calc(100% - 14px)
-  );
-}
-
-.l-slip__group + .l-slip__group {
-  margin-top: 1.75rem;
-}
-
-.l-slip__group h3 {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.l-slip__row {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  padding-block: 0.3rem;
-}
-
-.l-slip__row dt {
-  color: var(--paper-muted);
-}
-
-/* The leader: a row of round dots between what happens and when. */
-.l-slip__row::after {
-  content: "";
-  order: 1;
-  flex: 1;
-  min-width: 1.5rem;
-  height: 4px;
-  align-self: center;
-  background-image: radial-gradient(circle, var(--paper-muted) 1.5px, transparent 2px);
-  background-size: 9px 4px;
-  opacity: 0.6;
-}
-
-.l-slip__row dd {
-  order: 2;
-  white-space: nowrap;
-}
-
-.l-slip__total {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 2rem -2.25rem 0;
-  padding: 0.85rem 2.25rem;
-  background: var(--paper-ink);
-  color: var(--paper);
-  font-weight: 500;
-}
-
-/* The reflector: an inset night panel with one circular picture, cut by the panel's edge. */
-.l-about {
-  margin-top: var(--gap-section);
-  padding-inline: var(--margin);
-}
-
-.l-about__panel {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 3rem;
-  background: var(--night);
-  overflow: hidden;
-  padding: clamp(2rem, 1rem + 3vw, 3.5rem) clamp(1.5rem, 1rem + 3vw, 3.5rem) 0;
-}
-
-.l-about__left {
-  display: flex;
-  flex-direction: column;
-}
-
-.l-about__left .l-heading {
-  max-width: 8em;
-}
-
-.l-about__figure {
-  margin-top: 3rem;
-  width: min(100%, 36rem);
-  aspect-ratio: 1;
-  margin-bottom: -18%;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.l-about__figure img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 42% 40%;
-}
-
-.l-about__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2.75rem;
-  max-width: 34rem;
-  padding-bottom: clamp(2rem, 1rem + 3vw, 3.5rem);
-}
-
-.l-about__text h3 {
+  max-width: 38ch;
   font-size: var(--step-lead);
-  font-weight: 500;
-  line-height: 1.2;
-  margin-bottom: 0.6rem;
+  line-height: 1.45;
+  text-shadow:
+    0 1px 18px rgba(4, 7, 14, 0.95),
+    0 0 4px rgba(4, 7, 14, 0.8);
 }
 
-.l-about__caption {
-  margin-top: auto;
-  font-size: var(--step-small);
-  color: var(--muted);
-}
-
-/* Events: one item per poster line, with the preview held in a fixed circle. */
-.l-section {
-  margin-top: var(--gap-section);
-}
-
-.l-events {
-  position: relative;
-}
-
-.l-events__heading {
-  margin-bottom: 3rem;
-}
-
-.l-events__layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) min(34vw, 28rem);
-  gap: 3rem;
-  align-items: start;
-}
-
-.l-events__list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.l-event {
+.l-hero__actions {
+  margin-top: 2rem;
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1.5rem;
-  text-decoration: none;
-  transition:
-    opacity 240ms var(--ease-out),
-    color 240ms var(--ease-out);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  pointer-events: auto;
 }
 
-.l-event__name {
-  display: block;
-  font-family: var(--display);
-  font-size: var(--step-display);
-  font-variation-settings: "opsz" 100;
-  text-transform: uppercase;
-  letter-spacing: -0.01em;
-  line-height: 0.92;
+.l-hero__more {
+  font-weight: 500;
 }
 
-.l-event__detail {
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  color: var(--muted);
-}
-
-.l-events__list:hover .l-event,
-.l-events__list:focus-within .l-event {
-  opacity: 0.35;
-}
-
-.l-events__list .l-event:hover,
-.l-events__list .l-event:focus-visible {
-  opacity: 1;
-  color: var(--gold);
-}
-
-.l-events__preview {
-  position: sticky;
-  top: 12vh;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  overflow: hidden;
-  background: var(--night);
-}
-
-.l-events__preview > * {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0;
-  transition: opacity 240ms ease;
-}
-
-.l-events__preview > [data-active="true"] {
-  opacity: 1;
-}
-
-.l-events__preview-caption {
-  margin-top: 1rem;
-  font-size: var(--step-small);
-  color: var(--muted);
-}
-
-.l-events__note {
-  margin-top: 2.5rem;
-  max-width: 60ch;
-  color: var(--muted);
-}
-
-/* End credits: who supplies what, centred on the black like a film's closing roll. */
-.l-credits {
-  margin-top: var(--gap-section);
+.l-layer--a {
+  left: 0;
+  right: 0;
+  bottom: clamp(3rem, 10svh, 6rem);
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding-inline: 1.5rem;
   text-align: center;
 }
 
-.l-credits__still {
-  margin-top: 3rem;
-  width: min(100%, 46rem);
-}
-
-.l-credits__still img {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  object-fit: cover;
-}
-
-.l-credits__still figcaption {
+.l-layer__head--a {
   margin-top: 0.75rem;
-  font-size: var(--step-small);
+  max-width: 14ch;
+}
+
+.l-layer__body {
+  margin-top: 1rem;
+  max-width: 34ch;
   color: var(--muted);
 }
 
-.l-credits__roll {
-  margin-top: 3.5rem;
-  width: min(100%, 52rem);
-  display: grid;
-  gap: 0.9rem;
-}
-
-.l-credits__line {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: baseline;
-}
-
-.l-credits__line dt {
-  text-align: right;
-  color: var(--muted);
-}
-
-.l-credits__line dd {
-  text-align: left;
-  font-size: var(--step-lead);
-  line-height: 1.3;
-}
-
-.l-credits__line a {
-  text-decoration: none;
-  transition: color 160ms var(--ease-out);
-}
-
-.l-credits__line a:hover {
-  color: var(--gold);
-}
-
-/* The ticket: a card lying on the night field, cropped by the section's lower edge. */
-.l-ticket {
-  margin-top: var(--gap-section);
-  background: var(--night);
-  overflow: hidden;
-}
-
-.l-ticket__inner {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  column-gap: 1.5rem;
-  padding-top: clamp(5rem, 3rem + 6vw, 9rem);
-}
-
-.l-ticket__aside {
-  grid-column: 1 / span 4;
-  align-self: end;
-  margin-bottom: 5rem;
-  font-size: var(--step-lead);
-  line-height: 1.4;
-}
-
-.l-ticket__card {
-  grid-column: 6 / span 7;
-  align-self: end;
-  margin-bottom: -60px;
-  padding: 3rem 3rem calc(3rem + 60px);
-  background: var(--paper);
-  color: var(--paper-ink);
-  text-align: center;
-  transform: rotate(-2deg);
-  transform-origin: 50% 100%;
-}
-
-.l-ticket__card h2 {
-  font-family: var(--display);
-  font-size: var(--step-head);
-  font-variation-settings: "opsz" 100;
-  text-transform: uppercase;
-  line-height: 0.9;
-}
-
-.l-ticket__card p {
-  margin: 1.25rem auto 2rem;
+.l-layer__body--a {
   max-width: 40ch;
 }
 
-.l-ticket__action {
+.l-layer__body--c {
+  margin-top: 1.25rem;
+}
+
+/* `translate`, not `transform`: the timeline animates transform (x) on these. */
+.l-layer--side {
+  left: var(--margin);
+  top: 50%;
+  translate: 0 -50%;
+  max-width: min(30rem, 44vw);
+}
+
+.l-layer__link {
+  margin-top: 1.75rem;
+  pointer-events: auto;
+}
+
+.l-counter {
+  font-size: clamp(7rem, 3rem + 12vw, 15rem);
+  font-weight: 300;
+  letter-spacing: -0.06em;
+  line-height: 0.8;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+}
+
+.l-counter__unit {
+  margin-left: 0.15em;
+  font-size: 0.22em;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.l-layer--b .l-subhead {
+  margin-top: 1.5rem;
+}
+
+.landing[data-motion="full"] :is(.l-layer--a, .l-layer--b, .l-layer--c) {
+  opacity: 0;
+}
+
+/* Callout: placed on the epicentre every frame by EarthHero's callback. */
+.l-callout {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.l-callout__marker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 0 6px rgba(201, 180, 139, 0.15);
+}
+
+.l-callout__card {
+  position: absolute;
+  left: 28px;
+  top: -96px;
+  width: 15rem;
+  padding: 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+}
+
+.l-callout__row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.l-callout__row img {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--night);
+}
+
+.l-callout__value {
+  font-size: 1.875rem;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.l-callout__label {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.l-callout__meta {
+  margin-top: 0.625rem;
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.l-callout__demo {
+  color: var(--demo);
+}
+
+/* Sections */
+.l-section {
+  padding: var(--gap-section) var(--margin) 0;
+}
+
+.l-section--wide {
+  padding: var(--gap-section-wide) var(--margin) 0;
+}
+
+.l-container {
+  max-width: 76rem;
+  margin: 0 auto;
+}
+
+/* Compare */
+.l-compare__head {
+  text-align: center;
+}
+
+.l-compare__lead {
+  margin: 1.25rem auto 0;
+  max-width: 46ch;
+  color: var(--muted);
+}
+
+.l-compare__frame {
+  position: relative;
+  margin-top: clamp(2rem, 1rem + 3vw, 3.5rem);
+  aspect-ratio: 2048 / 1103;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--deep);
+  cursor: ew-resize;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.l-compare__frame img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.l-compare__line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--ink);
+}
+
+.l-compare__handle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 56px;
-  background: var(--paper-ink);
-  color: var(--paper);
-  font-weight: 500;
-  text-decoration: none;
-  transition:
-    background-color 160ms var(--ease-out),
-    color 160ms var(--ease-out),
-    transform 160ms var(--ease-out);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--space);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.1em;
 }
 
-.l-ticket__action:hover {
+.l-compare__chip {
+  position: absolute;
+  top: 1rem;
+}
+
+.l-compare__chip--left {
+  left: 1rem;
+}
+
+.l-compare__chip--right {
+  right: 1rem;
+}
+
+.l-compare__caption {
+  margin-top: 1rem;
+}
+
+/* Pipeline */
+.l-pipeline__heading {
+  max-width: 12ch;
+}
+
+.l-pipeline__lead {
+  margin-top: 1.25rem;
+  max-width: 44ch;
+  color: var(--muted);
+}
+
+.l-pipeline__track {
+  position: relative;
+  margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+}
+
+.l-pipeline__rail,
+.l-pipeline__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  height: 2px;
+  background: var(--hairline);
+}
+
+.l-pipeline__fill {
   background: var(--gold);
-  color: var(--gold-ink);
+  transform-origin: 0 50%;
 }
 
-.l-ticket__action:active {
-  transform: scale(0.98);
+.landing[data-motion="full"] .l-pipeline__fill {
+  transform: scaleX(0);
 }
 
-/* Footer: the title returns at full width, then plain links. */
-.l-footer {
-  padding-block: clamp(4rem, 2rem + 4vw, 6rem) 2rem;
+.l-pipeline__steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 2rem 1.5rem;
 }
 
-.l-footer__mark {
-  font-family: var(--display);
-  font-size: clamp(3rem, 15.4vw, 22rem);
-  font-variation-settings: "opsz" 100;
-  text-transform: uppercase;
-  line-height: 0.85;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
+.landing[data-motion="full"] .l-pipeline__step {
+  opacity: 0.3;
+}
+
+.l-pipeline__dot {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: var(--space);
+}
+
+.l-pipeline__when {
+  margin-top: 1.25rem;
+  font-size: var(--step-title);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.l-pipeline__what {
+  margin-top: 0.625rem;
+  max-width: 20ch;
+  color: var(--muted);
+}
+
+.l-pipeline__total {
+  margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1.5rem;
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+}
+
+.l-pipeline__total-value {
   color: var(--gold);
+  font-weight: 500;
+}
+
+/* Events: a pinned stage; the track slides sideways as the section scrolls. */
+.l-events {
+  position: relative;
+  height: 300vh;
+  margin-top: clamp(6rem, 4rem + 6vw, 10rem);
+}
+
+.l-events__stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.l-events__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  padding-inline: var(--margin);
+}
+
+.l-events__note {
+  max-width: 40ch;
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.l-events__track {
+  margin-top: clamp(2rem, 1rem + 3vw, 3.5rem);
+  display: flex;
+  gap: clamp(1rem, 2vw, 1.5rem);
+  width: max-content;
+  padding-inline: var(--margin);
+  will-change: transform;
+}
+
+.l-card {
+  position: relative;
+  display: block;
+  width: min(78vw, 34rem);
+  aspect-ratio: 4 / 5;
+  max-height: 62svh;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--night);
+}
+
+.landing .l-card:hover {
+  color: var(--ink);
+}
+
+.l-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+
+.l-card:hover img {
+  transform: scale(1.03);
+}
+
+.l-card__text {
+  position: absolute;
+  inset: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: linear-gradient(to top, rgba(4, 7, 14, 0.92), rgba(4, 7, 14, 0));
+}
+
+.l-card__meta {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.l-card__name {
+  margin-top: 0.5rem;
+  font-size: var(--step-title);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.l-card__summary {
+  margin-top: 0.5rem;
+  max-width: 36ch;
+  font-size: 0.9375rem;
+  color: var(--ink-2);
+}
+
+.l-card__action {
+  margin-top: 1rem;
+  font-weight: 500;
+  color: var(--gold);
+}
+
+/* Mission */
+.l-mission__figure {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--night);
+}
+
+.l-mission__figure img {
+  position: absolute;
+  left: 0;
+  top: -8%;
+  width: 100%;
+  height: 116%;
+  object-fit: cover;
+}
+
+.l-mission__heading {
+  position: absolute;
+  left: clamp(1.25rem, 3vw, 3rem);
+  bottom: clamp(1.25rem, 3vw, 3rem);
+  max-width: 10ch;
+  font-size: clamp(2.25rem, 1.2rem + 3.4vw, 4.75rem);
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-shadow: 0 2px 24px rgba(4, 7, 14, 0.5);
+}
+
+.l-mission__caption {
+  margin-top: 0.75rem;
+}
+
+.l-mission__cols {
+  margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 2rem clamp(1.5rem, 3vw, 3rem);
+}
+
+.l-mission__col-heading {
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.l-mission__col-body {
+  margin-top: 0.625rem;
+  color: var(--muted);
+}
+
+/* Close */
+.l-close {
+  padding-bottom: clamp(5rem, 4rem + 4vw, 8rem);
+  text-align: center;
+}
+
+.l-close__heading {
+  margin-top: 1rem;
+  font-size: clamp(3rem, 1rem + 6vw, 7rem);
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+}
+
+.l-close__body {
+  margin: 1.25rem auto 0;
+  max-width: 40ch;
+  color: var(--muted);
+}
+
+.l-close__action {
+  margin-top: 2rem;
+}
+
+/* Footer */
+.l-footer {
+  padding: 2.5rem var(--margin) 2rem;
+  border-top: 1px solid rgba(235, 233, 228, 0.1);
+  font-size: var(--step-small);
+  color: var(--muted);
 }
 
 .l-footer__cols {
+  max-width: 76rem;
+  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
   gap: 2rem;
-  margin-top: 3.5rem;
 }
 
-.l-footer__links {
-  grid-column: 1 / span 8;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.6rem 1.5rem;
-  align-content: start;
-}
-
-.l-footer__links a {
-  text-decoration: none;
-  transition: color 160ms var(--ease-out);
-}
-
-.l-footer__links a:hover {
-  color: var(--gold);
-}
-
-.l-footer__contact {
-  grid-column: 9 / span 4;
+.l-footer__identity,
+.l-footer__credits {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
 }
 
-.l-footer__credits {
-  margin-top: 3rem;
-  font-size: var(--step-small);
-  color: var(--muted);
-  max-width: 64ch;
+.l-footer__name {
+  color: var(--ink);
+  font-weight: 600;
 }
 
-.l-footer__base {
+.l-footer__links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-content: start;
+  gap: 0.4rem 1.5rem;
+}
+
+.landing .l-footer__links a:hover {
+  color: var(--ink);
+}
+
+.l-footer__credits a {
+  color: var(--ink-2);
+}
+
+.l-footer__pictures {
+  max-width: 76rem;
+  margin: 2rem auto 0;
+  font-size: 0.8125rem;
+}
+
+/*
+ * Reduced motion: no pinning. The hero and layers A, B and C stack as plain sections over a static
+ * globe that stays put behind them; the events become a native horizontal scroll.
+ */
+.landing[data-motion="reduced"] .l-story {
+  height: auto;
+}
+
+.landing[data-motion="reduced"] .l-story__stage {
+  position: static;
+  height: auto;
+  overflow: visible;
+}
+
+.landing[data-motion="reduced"] .l-story__space {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  margin-bottom: -100svh;
+}
+
+.landing[data-motion="reduced"] .l-layer {
+  position: relative;
+  inset: auto;
+  translate: none;
+  min-height: 100svh;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-top: 2.5rem;
+  flex-direction: column;
+  justify-content: center;
 }
 
-/* Entrances are staged by script; without it (or with reduced motion) everything is simply there. */
-.landing [data-reveal] {
-  will-change: transform, opacity;
+.landing[data-motion="reduced"] .l-layer--hero {
+  justify-content: flex-start;
 }
 
-@media (max-width: 960px) {
-  .l-figure {
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .l-figure__number {
-    align-self: flex-end;
-    margin-block: 0.3em 0.1em;
-    font-size: 56vw;
-  }
-
-  .l-figure__notes {
-    align-self: flex-start;
-  }
-
-  .l-stages__copy {
-    grid-column: 1 / -1;
-  }
-
-  .l-slip {
-    grid-column: 1 / -1;
-    margin-top: 3rem;
-  }
-
-  .l-about__panel {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
-  }
-
-  .l-about__left {
-    display: contents;
-  }
-
-  .l-about__left .l-heading {
-    order: 1;
-  }
-
-  .l-about__text {
-    order: 2;
-  }
-
-  .l-about__figure {
-    order: 3;
-    margin-top: 0;
-  }
-
-  .l-about__figure {
-    width: min(100%, 30rem);
-    align-self: center;
-    margin-bottom: -25%;
-  }
-
-  .l-about__panel {
-    padding-bottom: 0;
-  }
-
-  .l-about__text {
-    padding-bottom: 0;
-  }
-
-  .l-events__layout {
-    grid-template-columns: 1fr;
-  }
-
-  .l-events__preview,
-  .l-events__preview-caption {
-    display: none;
-  }
-
-  .l-event {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    margin-bottom: 22px;
-  }
-
-  .l-ticket__aside {
-    grid-column: 1 / -1;
-    align-self: start;
-    margin-bottom: 3rem;
-  }
-
-  .l-ticket__card {
-    grid-column: 1 / -1;
-  }
+.landing[data-motion="reduced"] .l-layer--a {
+  justify-content: flex-end;
+  padding-bottom: clamp(3rem, 10svh, 6rem);
 }
 
-/* Portrait screens: the title sits on open sky and the planet rises from the bottom edge. */
-@media (max-aspect-ratio: 21/20) {
-  .l-hero {
-    align-items: start;
-  }
-
-  .l-hero__copy {
-    padding-top: clamp(6.5rem, 14svh, 10rem);
-    padding-bottom: 0;
-  }
+.landing[data-motion="reduced"] .l-layer--side {
+  padding-inline: var(--margin);
+  max-width: calc(min(30rem, 44vw) + 2 * var(--margin));
 }
 
-/* Phone composition */
-@media (max-width: 760px) {
-  .l-hero__title {
-    font-size: 17vw;
-  }
+.landing[data-motion="reduced"] .l-callout {
+  display: none;
+}
 
-  .l-hero__lead {
-    font-size: 1.0625rem;
-    margin-top: 1.5rem;
-  }
+.landing[data-motion="reduced"] .l-events {
+  height: auto;
+}
 
-  .l-hero__action {
-    margin-top: 1.5rem;
-  }
+.landing[data-motion="reduced"] .l-events__stage {
+  position: static;
+  height: auto;
+  overflow: visible;
+}
 
-  .l-nav__link--secondary {
-    display: none;
-  }
+.landing[data-motion="reduced"] .l-events__track {
+  width: auto;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: var(--margin);
+}
 
-  .l-figure__number {
-    align-self: flex-start;
-    font-size: 58vw;
-  }
-
-  .l-screen__head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .l-screen__frame {
-    aspect-ratio: 4 / 5;
-  }
-
-  .l-screen__frame img {
-    object-position: 34% 50%;
-  }
-
-  .l-slip {
-    padding: 2rem 1.25rem 4rem;
-  }
-
-  .l-slip__total {
-    margin-inline: -1.25rem;
-    padding-inline: 1.25rem;
-  }
-
-  .l-slip__row dt {
-    flex: 1;
-  }
-
-  .l-slip__row::after {
-    display: none;
-  }
-
-  .l-about {
-    padding-inline: 10px;
-  }
-
-  .l-about__figure {
-    width: 86%;
-  }
-
-  .l-event__name {
-    font-size: 17vw;
-  }
-
-  .l-credits__line {
-    grid-template-columns: 1fr;
-    gap: 0.15rem;
-  }
-
-  .l-credits__line dt,
-  .l-credits__line dd {
-    text-align: center;
-  }
-
-  .l-ticket__card {
-    padding: 2rem 1.5rem calc(2rem + 60px);
-    transform: rotate(-1deg);
-  }
-
-  .l-footer__links {
-    grid-column: 1 / -1;
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .l-footer__contact {
-    grid-column: 1 / -1;
-  }
-
-  .l-footer__mark {
-    white-space: normal;
-    font-size: 21vw;
-  }
+.landing[data-motion="reduced"] .l-events__track > li {
+  flex: none;
+  scroll-snap-align: start;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .landing *,
   .landing *::before,
   .landing *::after {
-    transition-duration: 1ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Narrow screens: the design is laid out for landscape; these keep it readable on a phone. */
+@media (max-width: 30rem) {
+  .l-nav__mark {
+    font-size: 1rem;
+    white-space: nowrap;
+  }
+
+  .l-nav__links {
+    gap: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .l-nav__link[href="#events"] {
+    display: none;
+  }
+}
+
+@media (max-width: 40rem) {
+  /* Layer C sits above the planet, which the timeline lowers (see useLandingMotion). */
+  .landing[data-motion="full"] .l-layer--c {
+    top: clamp(5.5rem, 14svh, 7rem);
+    right: var(--margin);
+    translate: none;
+    max-width: none;
+  }
+
+  .l-callout__card {
+    left: -7.5rem;
+    top: 28px;
+  }
+
+  .l-compare__chip {
+    font-size: 0.6875rem;
+  }
+
+  .l-compare__chip--right {
+    top: auto;
+    bottom: 1rem;
   }
 }

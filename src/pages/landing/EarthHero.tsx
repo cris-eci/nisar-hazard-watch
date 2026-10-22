@@ -9,7 +9,9 @@ import {
   DirectionalLight,
   Float32BufferAttribute,
   FrontSide,
+  Group,
   Mesh,
+  MeshBasicMaterial,
   MeshPhongMaterial,
   PerspectiveCamera,
   Points,
@@ -20,19 +22,41 @@ import {
   SpriteMaterial,
   SRGBColorSpace,
   TextureLoader,
+  TorusGeometry,
   Vector3,
   WebGLRenderer,
 } from "three";
 
-// NASA Blue Marble with its cloud layer, an atmosphere and a starfield. `cloudCover` (0..1) is
-// driven by scroll: the clouds dissolve as the reader moves on, which is the page's claim made visible.
+// NASA Blue Marble with its cloud layer, an atmosphere, a starfield and NISAR's orbit. The page
+// drives it through mutable refs (no React state), so the scroll timeline never re-renders React.
+
+export type EarthControls = {
+  offX: number; // view offset, as a fraction of the canvas width
+  offY: number;
+  z: number; // camera distance
+  rx: number; // planet Euler angles (XYZ)
+  ry: number;
+  ring: number; // orbit opacity, 0..1
+  drift: number; // idle spin multiplier, 0 stops it
+  callout: number; // callout opacity, 0..1
+};
+
+// Maps a point in the planet's own frame to pixels in the canvas.
+export type Project = (point: Vector3) => { x: number; y: number };
 
 type EarthHeroProps = {
   cloudCover: { current: number };
+  controls: { current: EarthControls };
+  onFrame?: (project: Project, controls: EarthControls) => void;
   reducedMotion: boolean;
 };
 
-const SPIN_PER_FRAME = 0.0009;
+const DRIFT_PER_S = 0.025;
+const CLOUD_DRIFT_PER_S = 0.006;
+const ORBIT_RADIUS = 1.34;
+const ORBIT_STEP = 0.006;
+const TRAIL_ARC = 0.9;
+const GOLD = new Color("#c9b48b");
 const STAR_COUNT = 4200;
 const SUN_DIRECTION = new Vector3(-3.2, 0.9, 1.5).normalize();
 const AIR = new Color("#8db4ff");
@@ -152,8 +176,13 @@ const starfield = (pixelRatio: number): { points: Points; time: { value: number 
   return { points: new Points(geometry, material), time };
 };
 
-export const EarthHero = ({ cloudCover, reducedMotion }: EarthHeroProps) => {
+export const EarthHero = ({ cloudCover, controls, onFrame, reducedMotion }: EarthHeroProps) => {
   const hostRef = useRef<HTMLDivElement>(null);
+  // Kept in a ref so a new callback never rebuilds the WebGL scene.
+  const onFrameRef = useRef(onFrame);
+  useEffect(() => {
+    onFrameRef.current = onFrame;
+  }, [onFrame]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -163,11 +192,11 @@ export const EarthHero = ({ cloudCover, reducedMotion }: EarthHeroProps) => {
     const pixelRatio = Math.min(window.devicePixelRatio, 2);
     renderer.setPixelRatio(pixelRatio);
     renderer.outputColorSpace = SRGBColorSpace;
+    renderer.domElement.style.display = "block";
     host.appendChild(renderer.domElement);
 
     const scene = new Scene();
-    const camera = new PerspectiveCamera(30, 1, 0.1, 200);
-    camera.position.set(0, 0, 4.4);
+    const camera = new PerspectiveCamera(30, 1, 0.01, 200);
 
     const loader = new TextureLoader();
     const day = loader.load("/landing/earth-day.jpg");
@@ -187,9 +216,9 @@ export const EarthHero = ({ cloudCover, reducedMotion }: EarthHeroProps) => {
       depthWrite: false,
     });
     const cloudShell = new Mesh(new SphereGeometry(1.012, 128, 128), cloudMaterial);
-    // Start over the Americas (Colombia faces the reader), tilted like Earth's axis.
-    earth.rotation.set(0.32, -0.25, 0);
-    cloudShell.rotation.copy(earth.rotation);
+    // One Euler on the group aims any lon/lat at the camera (see facingRotation).
+    const planet = new Group();
+    planet.add(earth, cloudShell);
 
     const rim = new Mesh(new SphereGeometry(1.016, 96, 96), atmosphereShader(3.2, 1.1, FrontSide));
     const air = new Mesh(new SphereGeometry(1.16, 96, 96), atmosphereShader(5.0, 1.4, BackSide));
@@ -204,64 +233,105 @@ export const EarthHero = ({ cloudCover, reducedMotion }: EarthHeroProps) => {
     glow.scale.setScalar(5.2);
     glow.position.z = -1.2;
 
+    const ringMaterial = new MeshBasicMaterial({ color: GOLD, transparent: true, opacity: 0 });
+    const trailMaterial = new MeshBasicMaterial({
+      color: new Color("#f1e6cc"),
+      transparent: true,
+      opacity: 0,
+    });
+    const ring = new Mesh(new TorusGeometry(ORBIT_RADIUS, 0.0022, 8, 360), ringMaterial);
+    const trail = new Mesh(
+      new TorusGeometry(ORBIT_RADIUS, 0.0055, 8, 120, TRAIL_ARC),
+      trailMaterial,
+    );
+    const satellite = new Mesh(new SphereGeometry(0.018, 16, 16), trailMaterial);
+    const orbit = new Group();
+    orbit.rotation.set(0.14, 1.2, 0.1);
+    orbit.add(ring, trail, satellite);
+
     const stars = starfield(pixelRatio);
-    scene.add(stars.points, glow, earth, cloudShell, rim, air);
+    scene.add(stars.points, glow, planet, rim, air, orbit);
 
     const sun = new DirectionalLight(0xffffff, 3.1);
     sun.position.copy(SUN_DIRECTION).multiplyScalar(5);
     scene.add(sun, new AmbientLight(0x9fb4ff, 0.07));
 
+    let width = 1;
+    let height = 1;
     const resize = () => {
-      const width = Math.max(1, host.clientWidth);
-      const height = Math.max(1, host.clientHeight);
+      width = Math.max(1, host.clientWidth);
+      height = Math.max(1, host.clientHeight);
       renderer.setSize(width, height, false);
       renderer.domElement.style.width = "100%";
       renderer.domElement.style.height = "100%";
       camera.aspect = width / height;
-      // Landscape: the planet sits right of the title. Portrait: it rises from the bottom edge.
-      const landscape = width / height > 1.05;
-      camera.position.z = landscape ? 5.6 : Math.max(3.4, (3 * height) / width);
-      if (landscape)
-        camera.setViewOffset(width, height, -width * 0.21, height * 0.02, width, height);
-      else camera.setViewOffset(width, height, 0, -height * 0.37, width, height);
-      camera.updateProjectionMatrix();
     };
     resize();
     const observer = new ResizeObserver(resize);
     observer.observe(host);
 
+    // Nothing to draw once the story has scrolled away.
+    let visible = true;
+    const visibility = new IntersectionObserver(([entry]) => {
+      visible = entry?.isIntersecting ?? true;
+    });
+    visibility.observe(host);
+
+    const scratch = new Vector3();
+    const project: Project = (point) => {
+      scratch.copy(point).applyMatrix4(planet.matrixWorld).project(camera);
+      return { x: (scratch.x * 0.5 + 0.5) * width, y: (-scratch.y * 0.5 + 0.5) * height };
+    };
+
     let frame = 0;
+    let angle = 0;
     const started = performance.now();
     const render = () => {
-      cloudMaterial.opacity = Math.max(0, Math.min(1, cloudCover.current));
-      if (!reducedMotion) {
-        earth.rotation.y += SPIN_PER_FRAME;
-        cloudShell.rotation.y += SPIN_PER_FRAME * 1.25;
-        stars.points.rotation.y += SPIN_PER_FRAME * 0.04;
-        stars.time.value = (performance.now() - started) / 1000;
-      }
-      renderer.render(scene, camera);
       frame = requestAnimationFrame(render);
+      if (!visible) return;
+      const c = controls.current;
+      const t = (performance.now() - started) / 1000;
+
+      cloudMaterial.opacity = Math.max(0, Math.min(1, cloudCover.current));
+      camera.position.z = c.z;
+      camera.setViewOffset(width, height, width * c.offX, height * c.offY, width, height);
+      camera.updateProjectionMatrix();
+      planet.rotation.set(c.rx, c.ry + (reducedMotion ? 0 : t * DRIFT_PER_S * c.drift), 0);
+      planet.updateMatrixWorld();
+
+      ringMaterial.opacity = 0.55 * c.ring;
+      trailMaterial.opacity = c.ring;
+      if (!reducedMotion) {
+        cloudShell.rotation.y = t * CLOUD_DRIFT_PER_S;
+        stars.time.value = t;
+        angle += ORBIT_STEP;
+      }
+      satellite.position.set(ORBIT_RADIUS * Math.cos(angle), ORBIT_RADIUS * Math.sin(angle), 0);
+      trail.rotation.z = angle - TRAIL_ARC;
+
+      onFrameRef.current?.(project, c);
+      renderer.render(scene, camera);
     };
     render();
 
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      visibility.disconnect();
       day.dispose();
       clouds.dispose();
       halo.dispose();
       renderer.dispose();
       host.removeChild(renderer.domElement);
     };
-  }, [cloudCover, reducedMotion]);
+  }, [cloudCover, controls, reducedMotion]);
 
   return (
     <div
       ref={hostRef}
-      className="l-hero__space"
+      className="l-story__space"
       role="img"
-      aria-label="Earth turning under its cloud cover in a field of stars, from NASA Blue Marble imagery"
+      aria-label="Earth in a field of stars, from NASA Blue Marble imagery, with NISAR's orbit"
     />
   );
 };

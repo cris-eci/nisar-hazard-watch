@@ -33,7 +33,7 @@ const diverging = (valueCm: number, scaleCm: number): Rgba => {
 };
 
 // Wrapped phase as a hue wheel: each full colour cycle is half a wavelength of LOS motion.
-const fringe = (valueCm: number): Rgba => {
+export const fringeColor = (valueCm: number): Rgba => {
   const cycle = NISAR_L_BAND_WAVELENGTH_CM / 2;
   const hue = ((((valueCm % cycle) + cycle) % cycle) / cycle) * 6;
   const x = 1 - Math.abs((hue % 2) - 1);
@@ -87,7 +87,7 @@ export const mockDeformationAnalysis = async (
     layers: {
       bounds,
       displacementUrl: toPngUrl(GRID_SIZE, (i) => diverging(field.losCm[i] ?? 0, colorScaleCm)),
-      fringesUrl: toPngUrl(GRID_SIZE, (i) => fringe(field.losCm[i] ?? 0)),
+      fringesUrl: toPngUrl(GRID_SIZE, (i) => fringeColor(field.losCm[i] ?? 0)),
       colorScaleCm,
     },
     generatedAt: new Date().toISOString(),
