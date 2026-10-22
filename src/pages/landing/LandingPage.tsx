@@ -11,32 +11,45 @@ const reducedMotion = prefersReducedMotion();
 
 type Mode = "optical" | "radar";
 
-const SHOWCASE: Record<Mode, { heading: string; image: string; alt: string }> = {
+const SHOWCASE: Record<Mode, { heading: string; image: string; alt: string; caption: string }> = {
   optical: {
     heading: "Cloud hides the ground",
-    image: "/landing/optical-northern-plains.jpg",
-    alt: "Northern Plains of North Dakota seen by an optical satellite, mostly under cloud",
+    image: "/landing/optical-north-dakota.jpg",
+    alt: "Sentinel-2 view of farmland along the Forest River, North Dakota, mostly hidden under cumulus cloud",
+    caption:
+      "Sentinel-2, 24 August 2025. Farmland along the Forest River, North Dakota, almost all of it under cloud.",
   },
   radar: {
     heading: "Radar sees the ground",
     image: "/landing/radar-north-dakota.jpg",
-    alt: "NISAR radar image of North Dakota farmland, with round centre-pivot fields in gold",
+    alt: "NISAR radar image of the same North Dakota farmland, every field visible, with NASA's labels for corn, wetlands and centre-pivot fields",
+    caption:
+      "NISAR, 23 August 2025. The same farmland, every field readable; centre-pivot fields show as gold circles. Labels by NASA.",
   },
 };
 
-const STAGES = [
-  { duration: "Twelve days", clause: "First, NISAR passes over the same frame again.", grow: 58 },
-  {
-    duration: "A few days",
-    clause: "Then the Alaska Satellite Facility publishes the radar products.",
-    grow: 18,
-  },
-  { duration: "Minutes", clause: "Next, the pipeline compares the two passes.", grow: 12 },
-  { duration: "Seconds", clause: "Finally, you read the change on the globe.", grow: 12 },
-];
+type SlipGroup = { heading: string; rows: { what: string; when: string }[] };
 
-const STAGE_COLOURS = ["var(--accent)", "var(--ocean)", "var(--land)", "var(--ink)"];
-const STAGE_INKS = ["var(--accent-ink)", "var(--ink)", "var(--land-ink)", "var(--bg)"];
+const SLIP: SlipGroup[] = [
+  {
+    heading: "In orbit",
+    rows: [
+      { what: "First pass, the before image", when: "Day 0" },
+      { what: "NISAR returns to the same frame", when: "Day 12" },
+    ],
+  },
+  {
+    heading: "On the ground",
+    rows: [
+      { what: "ASF publishes the radar products", when: "A few days" },
+      { what: "The pipeline compares both passes", when: "Minutes" },
+    ],
+  },
+  {
+    heading: "On your screen",
+    rows: [{ what: "The change is drawn on the globe", when: "Seconds" }],
+  },
+];
 
 const EVENT_LINES: Record<string, { name: string; detail: string }> = {
   "venezuela-2026": { name: "Venezuela", detail: "M7.5, 24 June 2026" },
@@ -45,15 +58,47 @@ const EVENT_LINES: Record<string, { name: string; detail: string }> = {
   "andes-fire-demo": { name: "Andes fire", detail: "Demo site" },
 };
 
-const SOURCES = ["NASA JPL", "ISRO", "Alaska Satellite Facility", "USGS", "NASA FIRMS", "CesiumJS"];
-
-const FOOTER_MARK = [
-  { height: "62%", colour: "var(--ocean)" },
-  { height: "100%", colour: "var(--accent)" },
-  { height: "78%", colour: "var(--land)" },
-  { height: "88%", colour: "var(--surface)" },
-  { height: "70%", colour: "var(--accent)" },
-  { height: "94%", colour: "var(--ocean)" },
+const CREDITS: { role: string; name: string; href: string }[] = [
+  {
+    role: "Radar satellite",
+    name: "NISAR, by NASA JPL and ISRO",
+    href: "https://science.nasa.gov/mission/nisar/",
+  },
+  {
+    role: "Frames and passes",
+    name: "NISAR Observation Plan API",
+    href: "https://nisar.jpl.nasa.gov/mission/get-to-know-sar/observation-plan/",
+  },
+  {
+    role: "Radar products",
+    name: "Alaska Satellite Facility DAAC",
+    href: "https://search.asf.alaska.edu/",
+  },
+  {
+    role: "Earthquakes",
+    name: "USGS earthquake catalogue",
+    href: "https://earthquake.usgs.gov/earthquakes/search/",
+  },
+  {
+    role: "Optical comparison",
+    name: "NASA HLS, from Copernicus Sentinel-2",
+    href: "https://hls.gsfc.nasa.gov/",
+  },
+  {
+    role: "Earth and clouds",
+    name: "NASA Blue Marble",
+    href: "https://visibleearth.nasa.gov/collection/1484/blue-marble",
+  },
+  {
+    role: "Eruption time-lapse",
+    name: "NASA Scientific Visualization Studio",
+    href: "https://svs.gsfc.nasa.gov/",
+  },
+  {
+    role: "Globe engine",
+    name: "CesiumJS, open source",
+    href: "https://cesium.com/platform/cesiumjs/",
+  },
 ];
 
 export const LandingPage = () => {
@@ -70,16 +115,13 @@ export const LandingPage = () => {
 
   return (
     <div ref={root} className="landing">
-      <a
-        href="#main"
-        className="sr-only rounded-full bg-[#e6a93a] px-4 py-2 text-[#1a1204] focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-20"
-      >
+      <a href="#main" className="l-skip">
         Skip to content
       </a>
 
-      <header className="l-hero l-frame">
+      <header className="l-hero">
         <nav className="l-nav l-frame" aria-label="Main">
-          <Link to="/" className="l-nav__link font-medium">
+          <Link to="/" className="l-nav__mark">
             NISAR Hazard Watch
           </Link>
           <div className="l-nav__links">
@@ -89,19 +131,16 @@ export const LandingPage = () => {
             <Link to="/method" className="l-nav__link l-nav__link--secondary">
               Method
             </Link>
-            <Link to="/explore" className="l-button l-button--ink" testId="nav-explore">
+            <Link to="/explore" className="l-button l-button--ghost" testId="nav-explore">
               Open the globe
             </Link>
           </div>
         </nav>
 
-        <div className="l-hero__disc" aria-hidden="true" />
         <EarthHero cloudCover={cloudCover} reducedMotion={reducedMotion} />
 
-        <div id="main" className="l-hero__copy">
-          <h1 className="l-hero__title" data-reveal>
-            Earth, without the clouds
-          </h1>
+        <div id="main" className="l-hero__copy l-frame">
+          <h1 className="l-hero__title">Earth, without the clouds</h1>
           <p className="l-hero__lead" data-reveal>
             NISAR Hazard Watch turns NASA-ISRO radar passes into maps of burn scars, floods and
             moving ground, through cloud, smoke and night.
@@ -115,121 +154,136 @@ export const LandingPage = () => {
       </header>
 
       <main>
-        <section className="l-section l-frame" data-section aria-labelledby="stats-heading">
-          <div className="l-stats">
-            <h2 id="stats-heading" className="l-heading l-stats__heading" data-reveal>
-              Every twelve days
-            </h2>
-            <div className="l-tile l-tile--tall" data-reveal>
-              <p className="l-tile__figure">12 days</p>
-              <p className="l-tile__caption">
-                NISAR returns to the same ground on a fixed cycle, day or night.
-              </p>
-            </div>
-            <div className="l-tile l-tile--ink" data-reveal>
-              <p className="l-tile__figure">24 cm</p>
-              <p className="l-tile__caption">
-                Its L-band waves are long enough to pass through forest canopy.
-              </p>
-            </div>
-            <div className="l-tile l-tile--mid" data-reveal>
-              <p className="l-tile__figure">16,663</p>
-              <p className="l-tile__caption">radar frames on the plan, each one a place to open.</p>
-            </div>
+        <section className="l-figure l-frame" data-section aria-labelledby="figure-heading">
+          <h2 id="figure-heading" className="l-figure__claim" data-reveal>
+            Every place, every twelve days
+          </h2>
+          <p className="l-figure__number" data-reveal>
+            12<span className="l-figure__unit">days</span>
+          </p>
+          <div className="l-figure__notes" data-reveal>
+            <p>
+              NISAR maps almost all of Earth&apos;s land and ice on a twelve-day cycle, day or
+              night, so every frame on the globe gets a fresh before and after.
+            </p>
+            <p className="l-figure__source">From 747 km up, on a sun-synchronous orbit.</p>
           </div>
         </section>
 
         <section
-          className="l-section l-showcase l-frame"
+          className="l-screen l-frame"
           data-mode={mode}
           data-section
           aria-labelledby="showcase-heading"
         >
-          <div className="l-showcase__copy">
-            <h2 id="showcase-heading" className="l-heading" data-reveal aria-live="polite">
-              {SHOWCASE[mode].heading}
-            </h2>
-            <p data-reveal>
-              Flip the switch. An optical satellite sees the cloud; NISAR&apos;s radar sees the
-              fields beneath it.
-            </p>
-          </div>
-
-          <div className="l-showcase__picture" data-reveal>
-            {(["optical", "radar"] as const).map((key) => (
-              <img
-                key={key}
-                src={SHOWCASE[key].image}
-                alt={key === mode ? SHOWCASE[key].alt : ""}
-                aria-hidden={key !== mode}
-                width={1020}
-                height={576}
-                loading="lazy"
-                style={{ opacity: key === mode ? 1 : 0 }}
-              />
-            ))}
-          </div>
-          <p className="l-showcase__caption">
-            {mode === "radar"
-              ? "NISAR's first image of North Dakota, 23 August 2025: centre-pivot fields read as gold circles."
-              : "The same area in NASA Blue Marble imagery, under a NASA cloud layer composited on top."}
-          </p>
-
-          <div className="l-switch" role="group" aria-label="Satellite view" data-ui>
-            {(["optical", "radar"] as const).map((key) => (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={mode === key}
-                onClick={() => setMode(key)}
-                data-testid={`view-${key}`}
-              >
-                {key === "optical" ? "Optical" : "Radar"}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section className="l-section l-frame" data-section aria-labelledby="stages-heading">
-          <h2 id="stages-heading" className="l-stages__heading" data-reveal>
-            From orbit to your map
-          </h2>
-          <div className="l-stages__bar" data-ui data-reveal>
-            {STAGES.map(({ duration, grow }, i) => (
-              <div
-                key={duration}
-                className="l-stage"
-                style={{
-                  flexGrow: grow,
-                  background: STAGE_COLOURS[i],
-                  color: STAGE_INKS[i],
-                }}
-              >
-                {duration}
-              </div>
-            ))}
-          </div>
-          <div className="l-stages__clauses" data-reveal>
-            {STAGES.map(({ duration, clause, grow }) => (
-              <p key={duration} style={{ flexGrow: grow }}>
-                {clause}
+          <div className="l-screen__head">
+            <div>
+              <h2 id="showcase-heading" className="l-heading" data-reveal aria-live="polite">
+                {SHOWCASE[mode].heading}
+              </h2>
+              <p className="l-screen__lead" data-reveal>
+                Flip the switch. An optical satellite saw cloud over these fields; a day earlier,
+                NISAR&apos;s 24 cm radar waves went straight through to the ground.
               </p>
-            ))}
+            </div>
+            <div className="l-switch" role="group" aria-label="Satellite view" data-reveal>
+              {(["optical", "radar"] as const).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  aria-pressed={mode === key}
+                  onClick={() => setMode(key)}
+                  data-testid={`view-${key}`}
+                >
+                  {key === "optical" ? "Optical" : "Radar"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <figure className="l-screen__frame" data-reveal>
+            <img
+              className="l-screen__optical"
+              src={SHOWCASE.optical.image}
+              alt={mode === "optical" ? SHOWCASE.optical.alt : ""}
+              aria-hidden={mode !== "optical"}
+              width={1580}
+              height={851}
+            />
+            <img
+              className="l-screen__radar"
+              src={SHOWCASE.radar.image}
+              alt={mode === "radar" ? SHOWCASE.radar.alt : ""}
+              aria-hidden={mode !== "radar"}
+              width={2048}
+              height={1103}
+            />
+          </figure>
+          <p className="l-screen__caption">{SHOWCASE[mode].caption}</p>
+        </section>
+
+        <section className="l-stages" data-section aria-labelledby="stages-heading">
+          <div className="l-stages__inner l-frame">
+            <div className="l-stages__copy">
+              <h2 id="stages-heading" className="l-heading" data-reveal>
+                From orbit to your map
+              </h2>
+              <p data-reveal>
+                A change map needs two radar passes over the same ground. Most of the wait is the
+                satellite coming back around; once both passes are on the archive, the rest takes
+                minutes.
+              </p>
+            </div>
+            <div className="l-slip" data-reveal>
+              {SLIP.map(({ heading, rows }) => (
+                <div key={heading} className="l-slip__group">
+                  <h3>{heading}</h3>
+                  <dl>
+                    {rows.map(({ what, when }) => (
+                      <div key={what} className="l-slip__row">
+                        <dt>{what}</dt>
+                        <dd>{when}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              ))}
+              <p className="l-slip__total">
+                <span>A map of what changed</span>
+                <span>About two weeks</span>
+              </p>
+            </div>
           </div>
         </section>
 
-        <section className="l-section" data-section aria-labelledby="about-heading">
-          <div className="l-about">
-            <h2 id="about-heading" className="l-about__statement" data-reveal>
-              Twelve metres of gold mesh
-            </h2>
+        <section className="l-about" data-section aria-labelledby="about-heading">
+          <div className="l-about__panel">
+            <div className="l-about__left">
+              <h2 id="about-heading" className="l-heading" data-reveal>
+                Twelve metres of gold mesh
+              </h2>
+              <figure className="l-about__figure" data-reveal>
+                <img
+                  src="/landing/nisar-concept.jpg"
+                  alt="Artist's concept of NISAR above Earth, its 12 m gold mesh reflector open on a long boom"
+                  width={1280}
+                  height={989}
+                />
+              </figure>
+            </div>
             <div className="l-about__text">
               <div data-reveal>
                 <h3>Two radars, one mission</h3>
                 <p>
                   NISAR carries an L-band radar built by NASA&apos;s JPL and an S-band radar from
-                  ISRO. It launched from Sriharikota on 30 July 2025 and maps almost all of
-                  Earth&apos;s land and ice every 12 days.
+                  ISRO. It launched from Sriharikota on 30 July 2025.
+                </p>
+              </div>
+              <div data-reveal>
+                <h3>A dish the width of a house</h3>
+                <p>
+                  Its 12 m reflector of gold-plated wire mesh unfolded in orbit in August 2025. It
+                  focuses the radar on a strip of ground about 240 km wide.
                 </p>
               </div>
               <div data-reveal>
@@ -244,18 +298,8 @@ export const LandingPage = () => {
                   How it is computed
                 </Link>
               </div>
+              <p className="l-about__caption">Artist&apos;s concept, NASA/JPL-Caltech.</p>
             </div>
-            <img
-              className="l-about__photo"
-              src="/landing/reflector-deployment.jpg"
-              alt="NISAR's team in a JPL control room, screens showing the reflector unfurling in orbit"
-              width={1600}
-              height={1065}
-              loading="lazy"
-            />
-            <p className="l-about__photo-caption">
-              JPL&apos;s team watching the reflector unfurl, August 2025.
-            </p>
           </div>
         </section>
 
@@ -328,38 +372,55 @@ export const LandingPage = () => {
           </p>
         </section>
 
-        <section className="l-section l-frame" data-section aria-labelledby="proof-heading">
-          <div className="l-proof">
-            <div className="l-proof__tile l-proof__tile--head" data-reveal>
-              <h2 id="proof-heading">Built on open data</h2>
-            </div>
-            {SOURCES.map((name) => (
-              <div key={name} className="l-proof__tile" data-reveal>
-                {name}
+        <section className="l-credits l-frame" data-section aria-labelledby="credits-heading">
+          <h2 id="credits-heading" className="l-heading" data-reveal>
+            Built on open data
+          </h2>
+          <figure className="l-credits__still" data-reveal>
+            <img
+              src="/landing/reflector-deployment.jpg"
+              alt="NISAR's team in a JPL control room, screens showing the reflector unfurling in orbit"
+              width={1600}
+              height={1065}
+              loading="lazy"
+            />
+            <figcaption>JPL&apos;s team watching the reflector unfurl, August 2025.</figcaption>
+          </figure>
+          <dl className="l-credits__roll">
+            {CREDITS.map(({ role, name, href }) => (
+              <div key={role} className="l-credits__line" data-reveal>
+                <dt>{role}</dt>
+                <dd>
+                  <a href={href}>{name}</a>
+                </dd>
               </div>
             ))}
-          </div>
+          </dl>
         </section>
 
-        <section className="l-section l-section--cta" data-section aria-label="Open the explorer">
-          <Link to="/explore" className="l-cta" testId="cta-band">
-            <span className="l-cta__sentence">
-              Open the globe and pick any of 16,663 frames, or start with a real earthquake.
-            </span>
-            <span className="l-cta__word" aria-hidden="true">
-              Explore
-            </span>
-            <span className="sr-only">Explore the globe</span>
-          </Link>
+        <section className="l-ticket" data-section aria-labelledby="ticket-heading">
+          <div className="l-ticket__inner l-frame">
+            <p className="l-ticket__aside" data-reveal>
+              16,663 frames are on NISAR&apos;s plan. Every one of them is a place you can open.
+            </p>
+            <div className="l-ticket__card" data-reveal>
+              <h2 id="ticket-heading">Pick any frame</h2>
+              <p>
+                Point at the globe to see NISAR&apos;s frames, open one to list its passes, or start
+                with a real earthquake.
+              </p>
+              <Link to="/explore" className="l-ticket__action" testId="cta-band">
+                Open the globe
+              </Link>
+            </div>
+          </div>
         </section>
       </main>
 
       <footer className="l-footer l-frame">
-        <div className="l-footer__mark" aria-hidden="true">
-          {FOOTER_MARK.map(({ height, colour }, i) => (
-            <span key={i} style={{ height, background: colour }} />
-          ))}
-        </div>
+        <p className="l-footer__mark" aria-hidden="true">
+          NISAR Hazard Watch
+        </p>
         <div className="l-footer__cols">
           <nav className="l-footer__links" aria-label="Footer">
             <Link to="/explore">Explorer</Link>
@@ -377,10 +438,11 @@ export const LandingPage = () => {
           </div>
         </div>
         <p className="l-footer__credits">
-          Pictures: NISAR first image of North Dakota, NISAR reflector deployment
-          (NASA/JPL-Caltech), NISAR eruption time-lapse (NASA Scientific Visualization Studio), Blue
-          Marble and cloud imagery (NASA Visible Earth). All public domain, via Wikimedia Commons
-          and NASA.
+          Pictures: NISAR first image of North Dakota, NISAR reflector deployment and artist&apos;s
+          concept of NISAR (NASA/JPL-Caltech); NISAR eruption time-lapse (NASA Scientific
+          Visualization Studio); Blue Marble and cloud imagery (NASA Visible Earth), all public
+          domain. Optical view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via
+          NASA Worldview.
         </p>
         <div className="l-footer__base">
           <p>NISAR Hazard Watch, 2026</p>

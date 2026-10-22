@@ -1,47 +1,53 @@
+@import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500&family=Imbue:opsz,wght@10..100,400&display=swap");
+
 /*
- * Landing page. One motif: the circle of NISAR's 12 m reflector, at every scale (the hero disc,
- * the photo masks, the buttons, list bullets, the closing band). Colours come from the subject:
- * night sky, reflector gold, ocean and land. No gradients, rules, shadows or glass on this page.
+ * Landing page, dressed as a film: a title card over the planet, a one-figure screen, the comparison
+ * on a widescreen frame, a call sheet, end credits and a ticket. Deep space blacks and blues with
+ * starlight ink; champagne gold only on the actions and the reflector. The one glow on the page is
+ * Earth's atmosphere, drawn in WebGL; no CSS gradients, rules, shadows or glass.
  */
 
 .landing {
-  --bg: #0b1222;
-  --surface: #121c33;
-  --ink: #eef1f6;
-  --muted: #b4bdcc;
-  --accent: #e6a93a;
-  --accent-ink: #1a1204;
-  --ocean: #1d4f7a;
-  --land: #c8b38a;
-  --land-ink: #17130b;
+  --space: #04070e;
+  --deep: #08101f;
+  --night: #0e1930;
+  --ink: #ebe9e4;
+  --muted: #a9a69e;
+  --gold: #c9b48b;
+  --gold-hover: #dccaa3;
+  --gold-ink: #16120a;
+  --paper: #dcdad4;
+  --paper-ink: #12151c;
+  --paper-muted: #545862;
 
-  --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+  --display: "Imbue", "Times New Roman", serif;
+  --text: "Albert Sans", system-ui, sans-serif;
+
+  --step-small: 0.875rem;
   --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
-  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
-  --step-head: clamp(2rem, 1.3rem + 3.2vw, 4rem);
-  --step-display: clamp(3.25rem, 1rem + 7vw, 8.5rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --step-head: clamp(2.75rem, 1.6rem + 4vw, 5.75rem);
+  --step-display: clamp(4rem, 1rem + 8.2vw, 10.5rem);
 
   --margin: clamp(1rem, 0.5rem + 2vw, 2rem);
-  --gap-section: clamp(7.5rem, 5rem + 5vw, 11rem);
+  --gap-section: clamp(7.5rem, 5rem + 6vw, 13rem);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-  background: var(--bg);
+  background: var(--space);
   color: var(--ink);
-  font-family: "General Sans", system-ui, sans-serif;
+  font-family: var(--text);
   font-size: var(--step-body);
-  line-height: 1.45;
+  line-height: 1.55;
   overflow-x: clip;
 }
 
 /* Base resets use :where() (zero specificity) so every component class below can override them. */
 :where(.landing) :where(h1, h2, h3) {
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 0.95;
+  font-weight: 400;
   margin: 0;
 }
 
-:where(.landing) p {
+:where(.landing) :where(p, figure, dl, dd) {
   margin: 0;
 }
 
@@ -53,37 +59,67 @@
   padding-inline: var(--margin);
 }
 
-/* The one button shape: fully round, from the reflector's circle. */
+.l-heading {
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-variation-settings: "opsz" 100;
+  text-transform: uppercase;
+  letter-spacing: -0.005em;
+  line-height: 0.9;
+}
+
+.l-skip {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 20;
+  padding: 0.6rem 1rem;
+  background: var(--gold);
+  color: var(--gold-ink);
+  transform: translateY(-200%);
+}
+
+.l-skip:focus {
+  transform: none;
+}
+
+/* The one button shape: square, like a title card's frame. */
 .l-button {
   display: inline-flex;
   align-items: center;
-  gap: 0.6em;
-  border-radius: 999px;
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--gold);
+  color: var(--gold-ink);
   font-weight: 500;
-  padding: 0.85em 1.6em;
+  padding: 0.9em 1.6em;
   text-decoration: none;
+  white-space: nowrap;
   transition:
     transform 160ms var(--ease-out),
-    background-color 160ms var(--ease-out);
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out);
 }
 
 .l-button:hover {
-  background: #f2bd57;
+  background: var(--gold-hover);
 }
 
 .l-button:active {
   transform: scale(0.97);
 }
 
-.l-button--ink {
-  background: var(--ink);
-  color: var(--bg);
+.l-button--ghost {
+  background: var(--night);
+  color: var(--ink);
 }
 
-.l-button--ink:hover {
-  background: #ffffff;
+.l-button--ghost:hover {
+  background: var(--ink);
+  color: var(--space);
+}
+
+.landing :focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
 }
 
 /* Navigation: wordmark, a few plain links, one action. */
@@ -97,6 +133,14 @@
   padding-block: 1.25rem;
 }
 
+.l-nav__mark {
+  font-family: var(--display);
+  font-size: var(--step-lead);
+  text-transform: uppercase;
+  text-decoration: none;
+  line-height: 1;
+}
+
 .l-nav__links {
   display: flex;
   align-items: center;
@@ -105,220 +149,151 @@
 
 .l-nav__link {
   text-decoration: none;
-  opacity: 0.85;
+  color: var(--muted);
+  transition: color 160ms var(--ease-out);
 }
 
 .l-nav__link:hover {
-  opacity: 1;
+  color: var(--ink);
 }
 
-/* Hero */
+/* Hero: the title card, set over the planet and its stars. */
 .l-hero {
   position: relative;
   min-height: 100svh;
   display: grid;
-  align-items: center;
+  align-items: end;
   overflow: hidden;
+  background: var(--space);
 }
 
-.l-hero__disc {
+.l-hero__space {
   position: absolute;
-  top: calc(50% - 60vh);
-  right: -38vh;
-  width: 120vh;
-  height: 120vh;
-  border-radius: 50%;
-  background: var(--accent);
-}
-
-.l-hero__earth {
-  position: absolute;
-  top: calc(50% - 37vh);
-  right: calc(-38vh + 23vh);
-  width: 74vh;
-  height: 74vh;
+  inset: 0;
 }
 
 .l-hero__copy {
   position: relative;
   z-index: 1;
-  max-width: min(56vw, 54rem);
-  padding-top: 5rem;
+  padding-bottom: clamp(3rem, 10svh, 7rem);
 }
 
 .l-hero__title {
-  font-size: clamp(3rem, 1rem + 5.6vw, 7.25rem);
+  max-width: 7.2em;
+  font-family: var(--display);
+  font-size: var(--step-display);
+  font-variation-settings: "opsz" 100;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.86;
 }
 
 .l-hero__lead {
   margin-top: 2.25rem;
   max-width: 34ch;
   font-size: var(--step-lead);
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
 .l-hero__action {
-  margin-top: 2.5rem;
+  margin-top: 2.25rem;
 }
 
-/* Sections */
-.l-section {
+/* One figure owns the screen: the claim and its notes on the left, the number filling the right. */
+.l-figure {
+  margin-top: var(--gap-section);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: auto 1fr;
+  column-gap: 1.5rem;
+  min-height: 78svh;
+}
+
+.l-figure__claim {
+  grid-column: 1 / span 5;
+  grid-row: 1;
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-variation-settings: "opsz" 100;
+  text-transform: uppercase;
+  line-height: 0.9;
+}
+
+.l-figure__number {
+  grid-column: 6 / -1;
+  grid-row: 1 / span 2;
+  justify-self: start;
+  align-self: end;
+  display: flex;
+  align-items: flex-start;
+  font-family: var(--display);
+  font-size: clamp(12rem, 2rem + 40vw, 44rem);
+  font-variation-settings: "opsz" 100;
+  font-variant-numeric: lining-nums;
+  line-height: 0.74;
+  letter-spacing: -0.02em;
+  color: var(--gold);
+}
+
+.l-figure__unit {
+  margin-left: 0.06em;
+  margin-top: 0.04em;
+  font-size: 0.2em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.l-figure__notes {
+  grid-column: 1 / span 4;
+  grid-row: 2;
+  align-self: end;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 34ch;
+}
+
+.l-figure__source {
+  color: var(--muted);
+}
+
+/* The comparison, projected on one widescreen frame. */
+.l-screen {
   margin-top: var(--gap-section);
 }
 
-.l-heading {
-  font-size: var(--step-head);
-}
-
-/* Stats: three stepped tiles; one corner of each is cut to a quarter circle. */
-.l-stats {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 8px;
-  align-items: start;
-}
-
-.l-stats__heading {
-  grid-column: 7 / span 6;
-  grid-row: 1;
-  align-self: start;
-  padding-top: 2vh;
-}
-
-.l-tile {
-  position: relative;
+.l-screen__head {
   display: flex;
-  flex-direction: column;
+  align-items: flex-end;
   justify-content: space-between;
-  padding: 28px;
-  border-radius: 0 0 0 min(14vw, 220px);
+  gap: 2rem 3rem;
+  margin-bottom: 2.5rem;
 }
 
-.l-tile__figure {
-  font-size: var(--step-head);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 0.9;
-  font-variant-numeric: tabular-nums;
+.l-screen__lead {
+  margin-top: 1.5rem;
+  max-width: 46ch;
 }
 
-.l-tile__caption {
-  max-width: 24ch;
-  align-self: flex-end;
-  text-align: right;
-}
-
-.l-tile--tall .l-tile__figure {
-  font-size: clamp(3rem, 1rem + 5.6vw, 7.25rem);
-}
-
-.l-tile--tall {
-  grid-column: 1 / span 6;
-  grid-row: 1 / span 3;
-  height: 70vh;
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.l-tile--ink {
-  grid-column: 7 / span 3;
-  grid-row: 2;
-  margin-top: 6vh;
-  height: 44vh;
-  background: var(--ink);
-  color: var(--bg);
-  border-radius: 0 0 0 min(9vw, 140px);
-}
-
-.l-tile--mid {
-  grid-column: 10 / span 3;
-  grid-row: 2;
-  margin-top: 18vh;
-  height: 34vh;
-  background: var(--ocean);
-  color: var(--ink);
-  border-radius: 0 0 0 min(9vw, 140px);
-}
-
-/* Showcase: one control, blown up. */
-.l-showcase {
-  position: relative;
-  min-height: 92svh;
-  overflow: hidden;
-  transition: background-color 420ms var(--ease-out);
-}
-
-.l-showcase[data-mode="optical"] {
-  background: var(--land);
-  color: var(--land-ink);
-}
-
-.l-showcase[data-mode="radar"] {
-  background: var(--ocean);
-  color: var(--ink);
-}
-
-.l-showcase__copy {
-  position: relative;
-  z-index: 1;
-  padding-top: 4rem;
-  max-width: 34rem;
-}
-
-.l-showcase__copy p {
-  margin-top: 1rem;
-}
-
-.l-showcase__picture {
-  position: absolute;
-  left: var(--margin);
-  bottom: 6svh;
-  width: min(38vw, 30rem);
-  aspect-ratio: 1;
-}
-
-.l-showcase__picture img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  transition: opacity 420ms var(--ease-out);
-}
-
-.l-showcase__caption {
-  position: absolute;
-  left: calc(var(--margin) + min(38vw, 30rem) + 2rem);
-  bottom: 6svh;
-  max-width: 26ch;
-  font-size: var(--step-small);
-}
-
-/* The switch, built in em at true proportions, then enlarged. */
 .l-switch {
-  position: absolute;
-  right: -12vw;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: clamp(2.2rem, 1rem + 4.2vw, 5.5rem);
   display: flex;
-  padding: 0.12em;
-  gap: 0.08em;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 14%, transparent);
+  flex-shrink: 0;
+  padding: 0.3rem;
+  gap: 0.3rem;
+  background: var(--night);
 }
 
 .l-switch button {
   font: inherit;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: inherit;
+  font-family: var(--display);
+  font-size: clamp(1.75rem, 1.2rem + 1.4vw, 2.5rem);
+  font-variation-settings: "opsz" 100;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--muted);
   background: transparent;
   border: 0;
-  border-radius: 999px;
-  padding: 0.18em 0.62em;
+  padding: 0.35em 0.75em 0.3em;
   cursor: pointer;
   transition:
     background-color 240ms var(--ease-out),
@@ -326,116 +301,229 @@
     transform 160ms var(--ease-out);
 }
 
+.l-switch button:hover {
+  color: var(--ink);
+}
+
 .l-switch button:active {
   transform: scale(0.97);
 }
 
 .l-switch button[aria-pressed="true"] {
-  background: var(--bg);
-  color: var(--ink);
+  background: var(--gold);
+  color: var(--gold-ink);
 }
 
-/* How it works: the stages as one enlarged progress bar. */
-.l-stages__heading {
-  font-size: clamp(3rem, 1rem + 5.6vw, 7.25rem);
-  margin-bottom: 64px;
-}
-
-.l-stages__bar {
-  display: flex;
-  gap: 6px;
-  height: 22vh;
-  min-height: 9rem;
-}
-
-.l-stage {
-  flex-basis: 0;
-  padding: 20px;
-  font-size: var(--step-lead);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
-  border-radius: 0;
-}
-
-.l-stage:first-child {
-  border-radius: 9vh 0 0 9vh;
-}
-
-.l-stage:last-child {
-  border-radius: 0 9vh 9vh 0;
-}
-
-.l-stages__clauses {
-  display: flex;
-  gap: 6px;
-  margin-top: 1rem;
-}
-
-.l-stages__clauses p {
-  flex-basis: 0;
-  max-width: 22ch;
-  padding-right: 1rem;
-}
-
-/* About: an inset deep panel with one circle-masked photograph. */
-.l-about {
+.l-screen__frame {
   position: relative;
-  margin-inline: 20px;
-  min-height: 110svh;
-  background: var(--surface);
+  aspect-ratio: 2048 / 1103;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  background: var(--deep);
 }
 
-.l-about__statement {
-  padding: 56px;
-  font-size: var(--step-head);
-}
-
-.l-about__photo {
+.l-screen__frame img {
   position: absolute;
-  left: 56px;
-  bottom: -9vw;
-  width: 38vw;
-  aspect-ratio: 1;
-  border-radius: 50%;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  object-position: 62% 50%;
 }
 
-.l-about__photo-caption {
-  position: absolute;
-  left: calc(56px + 38vw + 1.5rem);
-  bottom: 56px;
-  max-width: 22ch;
-  font-size: var(--step-small);
+/* The radar opens over the optical view like a shutter, left to right. */
+.l-screen__radar {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 1.1s var(--ease-out);
+}
+
+.l-screen[data-mode="radar"] .l-screen__radar {
+  clip-path: inset(0 0 0 0);
+}
+
+.l-screen__caption {
+  margin-top: 1rem;
+  max-width: 60ch;
   color: var(--muted);
 }
 
-.l-about__text {
-  grid-column: 2;
-  padding: 56px 56px 56px 13%;
+/* The pipeline, printed as a call sheet on a deeper field. */
+.l-stages {
+  margin-top: var(--gap-section);
+  background: var(--deep);
+  padding-block: clamp(5rem, 3rem + 6vw, 9rem) 0;
+  overflow: hidden;
+}
+
+.l-stages__inner {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  align-items: start;
+}
+
+.l-stages__copy {
+  grid-column: 1 / span 5;
+}
+
+.l-stages__copy p {
+  margin-top: 1.75rem;
+  max-width: 34ch;
+}
+
+.l-slip {
+  grid-column: 7 / span 6;
+  max-width: 34rem;
+  background: var(--paper);
+  color: var(--paper-ink);
+  padding: 2.5rem 2.25rem 4.5rem;
+  font-variant-numeric: tabular-nums;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 14px),
+    95% 100%,
+    90% calc(100% - 14px),
+    85% 100%,
+    80% calc(100% - 14px),
+    75% 100%,
+    70% calc(100% - 14px),
+    65% 100%,
+    60% calc(100% - 14px),
+    55% 100%,
+    50% calc(100% - 14px),
+    45% 100%,
+    40% calc(100% - 14px),
+    35% 100%,
+    30% calc(100% - 14px),
+    25% 100%,
+    20% calc(100% - 14px),
+    15% 100%,
+    10% calc(100% - 14px),
+    5% 100%,
+    0 calc(100% - 14px)
+  );
+}
+
+.l-slip__group + .l-slip__group {
+  margin-top: 1.75rem;
+}
+
+.l-slip__group h3 {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.l-slip__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-block: 0.3rem;
+}
+
+.l-slip__row dt {
+  color: var(--paper-muted);
+}
+
+/* The leader: a row of round dots between what happens and when. */
+.l-slip__row::after {
+  content: "";
+  order: 1;
+  flex: 1;
+  min-width: 1.5rem;
+  height: 4px;
+  align-self: center;
+  background-image: radial-gradient(circle, var(--paper-muted) 1.5px, transparent 2px);
+  background-size: 9px 4px;
+  opacity: 0.6;
+}
+
+.l-slip__row dd {
+  order: 2;
+  white-space: nowrap;
+}
+
+.l-slip__total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 2rem -2.25rem 0;
+  padding: 0.85rem 2.25rem;
+  background: var(--paper-ink);
+  color: var(--paper);
+  font-weight: 500;
+}
+
+/* The reflector: an inset night panel with one circular picture, cut by the panel's edge. */
+.l-about {
+  margin-top: var(--gap-section);
+  padding-inline: var(--margin);
+}
+
+.l-about__panel {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 3rem;
+  background: var(--night);
+  overflow: hidden;
+  padding: clamp(2rem, 1rem + 3vw, 3.5rem) clamp(1.5rem, 1rem + 3vw, 3.5rem) 0;
+}
+
+.l-about__left {
   display: flex;
   flex-direction: column;
-  gap: 64px;
-  max-width: calc(300px + 13% + 56px);
+}
+
+.l-about__left .l-heading {
+  max-width: 8em;
+}
+
+.l-about__figure {
+  margin-top: 3rem;
+  width: min(100%, 36rem);
+  aspect-ratio: 1;
+  margin-bottom: -18%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.l-about__figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 42% 40%;
+}
+
+.l-about__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2.75rem;
+  max-width: 34rem;
+  padding-bottom: clamp(2rem, 1rem + 3vw, 3.5rem);
 }
 
 .l-about__text h3 {
   font-size: var(--step-lead);
+  font-weight: 500;
   line-height: 1.2;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.l-about__caption {
+  margin-top: auto;
+  font-size: var(--step-small);
+  color: var(--muted);
 }
 
 /* Events: one item per poster line, with the preview held in a fixed circle. */
+.l-section {
+  margin-top: var(--gap-section);
+}
+
 .l-events {
   position: relative;
 }
 
 .l-events__heading {
-  width: fit-content;
   margin-bottom: 3rem;
 }
 
@@ -465,16 +553,18 @@
 
 .l-event__name {
   display: block;
-  font-size: clamp(3rem, 1rem + 5.6vw, 7.25rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  font-family: var(--display);
+  font-size: var(--step-display);
+  font-variation-settings: "opsz" 100;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
   line-height: 0.92;
 }
 
 .l-event__detail {
-  font-size: var(--step-body);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  color: var(--muted);
 }
 
 .l-events__list:hover .l-event,
@@ -485,7 +575,7 @@
 .l-events__list .l-event:hover,
 .l-events__list .l-event:focus-visible {
   opacity: 1;
-  color: var(--accent);
+  color: var(--gold);
 }
 
 .l-events__preview {
@@ -494,7 +584,7 @@
   aspect-ratio: 1;
   border-radius: 50%;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--night);
 }
 
 .l-events__preview > * {
@@ -523,117 +613,176 @@
   color: var(--muted);
 }
 
-/* Proof: names on tiles, no borders. */
-.l-proof {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+/* End credits: who supplies what, centred on the black like a film's closing roll. */
+.l-credits {
+  margin-top: var(--gap-section);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-.l-proof__tile {
-  aspect-ratio: 3 / 2;
-  padding: 24px;
-  background: var(--surface);
-  font-size: var(--step-lead);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
-  border-radius: 0 0 0 4.5rem;
+.l-credits__still {
+  margin-top: 3rem;
+  width: min(100%, 46rem);
 }
 
-.l-proof__tile--head {
-  grid-column: span 2;
-  aspect-ratio: auto;
-  background: var(--accent);
-  color: var(--accent-ink);
-}
-
-.l-proof__tile--head h2 {
-  font-size: var(--step-head);
-}
-
-/* CTA: the whole band is the link; its top corners take the circle. */
-.l-section--cta {
-  margin-top: clamp(5rem, 3rem + 5vw, 8rem);
-}
-
-.l-cta {
-  position: relative;
+.l-credits__still img {
   display: block;
-  min-height: 60svh;
-  background: var(--accent);
-  color: var(--accent-ink);
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.l-credits__still figcaption {
+  margin-top: 0.75rem;
+  font-size: var(--step-small);
+  color: var(--muted);
+}
+
+.l-credits__roll {
+  margin-top: 3.5rem;
+  width: min(100%, 52rem);
+  display: grid;
+  gap: 0.9rem;
+}
+
+.l-credits__line {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: baseline;
+}
+
+.l-credits__line dt {
+  text-align: right;
+  color: var(--muted);
+}
+
+.l-credits__line dd {
+  text-align: left;
+  font-size: var(--step-lead);
+  line-height: 1.3;
+}
+
+.l-credits__line a {
   text-decoration: none;
-  border-radius: 50vw 50vw 0 0 / 8vw 8vw 0 0;
+  transition: color 160ms var(--ease-out);
+}
+
+.l-credits__line a:hover {
+  color: var(--gold);
+}
+
+/* The ticket: a card lying on the night field, cropped by the section's lower edge. */
+.l-ticket {
+  margin-top: var(--gap-section);
+  background: var(--night);
   overflow: hidden;
 }
 
-.l-cta:hover,
-.l-cta:focus-visible {
-  background: var(--ink);
-  color: var(--bg);
+.l-ticket__inner {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  padding-top: clamp(5rem, 3rem + 6vw, 9rem);
 }
 
-.l-cta__sentence {
-  position: absolute;
-  top: calc(5vw + 20px);
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 32ch;
+.l-ticket__aside {
+  grid-column: 1 / span 4;
+  align-self: end;
+  margin-bottom: 5rem;
+  font-size: var(--step-lead);
+  line-height: 1.4;
+}
+
+.l-ticket__card {
+  grid-column: 6 / span 7;
+  align-self: end;
+  margin-bottom: -60px;
+  padding: 3rem 3rem calc(3rem + 60px);
+  background: var(--paper);
+  color: var(--paper-ink);
   text-align: center;
+  transform: rotate(-2deg);
+  transform-origin: 50% 100%;
 }
 
-.l-cta__word {
-  position: absolute;
-  left: var(--margin);
-  right: var(--margin);
-  bottom: 24px;
-  font-size: clamp(5rem, 1rem + 24vw, 26rem);
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  line-height: 0.8;
-  text-align: center;
+.l-ticket__card h2 {
+  font-family: var(--display);
+  font-size: var(--step-head);
+  font-variation-settings: "opsz" 100;
+  text-transform: uppercase;
+  line-height: 0.9;
 }
 
-/* Footer: the motif built large from circles, then plain links. */
+.l-ticket__card p {
+  margin: 1.25rem auto 2rem;
+  max-width: 40ch;
+}
+
+.l-ticket__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  background: var(--paper-ink);
+  color: var(--paper);
+  font-weight: 500;
+  text-decoration: none;
+  transition:
+    background-color 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.l-ticket__action:hover {
+  background: var(--gold);
+  color: var(--gold-ink);
+}
+
+.l-ticket__action:active {
+  transform: scale(0.98);
+}
+
+/* Footer: the title returns at full width, then plain links. */
 .l-footer {
-  padding-block: 4rem 2rem;
+  padding-block: clamp(4rem, 2rem + 4vw, 6rem) 2rem;
 }
 
 .l-footer__mark {
-  display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  height: 34svh;
-}
-
-.l-footer__mark span {
-  flex: 1;
-  border-radius: 999px 999px 0 0;
+  font-family: var(--display);
+  font-size: clamp(3rem, 15.4vw, 22rem);
+  font-variation-settings: "opsz" 100;
+  text-transform: uppercase;
+  line-height: 0.85;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  color: var(--gold);
 }
 
 .l-footer__cols {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 2rem;
-  margin-top: 56px;
-  font-size: var(--step-small);
+  margin-top: 3.5rem;
 }
 
 .l-footer__links {
   grid-column: 1 / span 8;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.6rem 1.5rem;
   align-content: start;
 }
 
 .l-footer__links a {
   text-decoration: none;
+  transition: color 160ms var(--ease-out);
 }
 
 .l-footer__links a:hover {
-  color: var(--accent);
+  color: var(--gold);
 }
 
 .l-footer__contact {
@@ -647,13 +796,14 @@
   margin-top: 3rem;
   font-size: var(--step-small);
   color: var(--muted);
-  max-width: 60ch;
+  max-width: 64ch;
 }
 
 .l-footer__base {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   margin-top: 2.5rem;
 }
 
@@ -662,26 +812,66 @@
   will-change: transform, opacity;
 }
 
-/* Tablet: the about panel and the events list stack, like on a phone. */
 @media (max-width: 960px) {
-  .l-about {
+  .l-figure {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .l-figure__number {
+    align-self: flex-end;
+    margin-block: 0.3em 0.1em;
+    font-size: 56vw;
+  }
+
+  .l-figure__notes {
+    align-self: flex-start;
+  }
+
+  .l-stages__copy {
+    grid-column: 1 / -1;
+  }
+
+  .l-slip {
+    grid-column: 1 / -1;
+    margin-top: 3rem;
+  }
+
+  .l-about__panel {
     grid-template-columns: 1fr;
-    padding-bottom: 60vw;
+    gap: 2.5rem;
+  }
+
+  .l-about__left {
+    display: contents;
+  }
+
+  .l-about__left .l-heading {
+    order: 1;
   }
 
   .l-about__text {
-    grid-column: 1;
-    padding: 0 56px 56px;
-    max-width: 40rem;
+    order: 2;
   }
 
-  .l-about__photo {
-    width: 70vw;
-    bottom: -18vw;
+  .l-about__figure {
+    order: 3;
+    margin-top: 0;
   }
 
-  .l-about__photo-caption {
-    display: none;
+  .l-about__figure {
+    width: min(100%, 30rem);
+    align-self: center;
+    margin-bottom: -25%;
+  }
+
+  .l-about__panel {
+    padding-bottom: 0;
+  }
+
+  .l-about__text {
+    padding-bottom: 0;
   }
 
   .l-events__layout {
@@ -699,178 +889,109 @@
     gap: 6px;
     margin-bottom: 22px;
   }
+
+  .l-ticket__aside {
+    grid-column: 1 / -1;
+    align-self: start;
+    margin-bottom: 3rem;
+  }
+
+  .l-ticket__card {
+    grid-column: 1 / -1;
+  }
 }
 
-/* Phone composition */
-@media (max-width: 760px) {
+/* Portrait screens: the title sits on open sky and the planet rises from the bottom edge. */
+@media (max-aspect-ratio: 21/20) {
   .l-hero {
     align-items: start;
   }
 
-  .l-hero__disc {
-    top: auto;
-    bottom: -40vw;
-    right: -30vw;
-    width: 130vw;
-    height: 130vw;
-  }
-
-  .l-hero__earth {
-    top: auto;
-    bottom: -6vw;
-    right: 2vw;
-    width: 78vw;
-    height: 78vw;
-  }
-
   .l-hero__copy {
-    max-width: none;
-    padding-top: 6.5rem;
+    padding-top: clamp(6.5rem, 14svh, 10rem);
+    padding-bottom: 0;
+  }
+}
+
+/* Phone composition */
+@media (max-width: 760px) {
+  .l-hero__title {
+    font-size: 17vw;
   }
 
   .l-hero__lead {
-    font-size: 1rem;
-    margin-top: 1.25rem;
+    font-size: 1.0625rem;
+    margin-top: 1.5rem;
+  }
+
+  .l-hero__action {
+    margin-top: 1.5rem;
   }
 
   .l-nav__link--secondary {
     display: none;
   }
 
-  .l-stats {
-    grid-template-columns: 1fr 1fr;
+  .l-figure__number {
+    align-self: flex-start;
+    font-size: 58vw;
   }
 
-  .l-stats__heading {
-    grid-column: 1 / -1;
-    grid-row: 1;
-  }
-
-  .l-tile--tall {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    height: 56vw;
-  }
-
-  .l-tile--ink,
-  .l-tile--mid {
-    grid-row: 3;
-    height: auto;
-    min-height: 48vw;
-    margin-top: 0;
-    padding: 18px;
-  }
-
-  .l-tile--ink {
-    grid-column: 1;
-  }
-
-  .l-tile--mid {
-    grid-column: 2;
-    margin-top: 32px;
-  }
-
-  .l-showcase {
-    min-height: 86svh;
-  }
-
-  .l-showcase__picture {
-    width: 70vw;
-    bottom: auto;
-    top: 15rem;
-  }
-
-  .l-showcase__caption {
-    left: var(--margin);
-    bottom: 1.5rem;
-  }
-
-  .l-switch {
-    right: auto;
-    left: var(--margin);
-    top: auto;
-    bottom: 5rem;
-    transform: none;
-    font-size: 2rem;
-  }
-
-  .l-stages__bar,
-  .l-stages__clauses {
+  .l-screen__head {
     flex-direction: column;
-    height: auto;
+    align-items: flex-start;
   }
 
-  .l-stage {
-    min-height: 72px;
-    font-size: var(--step-body);
+  .l-screen__frame {
+    aspect-ratio: 4 / 5;
   }
 
-  .l-stage:first-child,
-  .l-stage:last-child {
-    border-radius: 0;
+  .l-screen__frame img {
+    object-position: 34% 50%;
+  }
+
+  .l-slip {
+    padding: 2rem 1.25rem 4rem;
+  }
+
+  .l-slip__total {
+    margin-inline: -1.25rem;
+    padding-inline: 1.25rem;
+  }
+
+  .l-slip__row dt {
+    flex: 1;
+  }
+
+  .l-slip__row::after {
+    display: none;
   }
 
   .l-about {
-    margin-inline: 10px;
+    padding-inline: 10px;
+  }
+
+  .l-about__figure {
+    width: 86%;
+  }
+
+  .l-event__name {
+    font-size: 17vw;
+  }
+
+  .l-credits__line {
     grid-template-columns: 1fr;
-    padding-bottom: 70vw;
+    gap: 0.15rem;
   }
 
-  .l-about__statement {
-    padding: 28px;
+  .l-credits__line dt,
+  .l-credits__line dd {
+    text-align: center;
   }
 
-  .l-about__text {
-    grid-column: 1;
-    padding: 0 28px 28px;
-    gap: 2rem;
-    max-width: none;
-  }
-
-  .l-about__photo {
-    left: 7vw;
-    width: 86vw;
-    bottom: -22vw;
-  }
-
-  .l-about__photo-caption {
-    display: none;
-  }
-
-  .l-events__layout {
-    grid-template-columns: 1fr;
-  }
-
-  .l-events__preview {
-    display: none;
-  }
-
-  .l-event {
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 22px;
-  }
-
-  .l-event__detail {
-    font-size: 0.9375rem;
-  }
-
-  .l-proof {
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-
-  .l-proof__tile {
-    font-size: 1.25rem;
-    border-radius: 0 0 0 2.5rem;
-  }
-
-  .l-cta {
-    min-height: 46svh;
-  }
-
-  .l-cta__word {
-    font-size: 26vw;
+  .l-ticket__card {
+    padding: 2rem 1.5rem calc(2rem + 60px);
+    transform: rotate(-1deg);
   }
 
   .l-footer__links {
@@ -880,6 +1001,11 @@
 
   .l-footer__contact {
     grid-column: 1 / -1;
+  }
+
+  .l-footer__mark {
+    white-space: normal;
+    font-size: 21vw;
   }
 }
 

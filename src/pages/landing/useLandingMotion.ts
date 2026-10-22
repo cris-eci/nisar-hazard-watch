@@ -43,8 +43,8 @@ export const useLandingMotion = (
           setCloudCover(1 - Math.min(1, progress * 1.6));
         },
       });
-      gsap.to(".l-hero__disc", {
-        scale: 1.12,
+      gsap.to(".l-hero__space", {
+        yPercent: 18,
         ease: "none",
         scrollTrigger: { trigger: ".l-hero", start: "top top", end: "bottom top", scrub: true },
       });

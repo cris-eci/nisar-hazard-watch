@@ -7,11 +7,13 @@ different people (and agents) look like one product.
 
 Two surfaces share one product:
 
-- **Landing page (`/`)**: a poster-like page built on **one motif, the circle of NISAR's 12 m
-  gold reflector**, used at every scale: the hero disc framing a 3D Earth, the photo masks, the
-  round buttons, the stats tiles' cut corner, the closing band and the footer's arches. Its own
-  tokens live in `src/pages/landing/landing.css`. No gradients, thin rules, shadows at rest, glass,
-  eyebrows, emoji or accent words in headlines on this page.
+- **Landing page (`/`)**: **dressed as a film**. A title card over a 3D Earth with its atmosphere
+  and a starfield, one figure owning a screen ("12 days"), the optical/radar comparison on one
+  widescreen frame, the pipeline printed as a call sheet, end credits for the data sources and a
+  ticket as the closing call to action. Mood: elegant, quiet, cinematic; deep space blacks and
+  blues, champagne gold used sparingly. Its own tokens live in `src/pages/landing/landing.css`. The
+  one glow is Earth's atmosphere, drawn in WebGL (`EarthHero.tsx`); no CSS gradients, thin rules,
+  shadows at rest, glass, eyebrows, emoji or accent words in headlines.
 - **Explorer (`/explore`) and Method (`/method`)**: the app, described below.
 
 The app is a **mission-control look over a real planet**. The globe is the hero and fills the screen; every
@@ -28,11 +30,10 @@ All colours are Tailwind tokens; hex values are given for exports and image rend
 
 ### Brand & Accent
 
-| Role             | Token                       | Hex       | Use                                                                                |
-| ---------------- | --------------------------- | --------- | ---------------------------------------------------------------------------------- |
-| Primary action   | `sky-500` / hover `sky-400` | `#0ea5e9` | The single main button per view (Launch the explorer, Start with a featured event) |
-| Links and focus  | `sky-300` / `sky-400`       | `#7dd3fc` | Inline links, focus ring                                                           |
-| Landing gradient | `sky-300` → `orange-400`    |           | Hero headline only: radar (blue) meets fire (orange)                               |
+| Role            | Token                       | Hex       | Use                                                                                |
+| --------------- | --------------------------- | --------- | ---------------------------------------------------------------------------------- |
+| Primary action  | `sky-500` / hover `sky-400` | `#0ea5e9` | The single main button per view (Launch the explorer, Start with a featured event) |
+| Links and focus | `sky-300` / `sky-400`       | `#7dd3fc` | Inline links, focus ring                                                           |
 
 ### Surface
 
@@ -81,13 +82,14 @@ UI chrome.
 
 ### Font Family
 
-**General Sans** (Fontshare) everywhere, falling back to `system-ui`, `sans-serif`. No second family.
+**General Sans** (Fontshare) everywhere in the app, falling back to `system-ui`, `sans-serif`. The
+landing page has its own pair, loaded from Google Fonts in `landing.css`: **Imbue** (condensed
+high-contrast serif, uppercase, for titles and the big figures) and **Albert Sans** (text).
 
 ### Hierarchy
 
 | Element             | Classes                                          |
 | ------------------- | ------------------------------------------------ |
-| Landing headline    | `text-4xl sm:text-6xl leading-tight`             |
 | Page title          | `text-4xl`                                       |
 | Section title       | `text-2xl`                                       |
 | Card / panel title  | `text-lg`                                        |
@@ -98,19 +100,22 @@ UI chrome.
 
 ### Landing scale
 
-Five steps, defined in `landing.css`: display (5.6vw + 1rem, max 116 px, weight 700, tracking
--0.02em, leading 0.95), head (`--step-head`), lead, body (17–19 px), small. Headlines never run
-past two lines at any width. The closing band's single word is the only size outside the scale.
+Five steps, defined in `landing.css`: display (`--step-display`, Imbue uppercase, leading 0.86),
+head (`--step-head`, Imbue uppercase), lead, body (17–19 px, Albert Sans, leading 1.55) and small
+(14 px). Headlines never run past two lines at any width. Outside the scale on purpose: the "12"
+figure, the Optical/Radar switch and the footer's full-width title.
 
 ### Landing colours
 
-Night `#0b1222` ground, ink `#eef1f6`, reflector gold `#e6a93a` accent (buttons and the motif),
-ocean `#1d4f7a` and land `#c8b38a` as whole fields. Each section keeps to one ground.
+Space `#04070e` ground, with `#08101f` (deep) and `#0e1930` (night) as whole-field steps; starlight
+ink `#ebe9e4`, muted `#a9a69e`. Champagne gold `#c9b48b` is the only accent: buttons, the pressed
+switch, the "12" figure, hovered events and the footer title. Paper `#dcdad4` with ink `#12151c`
+for the call sheet and the ticket. Each section keeps to one ground.
 
 ### Principles
 
 - **App: regular weight only.** Hierarchy comes from size and colour, not bold. The landing page's
-  display type is the one place for weight 700.
+  display face (Imbue) carries hierarchy by size and case, also at weight 400.
 - **Sentence case** for headings, buttons and labels ("Burn analysis", "Launch the explorer").
   This is deliberate and consistent; do not mix in Title Case.
 - `tabular-nums` on every number that changes or is compared (areas, centimetres, dates).
@@ -148,8 +153,9 @@ sides for the cards when it flies to a frame (`paddedRectangle`).
 
 ### Decorative Depth
 
-Only the landing hero has decoration: two soft radial gradients (sky at the top, orange bottom
-right). Nothing else gets gradients, glows or glass beyond the card blur.
+Only the landing hero has decoration, and it lives in the WebGL scene: Earth's Fresnel atmosphere,
+a soft blue halo behind the planet and a starfield. Nothing else gets gradients, glows or glass
+beyond the card blur.
 
 ## Shapes
 
@@ -161,7 +167,7 @@ right). Nothing else gets gradients, glows or glass beyond the card blur.
 | `rounded-md`   | Small buttons, list rows, segments              |
 | `rounded-lg`   | Buttons, inner cards, segmented track           |
 | `rounded-xl`   | Floating cards, content cards                   |
-| `rounded-2xl`  | Dialog, landing callout                         |
+| `rounded-2xl`  | Dialog                                          |
 | `rounded-full` | Pills (_Did you know?_), severity bars, legends |
 
 ### Photography & Illustrations
@@ -195,7 +201,7 @@ Only the dialog checkbox today: native control wrapped in its `<label>`.
 ### Tags / Badges
 
 `rounded px-1.5 py-0.5 text-xs` with a 20 % tint background and a 300-level text colour (see
-Status). Landing badges are pills: `rounded-full border-white/15 bg-white/5 px-3 py-1`.
+Status). The landing page has no badges.
 
 ### Tab / Filter
 
@@ -204,8 +210,9 @@ Status). Landing badges are pills: `rounded-full border-white/15 bg-white/5 px-3
 
 ### CTA / Footer
 
-Landing ends with a validation callout (`rounded-2xl` sky→orange tint) and a plain footer listing
-data sources and credits in `text-sm text-slate-500`.
+Landing ends with end credits (role and source, centred, each source linked), a ticket card with
+the "Open the globe" bar, and a footer whose title runs the full width in gold, then links and the
+picture credits. Landing buttons are square.
 
 ## Do's and Don'ts
 
@@ -257,8 +264,8 @@ Data layers are draped over their lon/lat bounds on the globe and scale with it;
 ## Landing page checks
 
 Before shipping a landing change: no headline over two lines at 1440, 768 and 390 px; contrast at
-least 4.5:1; every section has a heading; five type sizes; real pictures (NASA public domain),
-credited in the footer; motion uses transform and opacity only and stops under
+least 4.5:1; every section has a heading; five type sizes; real pictures (NASA public domain, and
+the HLS/Sentinel-2 optical frame), credited in the footer; motion uses transform and opacity only and stops under
 `prefers-reduced-motion`. Component classes must win over base styles: base resets in
 `landing.css` use `:where()` for zero specificity.
 
