@@ -24,7 +24,10 @@ export const addFrameEntities = (viewer: Viewer, frame: Frame, color: Color): En
     });
   });
 
+// On unmount the viewer is destroyed before the other effects clean up, and a destroyed viewer has
+// no entity collection left: leaving the explorer with an analysis open used to crash the app.
 export const removeEntities = (viewer: Viewer, entities: Entity[]): void => {
+  if (viewer.isDestroyed()) return;
   for (const entity of entities) viewer.entities.remove(entity);
 };
 

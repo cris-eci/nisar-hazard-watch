@@ -125,6 +125,19 @@ test.describe("Onboarding and pages", () => {
     await expect(globe.eventBanner).toBeVisible();
   });
 
+  // Regression: leaving the explorer with an analysis on the globe crashed the app (blank page),
+  // because entity cleanup ran after the Cesium viewer was destroyed.
+  test("leaving the explorer with an analysis open shows the method page", async ({ page }) => {
+    const globe = new GlobePage(page);
+    await globe.skipWelcome();
+    await globe.mockObservationPlan();
+    await globe.goto("?event=venezuela-2026");
+    await globe.maxDisplacement.waitFor({ timeout: 30_000 });
+
+    await page.getByRole("link", { name: "Method", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Method & validation");
+  });
+
   test("the landing page leads to the explorer and the method page", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { level: 1 })).toContainText("See how Earth changes");
