@@ -58,7 +58,7 @@ export const App = () => {
           analysis.
         </p>
         <p className="mt-2 text-xs text-slate-500">
-          Scroll to zoom · drag to rotate · Esc closes the panel and zooms out
+          Scroll or pinch to zoom · drag to rotate · Esc closes the panel and zooms out
         </p>
         <div className="mt-3">
           <PassToggle value={pass} onChange={setChosenPass} />

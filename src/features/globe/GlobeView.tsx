@@ -5,11 +5,11 @@ import {
   type Cartesian2,
   type Viewer,
 } from "cesium";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import type { Frame, PassDirection } from "@/features/frames/frame.types";
 import { findFrameAt } from "@/features/frames/frames";
-import { createViewer, pickLonLat } from "@/features/globe/cesium";
+import { createViewer, pickLonLat, zoomByStep } from "@/features/globe/cesium";
 import {
   addFrameEntities,
   HOVER_COLOR,
@@ -131,14 +131,45 @@ export const GlobeView = ({
     <div className="absolute inset-0" data-testid="globe">
       <div ref={containerRef} className="h-full w-full" />
       {hover !== undefined && <FrameTooltip frame={hover.frame} x={hover.x} y={hover.y} />}
-      <button
-        type="button"
-        data-testid="whole-globe"
-        onClick={showWholeGlobe}
-        className="absolute bottom-8 left-4 rounded-lg border border-white/10 bg-slate-950/85 px-3 py-2 text-sm text-slate-100 shadow-lg backdrop-blur hover:border-white/30 focus-visible:outline-2 focus-visible:outline-sky-400"
-      >
-        ⤢ Whole globe
-      </button>
+      <div className="absolute bottom-8 left-4 flex gap-2">
+        <MapButton
+          testId="zoom-in"
+          label="Zoom in"
+          onClick={() => viewer && zoomByStep(viewer, "in")}
+        >
+          +
+        </MapButton>
+        <MapButton
+          testId="zoom-out"
+          label="Zoom out"
+          onClick={() => viewer && zoomByStep(viewer, "out")}
+        >
+          −
+        </MapButton>
+        <MapButton testId="whole-globe" onClick={showWholeGlobe}>
+          ⤢ Whole globe
+        </MapButton>
+      </div>
     </div>
   );
 };
+
+type MapButtonProps = {
+  testId: string;
+  label?: string;
+  onClick: () => void;
+  children: ReactNode;
+};
+
+const MapButton = ({ testId, label, onClick, children }: MapButtonProps) => (
+  <button
+    type="button"
+    data-testid={testId}
+    aria-label={label}
+    title={label}
+    onClick={onClick}
+    className="min-w-10 rounded-lg border border-white/10 bg-slate-950/85 px-3 py-2 text-sm text-slate-100 shadow-lg backdrop-blur hover:border-white/30 focus-visible:outline-2 focus-visible:outline-sky-400"
+  >
+    {children}
+  </button>
+);
