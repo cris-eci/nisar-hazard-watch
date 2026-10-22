@@ -28,16 +28,15 @@ export const removeEntities = (viewer: Viewer, entities: Entity[]): void => {
   for (const entity of entities) viewer.entities.remove(entity);
 };
 
-// Padding keeps the area off the screen edges. Extra room on the east side keeps it clear of the
-// details panel, which covers the right of the screen.
+// Padding keeps the area off the screen edges, plus room on both sides for the cards that cover
+// the left (controls) and right (details panel) of the screen.
 export const paddedRectangle = ([west, south, east, north]: BBox, padding = 0.4): Rectangle => {
-  const padLon = (east - west) * padding;
+  const width = east - west;
   const padLat = (north - south) * padding;
-  const panelRoom = (east - west) * 0.6;
   return Rectangle.fromDegrees(
-    west - padLon,
+    west - width * (padding + 0.5),
     south - padLat,
-    east + padLon + panelRoom,
+    east + width * (padding + 0.6),
     north + padLat,
   );
 };

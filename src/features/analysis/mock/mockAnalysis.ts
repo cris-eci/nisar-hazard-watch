@@ -1,9 +1,16 @@
 import type {
   AnalysisRequest,
-  HazardAnalysis,
+  ChangeAnalysis,
   Polarization,
   SeverityHa,
 } from "@/features/analysis/analysis.types";
+import {
+  analysisBounds,
+  areaKm2,
+  demoGranuleId,
+  SIMULATED_LATENCY_MS,
+  wait,
+} from "@/features/analysis/mock/demoCommon";
 import { renderLayers } from "@/features/analysis/mock/renderLayers";
 import {
   CHANGE_THRESHOLD_DB,
@@ -11,81 +18,41 @@ import {
   GRID_SIZE,
   summarizeField,
 } from "@/features/analysis/mock/scarField";
-import type { BBox, Frame } from "@/features/frames/frame.types";
-
-const SIMULATED_LATENCY_MS = 1400; // a believable processing wait for the demo
-const KM_PER_DEGREE = 111.32;
-
-const ANALYSIS_SIDE_KM = 120; // about half a NISAR frame
-
-// A fixed-size square at the frame centre, clamped to the middle half of its bounding box so it
-// stays inside the (rotated) frame outline. Polar frames have huge boxes, hence the fixed size.
-// The real pipeline will send its own bounds.
-export const analysisBounds = ([west, south, east, north]: BBox): BBox => {
-  const centerLon = (west + east) / 2;
-  const centerLat = (south + north) / 2;
-  const halfKm = ANALYSIS_SIDE_KM / 2;
-  const cosLat = Math.cos(centerLat * (Math.PI / 180));
-  const halfLat = Math.min(halfKm / KM_PER_DEGREE, (north - south) / 4);
-  const halfLon = Math.min(halfKm / (KM_PER_DEGREE * cosLat), (east - west) / 4);
-  return [centerLon - halfLon, centerLat - halfLat, centerLon + halfLon, centerLat + halfLat];
-};
-
-const areaHa = ([west, south, east, north]: BBox): number => {
-  const midLat = ((south + north) / 2) * (Math.PI / 180);
-  const widthKm = (east - west) * KM_PER_DEGREE * Math.cos(midLat);
-  const heightKm = (north - south) * KM_PER_DEGREE;
-  return widthKm * heightKm * 100;
-};
-
-const demoGranuleId = (frame: Frame, date: string, polarization: Polarization): string =>
-  `NISAR_L2_PR_GCOV_${String(frame.track).padStart(3, "0")}_${frame.pass}_` +
-  `${String(frame.frame).padStart(3, "0")}_${polarization === "HVHV" ? "DHDH" : "SHSH"}_` +
-  `${date.replaceAll("-", "")}_DEMO`;
-
-const wait = (ms: number, signal: AbortSignal): Promise<void> =>
-  new Promise((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
-    signal.addEventListener("abort", () => {
-      clearTimeout(timer);
-      reject(signal.reason);
-    });
-  });
+import type { Frame } from "@/features/frames/frame.types";
 
 export type DemoSettings = {
   polarization: Polarization;
   colors: Record<keyof SeverityHa, string>;
 };
 
-// Demo for any hazard: a seeded scene pair with one irregular patch of change. Real hazards differ
-// in physics, not in what the UI needs to show, so one simulation serves them all.
+// Demo for any surface-change hazard: a seeded scene pair with one irregular patch of change. Real
+// hazards differ in physics, not in what the UI needs to show, so one simulation serves them all.
 export const mockChangeAnalysis = async (
   frame: Frame,
   request: AnalysisRequest,
   signal: AbortSignal,
   { polarization, colors }: DemoSettings,
-): Promise<HazardAnalysis> => {
+): Promise<ChangeAnalysis> => {
   await wait(SIMULATED_LATENCY_MS, signal);
 
-  const bounds = analysisBounds(frame.bbox);
+  const bounds = analysisBounds(frame.bbox, request.focus);
   const field = generateScarField(
     `${request.hazard}:${frame.id}:${request.beforeDate}:${request.afterDate}`,
   );
-  const pixelAreaHa = areaHa(bounds) / GRID_SIZE ** 2;
+  const pixelAreaHa = (areaKm2(bounds) * 100) / GRID_SIZE ** 2;
+  const scene = polarization === "HVHV" ? "GCOV_DHDH" : "GCOV_SHSH";
 
   return {
+    kind: "change",
     hazard: request.hazard,
     track: frame.track,
     frame: frame.frame,
     pass: frame.pass,
     before: {
       date: request.beforeDate,
-      granuleId: demoGranuleId(frame, request.beforeDate, polarization),
+      granuleId: demoGranuleId(frame, scene, request.beforeDate),
     },
-    after: {
-      date: request.afterDate,
-      granuleId: demoGranuleId(frame, request.afterDate, polarization),
-    },
+    after: { date: request.afterDate, granuleId: demoGranuleId(frame, scene, request.afterDate) },
     method: {
       polarization,
       changeThresholdDb: CHANGE_THRESHOLD_DB,

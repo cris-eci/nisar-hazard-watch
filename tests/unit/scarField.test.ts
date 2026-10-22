@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { analysisBounds } from "@/features/analysis/mock/mockAnalysis";
+import { analysisBounds } from "@/features/analysis/mock/demoCommon";
 import {
   classifySeverity,
   generateScarField,

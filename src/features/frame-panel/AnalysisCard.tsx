@@ -1,39 +1,45 @@
-import { useEffect, useState } from "react";
-
-import type { HazardAnalysis } from "@/features/analysis/analysis.types";
+import type { AnalysisRequest } from "@/features/analysis/analysis.types";
 import { fetchAnalysis } from "@/features/analysis/analysisApi";
 import { pickComparisonPair } from "@/features/analysis/comparisonPair";
 import { polarizationShort, type HazardDefinition } from "@/features/analysis/hazards";
 import type { GlobeOverlay } from "@/features/analysis/overlay.types";
+import type { FeaturedEvent } from "@/features/events/events";
+import { ChangeResult } from "@/features/frame-panel/ChangeResult";
+import { DeformationResult } from "@/features/frame-panel/DeformationResult";
 import type { Acquisition, Frame } from "@/features/frames/frame.types";
-import { SegmentedControl } from "@/lib/SegmentedControl";
 import { useAsync } from "@/lib/useAsync";
-
-type Layer = "severity" | "before" | "after";
-
-const LAYER_OPTIONS: Array<{ value: Layer; label: string }> = [
-  { value: "severity", label: "Severity" },
-  { value: "before", label: "Before" },
-  { value: "after", label: "After" },
-];
-
-const SEVERITY_LEVELS = [
-  { key: "low", label: "Low" },
-  { key: "moderate", label: "Moderate" },
-  { key: "high", label: "High" },
-] as const;
-
-const formatHa = (ha: number): string => `${ha.toLocaleString("en-US")} ha`;
-
-const layerUrl = ({ layers }: HazardAnalysis, layer: Layer): string =>
-  ({ severity: layers.severityUrl, before: layers.beforeUrl, after: layers.afterUrl })[layer];
 
 type AnalysisCardProps = {
   hazard: HazardDefinition;
   frame: Frame;
   acquisitions: Acquisition[];
   today: string;
+  event: FeaturedEvent | undefined;
   onOverlayChange: (overlay: GlobeOverlay | undefined) => void;
+};
+
+// An event fixes the pair (it must bracket the quake); otherwise use the latest usable passes.
+const buildRequest = (
+  hazard: HazardDefinition,
+  frame: Frame,
+  acquisitions: Acquisition[],
+  today: string,
+  event: FeaturedEvent | undefined,
+): AnalysisRequest | undefined => {
+  const base = { hazard: hazard.id, track: frame.track, frame: frame.frame };
+  if (event?.pair !== undefined) {
+    const [beforeDate, afterDate] = event.pair;
+    return { ...base, beforeDate, afterDate, focus: event.focus };
+  }
+  const pair = pickComparisonPair(acquisitions, today, hazard.requiresCrossPol);
+  if (pair === undefined) return undefined;
+  const [before, after] = pair;
+  return {
+    ...base,
+    beforeDate: before.date,
+    afterDate: after.date,
+    ...(event && { focus: event.focus }),
+  };
 };
 
 export const AnalysisCard = ({
@@ -41,21 +47,10 @@ export const AnalysisCard = ({
   frame,
   acquisitions,
   today,
+  event,
   onOverlayChange,
 }: AnalysisCardProps) => {
-  const pair = pickComparisonPair(acquisitions, today, hazard.requiresCrossPol);
-  const [before, after] = pair ?? [];
-  const request =
-    before && after
-      ? {
-          hazard: hazard.id,
-          track: frame.track,
-          frame: frame.frame,
-          beforeDate: before.date,
-          afterDate: after.date,
-        }
-      : undefined;
-
+  const request = buildRequest(hazard, frame, acquisitions, today, event);
   const { state, retry } = useAsync(
     (signal) =>
       request === undefined
@@ -63,16 +58,11 @@ export const AnalysisCard = ({
         : fetchAnalysis(frame, request, signal),
     request && `${hazard.id}:${frame.id}:${request.beforeDate}:${request.afterDate}`,
   );
-  const [layer, setLayer] = useState<Layer>("severity");
-
   const analysis = state?.status === "success" ? state.data : undefined;
-  useEffect(() => {
-    if (analysis === undefined) return;
-    onOverlayChange({ url: layerUrl(analysis, layer), bounds: analysis.layers.bounds });
-    return () => onOverlayChange(undefined);
-  }, [analysis, layer, onOverlayChange]);
-
-  const pol = polarizationShort(hazard.polarization);
+  const isDeformation = hazard.kind === "deformation";
+  const signal = isDeformation
+    ? "interferogram"
+    : `${polarizationShort(hazard.polarization)} change`;
 
   if (request === undefined) {
     return (
@@ -97,12 +87,16 @@ export const AnalysisCard = ({
         )}
       </div>
       <p className="mt-1 text-xs text-slate-400">
-        {request.beforeDate} → {request.afterDate} · {pol} change between two passes
+        {request.beforeDate} → {request.afterDate} · {signal} between two passes
       </p>
 
       {state?.status === "loading" && (
         <div role="status" className="mt-4 space-y-3">
-          <p className="text-sm text-slate-300">Comparing {pol} backscatter between both passes…</p>
+          <p className="text-sm text-slate-300">
+            {isDeformation
+              ? "Unwrapping the interferogram between both passes…"
+              : `Comparing ${polarizationShort(hazard.polarization)} backscatter between both passes…`}
+          </p>
           <div className="h-8 w-40 animate-pulse rounded bg-white/10" />
           <div className="h-2 animate-pulse rounded-full bg-white/10" />
         </div>
@@ -119,103 +113,12 @@ export const AnalysisCard = ({
         </div>
       )}
 
-      {analysis !== undefined && (
-        <AnalysisResult
-          hazard={hazard}
-          analysis={analysis}
-          layer={layer}
-          onLayerChange={setLayer}
-        />
+      {analysis?.kind === "change" && hazard.kind === "change" && (
+        <ChangeResult hazard={hazard} analysis={analysis} onOverlayChange={onOverlayChange} />
+      )}
+      {analysis?.kind === "deformation" && (
+        <DeformationResult analysis={analysis} onOverlayChange={onOverlayChange} />
       )}
     </section>
-  );
-};
-
-type AnalysisResultProps = {
-  hazard: HazardDefinition;
-  analysis: HazardAnalysis;
-  layer: Layer;
-  onLayerChange: (layer: Layer) => void;
-};
-
-const AnalysisResult = ({ hazard, analysis, layer, onLayerChange }: AnalysisResultProps) => {
-  const { method, severityHa } = analysis;
-  const pol = polarizationShort(method.polarization);
-
-  return (
-    <>
-      <p data-testid="affected-area" className="mt-3 text-3xl">
-        {formatHa(analysis.affectedAreaHa)}
-      </p>
-      <p className="text-sm text-slate-400">
-        {hazard.affectedLabel} · mean {pol} change {analysis.meanChangeDb} dB
-      </p>
-
-      <div className="mt-3 flex h-2 overflow-hidden rounded-full" aria-hidden="true">
-        {SEVERITY_LEVELS.map(({ key }) => (
-          <div
-            key={key}
-            style={{ flexGrow: severityHa[key], backgroundColor: hazard.severityColors[key] }}
-          />
-        ))}
-      </div>
-      <dl className="mt-2 grid grid-cols-3 gap-2 text-xs">
-        {SEVERITY_LEVELS.map(({ key, label }) => (
-          <div key={key}>
-            <dt style={{ color: hazard.severityColors[key] }}>{label}</dt>
-            <dd>{formatHa(severityHa[key])}</dd>
-          </div>
-        ))}
-      </dl>
-
-      <div className="mt-4">
-        <p className="mb-1.5 text-xs text-slate-500">Map layer on the globe</p>
-        <SegmentedControl
-          label="Map layer"
-          options={LAYER_OPTIONS}
-          value={layer}
-          onChange={onLayerChange}
-          testIdPrefix="analysis-layer"
-        />
-        {layer === "severity" ? (
-          <p className="mt-2 flex gap-3 text-xs text-slate-400">
-            {SEVERITY_LEVELS.map(({ key, label }) => (
-              <span key={key} className="flex items-center gap-1">
-                <span
-                  className="h-2.5 w-2.5 rounded-sm"
-                  style={{ backgroundColor: hazard.severityColors[key] }}
-                />
-                {label}
-              </span>
-            ))}
-          </p>
-        ) : (
-          <div className="mt-2 text-xs text-slate-400">
-            <div className="h-1.5 rounded-full bg-gradient-to-r from-black to-white" />
-            <div className="mt-1 flex justify-between">
-              <span>−22 dB</span>
-              <span>−4 dB</span>
-            </div>
-            <p className="mt-1">
-              {pol} backscatter on {layer === "before" ? analysis.before.date : analysis.after.date}
-              . {hazard.backscatterHint}
-            </p>
-          </div>
-        )}
-      </div>
-
-      <details className="mt-4 text-xs text-slate-400">
-        <summary className="cursor-pointer text-slate-300">Method and source scenes</summary>
-        <ul className="mt-2 space-y-1">
-          <li>
-            {method.polarization} log-ratio ≤ {method.changeThresholdDb} dB · multilook{" "}
-            {method.multilook} · ~{method.pixelSizeM} m pixels
-          </li>
-          <li className="break-all">Before: {analysis.before.granuleId}</li>
-          <li className="break-all">After: {analysis.after.granuleId}</li>
-          <li>Generated {new Date(analysis.generatedAt).toLocaleString("en-US")}</li>
-        </ul>
-      </details>
-    </>
   );
 };

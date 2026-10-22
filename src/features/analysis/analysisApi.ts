@@ -19,6 +19,10 @@ export const fetchAnalysis = async (
     before: request.beforeDate,
     after: request.afterDate,
   });
+  if (request.focus !== undefined) {
+    params.set("lon", String(request.focus[0]));
+    params.set("lat", String(request.focus[1]));
+  }
   const response = await fetch(
     `${ANALYSIS_API_URL}/frames/${request.track}-${request.frame}/analysis?${params}`,
     { signal },

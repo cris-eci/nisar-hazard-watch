@@ -2,6 +2,7 @@ import { useEffect } from "react";
 
 import type { HazardDefinition } from "@/features/analysis/hazards";
 import type { GlobeOverlay } from "@/features/analysis/overlay.types";
+import type { FeaturedEvent } from "@/features/events/events";
 import { AnalysisCard } from "@/features/frame-panel/AnalysisCard";
 import { PassList } from "@/features/frame-panel/PassList";
 import type { Frame } from "@/features/frames/frame.types";
@@ -13,20 +14,28 @@ import { useAsync } from "@/lib/useAsync";
 type FramePanelProps = {
   hazard: HazardDefinition;
   frame: Frame;
+  event: FeaturedEvent | undefined;
   today: string;
   onClose: () => void;
   onOverlayChange: (overlay: GlobeOverlay | undefined) => void;
 };
 
-export const FramePanel = ({ hazard, frame, today, onClose, onOverlayChange }: FramePanelProps) => {
+export const FramePanel = ({
+  hazard,
+  frame,
+  event,
+  today,
+  onClose,
+  onOverlayChange,
+}: FramePanelProps) => {
   const { state, retry } = useAsync(
     (signal) => fetchAcquisitions(frame.track, frame.frame, signal),
     frame.id,
   );
 
   useEffect(() => {
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+    const closeOnEscape = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.key === "Escape") onClose();
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
@@ -58,6 +67,17 @@ export const FramePanel = ({ hazard, frame, today, onClose, onOverlayChange }: F
         </button>
       </header>
 
+      {event !== undefined && (
+        <section data-testid="event-banner" className="rounded-lg bg-white/5 p-3 text-sm">
+          <p className="text-slate-100">
+            {event.title} · {event.place}
+          </p>
+          <p className="text-xs text-slate-400">{event.date}</p>
+          <p className="mt-1 text-slate-300">{event.summary}</p>
+          <p className="mt-1 text-xs text-slate-500">{event.source}</p>
+        </section>
+      )}
+
       {state?.status === "loading" && (
         <p className="text-sm text-slate-400" role="status">
           Loading the observation plan…
@@ -82,6 +102,7 @@ export const FramePanel = ({ hazard, frame, today, onClose, onOverlayChange }: F
         <>
           <AnalysisCard
             hazard={hazard}
+            event={event}
             frame={frame}
             acquisitions={state.data}
             today={today}

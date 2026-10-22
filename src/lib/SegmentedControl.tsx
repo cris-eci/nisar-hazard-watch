@@ -15,7 +15,12 @@ export const SegmentedControl = <T extends string>({
   onChange,
   testIdPrefix,
 }: SegmentedControlProps<T>) => (
-  <div role="group" aria-label={label} className="flex rounded-lg bg-white/5 p-1">
+  // More than three options wrap into a 2-column grid instead of overflowing a narrow card.
+  <div
+    role="group"
+    aria-label={label}
+    className={`rounded-lg bg-white/5 p-1 ${options.length > 3 ? "grid grid-cols-2 gap-1" : "flex"}`}
+  >
     {options.map((option) => (
       <button
         key={option.value}

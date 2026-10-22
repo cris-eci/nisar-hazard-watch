@@ -1,9 +1,8 @@
 import type { SeverityHa } from "@/features/analysis/analysis.types";
+import { toPngUrl, type Rgba } from "@/features/analysis/mock/png";
 import type { ScarField } from "@/features/analysis/mock/scarField";
 
 // Turns the simulated field into the PNG layers the real pipeline would serve.
-
-type Rgba = [number, number, number, number];
 
 const DB_RANGE = { min: -22, max: -4 }; // stretch for HV backscatter, like the notebook's 2-98 %
 
@@ -13,18 +12,6 @@ const TRANSPARENT: Rgba = [0, 0, 0, 0];
 const hexToRgba = (hex: string, alpha: number): Rgba => {
   const value = Number.parseInt(hex.slice(1), 16);
   return [(value >> 16) & 255, (value >> 8) & 255, value & 255, alpha];
-};
-
-const toPngUrl = (size: number, paint: (pixel: number) => Rgba): string => {
-  const canvas = document.createElement("canvas");
-  canvas.width = size;
-  canvas.height = size;
-  const context = canvas.getContext("2d");
-  if (context === null) throw new Error("Canvas 2D is not available");
-  const image = context.createImageData(size, size);
-  for (let i = 0; i < size * size; i++) image.data.set(paint(i), i * 4);
-  context.putImageData(image, 0, 0);
-  return canvas.toDataURL("image/png");
 };
 
 const grayscale = (db: number): Rgba => {
