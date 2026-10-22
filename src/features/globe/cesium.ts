@@ -50,13 +50,6 @@ export const createViewer = (container: HTMLElement): Viewer => {
   return viewer;
 };
 
-// Each click moves half the current height, so steps feel the same at any altitude.
-export const zoomByStep = (viewer: Viewer, direction: "in" | "out"): void => {
-  const height = viewer.camera.positionCartographic.height;
-  if (direction === "in") viewer.camera.zoomIn(height * 0.5);
-  else viewer.camera.zoomOut(Math.max(0, Math.min(height * 0.5, MAX_ZOOM_OUT_METERS - height)));
-};
-
 export const pickLonLat = (viewer: Viewer, position: Cartesian2): LonLat | undefined => {
   const cartesian = viewer.camera.pickEllipsoid(position, viewer.scene.ellipsoid);
   if (cartesian === undefined) return undefined;
