@@ -7,13 +7,15 @@ test.describe("Globe frame explorer", () => {
 
   test.beforeEach(async ({ page }) => {
     globe = new GlobePage(page);
+    await globe.skipWelcome();
   });
 
   test("loads the NISAR frames snapshot", async () => {
     await globe.goto();
     await expect(globe.framesStatus).toContainText("16,663 frames");
-    // Only wildfire is enabled, so the hazard picker stays hidden.
-    await expect(globe.hazardPicker).toHaveCount(0);
+    // The deployed config enables wildfire and earthquake, so the picker shows both.
+    await expect(globe.hazardPicker).toContainText("Wildfire");
+    await expect(globe.hazardPicker).toContainText("Earthquake");
   });
 
   test("hovering the globe shows the frame under the cursor", async () => {
@@ -90,5 +92,48 @@ test.describe("Globe frame explorer", () => {
     await expect(globe.passToggle("D")).toHaveAttribute("aria-pressed", "true");
     await globe.hoverCenter();
     await expect(globe.tooltip).toContainText("Descending pass");
+  });
+
+  test("a featured earthquake opens its frame, event context and ground motion", async ({
+    page,
+  }) => {
+    await globe.mockObservationPlan();
+    await globe.goto();
+    await globe.event("venezuela-2026").click();
+
+    await expect(globe.panelTitle).toHaveText("Track 162 · Frame 7");
+    await expect(globe.eventBanner).toContainText("M7.5 earthquake");
+    await expect(globe.analysisCard).toContainText("2026-06-13 → 2026-06-25");
+    await globe.maxDisplacement.waitFor({ timeout: 30_000 });
+    await expect(globe.maxDisplacement).toContainText("cm");
+    await expect(page).toHaveURL(/event=venezuela-2026/);
+
+    await globe.analysisLayer("fringes").click();
+    await expect(globe.analysisLayer("fringes")).toHaveAttribute("aria-pressed", "true");
+  });
+});
+
+test.describe("Onboarding and pages", () => {
+  test("the welcome dialog can start the tour on a featured event", async ({ page }) => {
+    const globe = new GlobePage(page);
+    await globe.mockObservationPlan();
+    await page.goto("/explore");
+    await expect(globe.welcome).toBeVisible();
+
+    await page.getByTestId("welcome-tour").click();
+    await expect(globe.welcome).toBeHidden();
+    await expect(globe.eventBanner).toBeVisible();
+  });
+
+  test("the landing page leads to the explorer and the method page", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("See how Earth changes");
+
+    await page.getByRole("link", { name: "Method & validation" }).click();
+    await expect(page).toHaveURL(/\/method$/);
+    await expect(page.getByRole("heading", { name: "Validation", exact: true })).toBeVisible();
+
+    await page.getByRole("link", { name: "Launch the explorer" }).click();
+    await expect(page).toHaveURL(/\/explore$/);
   });
 });

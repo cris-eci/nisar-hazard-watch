@@ -1,7 +1,10 @@
 # CLAUDE.md — globe-ui
 
-3D globe front end for the NASA Space Apps 2026 NISAR challenge (team project, wildfire scope).
-The user picks a NISAR radar frame on a globe and sees its satellite passes and a burn analysis.
+Web app for the NASA Space Apps 2026 NISAR challenge (team project). Pages: landing (`/`), 3D
+globe explorer (`/explore`, `?frame=` or `?event=` deep links) and method & validation (`/method`).
+On the globe the user picks a NISAR radar frame or a featured event and sees its passes and an
+analysis: surface change (wildfire core; flood and deforestation behind the flag) or ground motion
+(earthquakes, from GUNW interferograms).
 
 ## Stack
 
@@ -28,13 +31,15 @@ pnpm frames:fetch   # refresh public/data/frames.json from the Observation Plan 
   does not depend on the API being up. Short keys (`t`, `f`, `p`, `x`, `r`) keep it small.
 - **Passes:** fetched live per frame on click (`observationPlanApi.ts`). A pass can list several
   mode codes (`148,212,156`); it is HH+HV when any of them is L-band cross-pol.
-- **Hazard analysis:** multi-hazard by design, wildfire only for the hackathon. Per-hazard
-  settings (label, polarization, colours, copy, demo) live in `features/analysis/hazards.ts`; the UI
-  never hard-codes a hazard. `VITE_ENABLED_HAZARDS` (feature flag) picks which ones show; the
-  picker only renders with more than one. `analysisApi.ts` calls the pipeline when
-  `VITE_ANALYSIS_API_URL` is set and otherwise runs the hazard's demo (`features/analysis/mock/`,
-  seeded, so map and numbers agree). Contract: `analysis.types.ts` + `docs/analysis-api.md`, change
-  both together. Keep the "Demo data" badge while `isDemo` is true.
+- **Hazard analysis:** two families in one contract (`analysis.types.ts`, `docs/analysis-api.md`):
+  `change` (GCOV backscatter, hectares) and `deformation` (GUNW, centimetres). Per-hazard settings
+  live in `features/analysis/hazards.ts`; the UI never hard-codes a hazard. `VITE_ENABLED_HAZARDS`
+  (feature flag; default in `.env`: `wildfire,earthquake`) picks what shows. `analysisApi.ts` calls
+  the pipeline when `VITE_ANALYSIS_API_URL` is set, otherwise the hazard's seeded demo
+  (`features/analysis/mock/`). Keep the "Demo data" badge while `isDemo` is true.
+- **Featured events:** `features/events/events.ts`. Earthquake pairs are real GUNW pairs on ASF that
+  bracket the event (a unit test enforces it); the analysis on top is demo until the pipeline runs.
+- **Validation figures** on `/method` are demo values, labelled as such, until real runs exist.
 
 ## Code conventions
 
@@ -57,6 +62,9 @@ Mirrors the conventions used at work (consoles-ui-monorepo), kept as simple as t
   bug gets a regression test that says which case it covers.
 - **E2E (Playwright):** `tests/e2e/`, **Page Object Model** in `tests/e2e/pom/`, locators by
   `data-testid`, network mocked with `page.route()` from `tests/e2e/mocks/`.
+- E2E runs against the **production build** on port 5174 with pinned env (`wildfire,earthquake`,
+  demo data), so local `.env.local` or a running dev server cannot change results. The welcome
+  dialog is skipped with `GlobePage.skipWelcome()` except in its own test.
 - Tests run with `reducedMotion: "reduce"`, which stops the idle spin so the frame under the screen
   centre (47-3, over Colombia) is predictable.
 - Headless Chromium renders Cesium with software WebGL (SwiftShader), so E2E is slow. Keep

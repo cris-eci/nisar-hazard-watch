@@ -24,6 +24,9 @@ export class GlobePage {
   readonly wholeGlobe: Locator;
   readonly affectedArea: Locator;
   readonly hazardPicker: Locator;
+  readonly maxDisplacement: Locator;
+  readonly eventBanner: Locator;
+  readonly welcome: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -37,9 +40,16 @@ export class GlobePage {
     this.wholeGlobe = page.getByTestId("whole-globe");
     this.affectedArea = page.getByTestId("affected-area");
     this.hazardPicker = page.getByRole("group", { name: "Hazard" });
+    this.maxDisplacement = page.getByTestId("max-displacement");
+    this.eventBanner = page.getByTestId("event-banner");
+    this.welcome = page.getByTestId("welcome-dialog");
   }
 
-  analysisLayer(layer: "severity" | "before" | "after"): Locator {
+  event(id: string): Locator {
+    return this.page.getByTestId(`event-${id}`);
+  }
+
+  analysisLayer(layer: "severity" | "before" | "after" | "displacement" | "fringes"): Locator {
     return this.page.getByTestId(`analysis-layer-${layer}`);
   }
 
@@ -63,8 +73,15 @@ export class GlobePage {
     await this.affectedArea.waitFor({ timeout: 30_000 });
   }
 
+  // Marks the welcome dialog as seen so it does not cover the globe; its own test clears this.
+  async skipWelcome(): Promise<void> {
+    await this.page.addInitScript(() =>
+      window.localStorage.setItem("nisar-watch:welcome-dismissed", "1"),
+    );
+  }
+
   async goto(query = ""): Promise<void> {
-    await this.page.goto(`/${query}`);
+    await this.page.goto(`/explore${query}`);
     await this.framesStatus.filter({ hasText: "frames from the NISAR Observation Plan" }).waitFor();
   }
 
