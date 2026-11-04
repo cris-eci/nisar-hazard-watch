@@ -207,4 +207,21 @@ test.describe("Onboarding and pages", () => {
     await page.getByTestId("nav-explore").click();
     await expect(page).toHaveURL(/\/explore$/);
   });
+
+  test("the about page lists the team, from the nav and from the explorer intro", async ({
+    page,
+  }) => {
+    await page.goto("/method");
+    await expect(page.getByTestId("teardown")).toBeAttached();
+    await page.getByTestId("nav-about").click();
+    await expect(page).toHaveURL(/\/about$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Six people, one orbit.");
+    await expect(page.locator("[data-testid^=member-]")).toHaveCount(6);
+    await expect(page.getByTestId("member-cris-pe")).toContainText("Design and front end");
+    await expect(page.getByTestId("site-footer")).toContainText("Cattleya trianae");
+
+    await page.goto("/explore");
+    await page.getByTestId("intro-team").click();
+    await expect(page).toHaveURL(/\/about$/);
+  });
 });

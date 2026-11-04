@@ -274,7 +274,8 @@ Copy `.env.example` to `.env.local` to override the defaults in `.env`.
 
 ```text
 src/
-├── pages/            Landing, Explorer, Method (one folder each) and the shared site/ system
+├── pages/            Landing, Explorer, Method, About (one folder each) and the shared site/ system
+├── content/          Team data for the About page
 ├── features/
 │   ├── analysis/     Contract, hazard registry, API client, demo simulations
 │   ├── events/       Featured events (real earthquakes, demo fire)

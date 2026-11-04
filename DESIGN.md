@@ -15,10 +15,19 @@ Two surfaces share one product:
   mission and a closing call to action. Mood: calm, product-grade, space; deep space blacks and
   blues with one gold accent. Tokens live in `src/pages/site/site.css`; the scene in
   `EarthHero.tsx`, the motion in `useLandingMotion.ts`.
-- **Method (`/method`)**: same system as the landing. A scrollytelling of the four steps per
-  hazard (wildfire, earthquake; a pill switch, `?hazard=` in the URL): the steps scroll on the left
-  and a sticky square figure cross-fades the explorer's demo rasters on the right. Then validation
-  in a gold-figure grid, limits, and one closing action. Layout in `src/pages/method/method.css`.
+- **Method (`/method`)**: same system as the landing. After the intro, a **satellite teardown**:
+  a sticky three.js stage (`SatelliteTeardown.tsx`, model in `teardownScene.ts`, copy in
+  `teardownSteps.ts`) that takes a stylised NISAR apart over six scroll steps, lazy-loaded near the
+  viewport and paused off screen; without WebGL it falls back to a list. Then the hazard pill
+  switch ("From echoes to a map", `?hazard=` in the URL) and a scrollytelling of the four steps per
+  hazard: the steps scroll on the left and a sticky square figure cross-fades the explorer's demo
+  rasters on the right. Then validation in a gold-figure grid, limits, and one closing action.
+  Layout in `src/pages/method/method.css`.
+- **About (`/about`)**: the team. A crew orbit (the six members turning round the team logo), a
+  crew manifest whose cards a gold radar sweep "acquires" as you scroll (static and acquired under
+  reduced motion), and links to the project. Team data lives in `src/content/team.ts`, apart from
+  the layout; missing roles and links render as grey placeholders. Layout in
+  `src/pages/about/about.css` (`a-*`).
 - **Explorer (`/explore`)**: the app. A **mission-control look over a real planet**: the Cesium
   globe fills the screen and glass cards float over it. A top bar (wordmark pill, Guided tour /
   Explore switch, Whole globe, Method), one card at the bottom left and the frame panel on the
@@ -33,9 +42,10 @@ the brightest thing on screen.
 
 ### One system
 
-All three pages share `src/pages/site/`: `site.css` holds the tokens, type, pills, chips, nav and
-footer (`s-*` classes); `SiteNav.tsx`; `siteMotion.ts` for smooth scroll and section entrances.
-Each page keeps only its own layout (`l-*` landing, `m-*` method, `x-*` explorer). Tailwind stays
+All pages share `src/pages/site/`: `site.css` holds the tokens, type, pills, chips, nav and
+footer (`s-*` classes); `SiteNav.tsx`; `SiteFooter.tsx`; `siteMotion.ts` for smooth scroll and
+section entrances. Each page keeps only its own layout (`l-*` landing, `m-*` method, `a-*` about,
+`x-*` explorer). Tailwind stays
 available for one-off utilities, but new UI uses the tokens below.
 
 ## Colors
@@ -175,14 +185,18 @@ and a soft gold ring on the epicentre marker. No other gradients or glows.
 ### Photography & Illustrations
 
 No stock imagery or illustrations: NASA public-domain pictures on content pages (credited in the
-footer), Esri imagery and data layers in the explorer.
+footer), Esri imagery in the landing's event cards and the explorer, and data layers. The footer's
+Colombian place photos are openly licensed (Wikimedia Commons), each credited on its card. Never use
+the NASA meatball or worm logos; the official Space Apps logo, which teams may use, sits on a light
+plate in the footer.
 
 ## Components
 
 ### Top Navigation
 
-Content pages: `SiteNav` (wordmark left; Events, Method and a glass "Open the globe" pill right;
-clear over the landing's planet, glass on the method page). Explorer: its own top bar of glass
+Content pages: `SiteNav` (wordmark left; Events, Method, About and a glass "Open the globe" pill
+right; clear over the landing's planet, glass elsewhere; About drops Events). On narrow phones the
+page links give way to the pill. Explorer: its own top bar of glass
 pills (wordmark, mode switch, Whole globe, Method).
 
 ### Buttons
@@ -216,8 +230,12 @@ a faint track. Variants: `pills`, `small` (pass direction), `bar` (glass, the mo
 
 Content pages: gold pill buttons (radius 999, `gold` on `gold-ink`, hover `gold-hover`, active
 `scale(.97)`); the nav's "Open the globe" is a glass pill. The page closes with a mono label, "Pick
-any frame." and one gold pill, then a footer with three auto-fit columns (identity, six links,
-"Role: Source" credits) and the picture credits line.
+any frame." and one gold pill, then `SiteFooter`: a Colombian place seen from orbit (the Blue
+Marble map positioned so the place sits under a gold marker, behind a scrim), a headline, the team
+and Space Apps signature, a place card with its photo credit, link columns (a fixed PROJECT column
+plus the page's own), an optional picture credits note, the outlined NOVA FRONTIER wordmark and a
+base bar with the non-affiliation notice. Each page picks its place: Chiribiquete (landing), Nevado
+del Ruiz (method), Chía (about).
 
 ### Landing motion
 

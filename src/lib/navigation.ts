@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-// Three pages do not justify a router dependency: the History API covers it.
+// A handful of pages do not justify a router dependency: the History API covers it.
 
 export const navigate = (to: string): void => {
   window.history.pushState(null, "", to);

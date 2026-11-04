@@ -1,3 +1,5 @@
+import { Link } from "@/lib/Link";
+
 type IntroCardProps = {
   frameCount: number | undefined;
   eventCount: number;
@@ -34,5 +36,9 @@ export const IntroCard = ({ frameCount, eventCount, onStartTour, onExplore }: In
         Explore freely
       </button>
     </div>
+    <Link to="/about" className="x-intro__team" testId="intro-team">
+      <img src="/team/nova-frontier-logo.png" alt="" width={24} height={24} />
+      <span>Built by Nova Frontier · NASA Space Apps 2026 · Chía</span>
+    </Link>
   </section>
 );

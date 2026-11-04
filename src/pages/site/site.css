@@ -241,53 +241,354 @@
   margin: 0 auto;
 }
 
-/* Footer */
-.s-footer {
-  padding: 2.5rem var(--margin) 2rem;
-  border-top: 1px solid rgba(235, 233, 228, 0.1);
+/* Footer: a Colombian place seen from orbit, the page's links and the team's signature. */
+.s-foot {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid rgba(235, 233, 228, 0.08);
+  background: var(--space);
+}
+
+.s-foot__flag {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 3;
+  height: 4px;
+  background: linear-gradient(#fcd116 0 50%, #003893 50% 75%, #ce1126 75%);
+}
+
+.s-foot__orbit {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.s-foot__earth {
+  position: absolute;
+  width: 4096px;
+  height: 2048px;
+  background: url("/landing/earth-day.jpg") 0 0 / 100% 100%;
+  filter: saturate(0.85) brightness(0.85);
+}
+
+.s-foot__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      var(--space) 0%,
+      rgba(4, 7, 14, 0.9) 36%,
+      rgba(4, 7, 14, 0.25) 62%,
+      rgba(4, 7, 14, 0.45) 100%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(4, 7, 14, 0.6) 0%,
+      transparent 30%,
+      transparent 70%,
+      var(--space) 100%
+    );
+}
+
+.s-foot__marker {
+  position: absolute;
+  left: 72%;
+  top: 36%;
+  width: 44px;
+  height: 44px;
+  translate: -50% -50%;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 0 10px rgba(201, 180, 139, 0.12);
+}
+
+.s-foot__marker::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: var(--gold);
+}
+
+.s-foot__coord {
+  position: absolute;
+  left: calc(72% + 34px);
+  top: 36%;
+  translate: 0 -50%;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-shadow: 0 1px 6px var(--space);
+}
+
+.s-foot__body {
+  position: relative;
+  z-index: 2;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: clamp(4.5rem, 3rem + 5vw, 7rem) var(--margin) 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(3rem, 2rem + 3vw, 5rem);
+}
+
+.s-foot__lead {
+  max-width: 32rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.s-foot__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.s-foot__kicker {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+
+.s-foot__headline {
+  font-size: clamp(1.75rem, 1rem + 2vw, 2.75rem);
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.s-foot__actions {
+  margin-top: 0.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.site .s-foot__button {
+  display: inline-flex;
+  padding: 0.6em 1.2em;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--space);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: background-color 160ms var(--ease-out);
+}
+
+.site .s-foot__button:hover {
+  background: #fff;
+  color: var(--space);
+}
+
+.site .s-foot__button--ghost {
+  border: 1px solid rgba(235, 233, 228, 0.2);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.site .s-foot__button--ghost:hover {
+  background: rgba(235, 233, 228, 0.08);
+  color: var(--ink);
+}
+
+.s-foot__signature {
+  padding-top: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
   font-size: var(--step-small);
   color: var(--muted);
 }
 
-.s-footer__cols {
-  max-width: 76rem;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: 2rem;
-}
-
-.s-footer__identity,
-.s-footer__credits {
+.site .s-foot__team {
   display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.s-footer__name {
-  color: var(--ink);
-  font-weight: 600;
-}
-
-.s-footer__links {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-content: start;
-  gap: 0.4rem 1.5rem;
-}
-
-.site .s-footer__links a:hover {
-  color: var(--ink);
-}
-
-.s-footer__credits a {
+  align-items: center;
+  gap: 0.6rem;
   color: var(--ink-2);
 }
 
-.s-footer__pictures {
-  max-width: 76rem;
-  margin: 2rem auto 0;
+.site .s-foot__team:hover {
+  color: var(--ink);
+}
+
+.s-foot__team img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(235, 233, 228, 0.16);
+}
+
+.s-foot__divider {
+  width: 1px;
+  height: 32px;
+  background: rgba(235, 233, 228, 0.16);
+}
+
+/* The Space Apps logo is black ink, so it needs a light plate on the dark footer. */
+.s-foot__spaceapps {
+  display: flex;
+  padding: 7px 14px;
+  border-radius: 12px;
+  background: var(--ink);
+  transition: background-color 160ms var(--ease-out);
+}
+
+.s-foot__spaceapps:hover {
+  background: #fff;
+}
+
+.s-foot__spaceapps img {
+  display: block;
+  width: auto;
+  height: 34px;
+}
+
+.s-foot__place {
+  align-self: flex-start;
+  max-width: 28rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem 0.75rem 0.75rem;
+  border: 1px solid var(--hairline);
+  border-radius: 2.75rem;
+  background: var(--glass);
+  backdrop-filter: blur(14px);
+}
+
+.s-foot__place img {
+  flex: none;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--night);
+}
+
+.s-foot__place figcaption {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: var(--step-small);
+}
+
+.s-foot__place-tag {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.s-foot__place-title {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.s-foot__place-sub {
+  color: #c4c1ba;
+  text-wrap: pretty;
+}
+
+.site .s-foot__place-credit {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.site .s-foot__place-credit:hover {
+  color: var(--ink);
+}
+
+.s-foot__cols {
+  padding-top: 2rem;
+  border-top: 1px solid rgba(235, 233, 228, 0.1);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 2rem;
+  font-size: 0.9375rem;
+}
+
+.s-foot__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.s-foot__col-title {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.site .s-foot__col a {
+  color: var(--ink-2);
+}
+
+.site .s-foot__col a:hover {
+  color: var(--ink);
+}
+
+.s-foot__note {
+  max-width: 64rem;
   font-size: 0.8125rem;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.s-foot__wordmark {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 -0.18em;
+  padding: 0 var(--margin);
+  font-size: clamp(3rem, 0.5rem + 10vw, 13rem);
+  font-weight: 600;
+  letter-spacing: -0.06em;
+  line-height: 0.8;
+  text-align: center;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(235, 233, 228, 0.22);
+}
+
+.s-foot__base {
+  position: relative;
+  z-index: 2;
+  padding: 1.25rem var(--margin);
+  border-top: 1px solid rgba(235, 233, 228, 0.08);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  background: var(--space);
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.s-foot__disclaimer {
+  max-width: 52ch;
+  text-wrap: pretty;
+}
+
+/* On phones the coordinate label sits left of the marker so it stays on screen. */
+@media (max-width: 30rem) {
+  .s-foot__coord {
+    left: auto;
+    right: calc(28% + 34px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -300,17 +601,32 @@
 
 /* Phones: the wordmark stays on one line; the in-page Events link gives way. */
 @media (max-width: 30rem) {
+  .s-nav {
+    gap: 0.5rem;
+  }
+
   .s-nav__mark {
-    font-size: 1rem;
+    font-size: 0.875rem;
     white-space: nowrap;
   }
 
   .s-nav__links {
-    gap: 0.75rem;
-    font-size: 0.875rem;
+    gap: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .s-nav__pill {
+    padding: 0.45em 0.7em;
   }
 
   .s-nav__link--events {
+    display: none;
+  }
+}
+
+/* Very narrow phones: the page links give way to the globe; the footer still lists them. */
+@media (max-width: 24rem) {
+  .s-nav__link {
     display: none;
   }
 }

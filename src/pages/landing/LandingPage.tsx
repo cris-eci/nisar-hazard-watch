@@ -15,8 +15,10 @@ import { Link } from "@/lib/Link";
 import { whenIdle } from "@/lib/whenIdle";
 import { CompareSlider } from "@/pages/landing/CompareSlider";
 import { EarthHero, type EarthControls, type Project } from "@/pages/landing/EarthHero";
+import { EventCard } from "@/pages/landing/EventCard";
 import { facingRotation, lonLatToVec } from "@/pages/landing/geo";
 import { useLandingMotion } from "@/pages/landing/useLandingMotion";
+import { SiteFooter, type FooterColumn } from "@/pages/site/SiteFooter";
 import { SiteNav } from "@/pages/site/SiteNav";
 import { prefersReducedMotion } from "@/pages/site/siteMotion";
 
@@ -75,26 +77,38 @@ const MISSION: { heading: string; body: string }[] = [
   },
 ];
 
-const CREDITS: { role: string; name: string; href: string }[] = [
+const FOOTER_COLUMNS: FooterColumn[] = [
   {
-    role: "Frames and passes",
-    name: "NISAR Observation Plan",
-    href: "https://nisar.jpl.nasa.gov/mission/get-to-know-sar/observation-plan/",
+    title: "DATA",
+    items: [
+      {
+        label: "NISAR Observation Plan",
+        href: "https://nisar.jpl.nasa.gov/mission/get-to-know-sar/observation-plan/",
+      },
+      { label: "ASF DAAC", href: "https://search.asf.alaska.edu/" },
+      { label: "USGS catalogue", href: "https://earthquake.usgs.gov/earthquakes/search/" },
+      { label: "NASA HLS / Sentinel-2", href: "https://hls.gsfc.nasa.gov/" },
+    ],
   },
-  { role: "Radar products", name: "ASF DAAC", href: "https://search.asf.alaska.edu/" },
   {
-    role: "Earthquakes",
-    name: "USGS catalogue",
-    href: "https://earthquake.usgs.gov/earthquakes/search/",
+    title: "BUILD",
+    items: [
+      { label: "Source code", href: "https://github.com/cris-eci/nisar-hazard-watch" },
+      {
+        label: "API contract",
+        href: "https://github.com/cris-eci/nisar-hazard-watch/blob/main/docs/analysis-api.md",
+      },
+      { label: "NISAR mission", href: "https://science.nasa.gov/mission/nisar/" },
+      { label: "CesiumJS", href: "https://cesium.com/platform/cesiumjs/" },
+    ],
   },
-  { role: "Optical", name: "NASA HLS / Sentinel-2", href: "https://hls.gsfc.nasa.gov/" },
-  {
-    role: "Earth",
-    name: "NASA Blue Marble",
-    href: "https://visibleearth.nasa.gov/collection/1484/blue-marble",
-  },
-  { role: "Globe", name: "CesiumJS", href: "https://cesium.com/platform/cesiumjs/" },
 ];
+
+const FOOTER_NOTE =
+  "Pictures: NISAR first image of North Dakota and artist's concept of NISAR (NASA/JPL-Caltech); " +
+  "Blue Marble and cloud imagery (NASA Visible Earth), all public domain. Optical view: NASA HLS, " +
+  "contains modified Copernicus Sentinel-2 data (2025), via NASA Worldview. Event imagery: Esri " +
+  "World Imagery.";
 
 type DemoFringes = { url: string; maxTowardCm: number };
 
@@ -312,25 +326,7 @@ export const LandingPage = () => {
                 if (line === undefined) return null;
                 return (
                   <li key={event.id}>
-                    <Link
-                      to={`/explore?event=${event.id}`}
-                      className="l-card"
-                      testId={`landing-event-${event.id}`}
-                    >
-                      <img
-                        src={`/landing/event-${event.id}.jpg`}
-                        alt=""
-                        width={660}
-                        height={740}
-                        loading="lazy"
-                      />
-                      <span className="l-card__text">
-                        <span className="l-card__meta">{line.meta}</span>
-                        <span className="l-card__name">{line.name}</span>
-                        <span className="l-card__summary">{event.summary}</span>
-                        <span className="l-card__action">Open on the globe →</span>
-                      </span>
-                    </Link>
+                    <EventCard event={event} name={line.name} meta={line.meta} />
                   </li>
                 );
               })}
@@ -384,38 +380,23 @@ export const LandingPage = () => {
         </section>
       </main>
 
-      <footer className="s-footer">
-        <div className="s-footer__cols">
-          <div className="s-footer__identity">
-            <p className="s-footer__name">NISAR Hazard Watch</p>
-            <p>Built for the NASA International Space Apps Challenge 2026. Chía, Colombia.</p>
-          </div>
-          <nav className="s-footer__links" aria-label="Footer">
-            <Link to="/explore">Explorer</Link>
-            <Link to="/method">Method</Link>
-            <a href="https://github.com/cris-eci/nisar-hazard-watch">Source code</a>
-            <a href="https://github.com/cris-eci/nisar-hazard-watch/blob/main/docs/analysis-api.md">
-              API contract
-            </a>
-            <a href="https://search.asf.alaska.edu/">ASF data search</a>
-            <a href="https://science.nasa.gov/mission/nisar/">NISAR mission</a>
-          </nav>
-          <div className="s-footer__credits">
-            {CREDITS.map(({ role, name, href }) => (
-              <p key={role}>
-                <span>{role}: </span>
-                <a href={href}>{name}</a>
-              </p>
-            ))}
-          </div>
-        </div>
-        <p className="s-footer__pictures">
-          Pictures: NISAR first image of North Dakota and artist&apos;s concept of NISAR
-          (NASA/JPL-Caltech); Blue Marble and cloud imagery (NASA Visible Earth), all public domain.
-          Optical view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via NASA
-          Worldview.
-        </p>
-      </footer>
+      <SiteFooter
+        lon={-72.81}
+        lat={0.7}
+        coordLabel="CHIRIBIQUETE · 0.70° N, 72.81° W"
+        kicker="HECHO EN COLOMBIA · UNDER THE CLOUDS"
+        headline="Colombia's rainforest sits under cloud most days. NISAR's radar sees through."
+        photo={{
+          src: "/footer/chiribiquete.jpg",
+          tag: "PATRIMONIO UNESCO",
+          title: "Serranía de Chiribiquete",
+          sub: "Tepuis in the Colombian Amazon. L-band's 24 cm waves reach through the canopy.",
+          credit: "Photo: Carlos Castaño Uribe · CC BY-SA 3.0",
+          creditHref: "https://commons.wikimedia.org/wiki/File:Chiribiquete_view.jpg",
+        }}
+        columns={FOOTER_COLUMNS}
+        note={FOOTER_NOTE}
+      />
     </div>
   );
 };

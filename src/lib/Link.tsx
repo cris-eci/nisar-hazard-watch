@@ -6,7 +6,7 @@ type LinkProps = {
   to: string;
   className?: string;
   children: ReactNode;
-  testId?: string;
+  testId?: string | undefined;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   onFocus?: () => void;

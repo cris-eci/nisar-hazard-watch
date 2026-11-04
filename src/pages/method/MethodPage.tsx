@@ -4,7 +4,6 @@ import "@/pages/method/method.css";
 import { useEffect, useRef, useState } from "react";
 
 import { ENABLED_HAZARDS } from "@/features/analysis/hazards";
-import { APP_NAME } from "@/lib/appName";
 import { Link } from "@/lib/Link";
 import { whenIdle } from "@/lib/whenIdle";
 import {
@@ -17,8 +16,10 @@ import {
   type FireDemo,
   type QuakeDemo,
 } from "@/pages/method/methodDemo";
+import { SatelliteTeardown } from "@/pages/method/SatelliteTeardown";
 import { StepFigure, type FigureFrame } from "@/pages/method/StepFigure";
 import { useMethodMotion } from "@/pages/method/useMethodMotion";
+import { SiteFooter, type FooterColumn } from "@/pages/site/SiteFooter";
 import { SiteNav } from "@/pages/site/SiteNav";
 
 type MethodHazard = "wildfire" | "earthquake";
@@ -104,6 +105,30 @@ const LIMITATIONS = [
   "Rain or soil moisture also change backscatter; comparing passes close in time limits false alarms.",
   "Line-of-sight motion is one component: separating vertical and horizontal motion needs ascending and descending pairs.",
   "NISAR data is still validated as PROVISIONAL by the mission; results inherit that status.",
+];
+
+const FOOTER_COLUMNS: FooterColumn[] = [
+  {
+    title: "RADAR DATA",
+    items: [
+      { label: "NISAR L2 GCOV and GUNW · ASF DAAC", href: "https://search.asf.alaska.edu/" },
+      {
+        label: "NISAR Observation Plan",
+        href: "https://nisar.jpl.nasa.gov/mission/get-to-know-sar/observation-plan/",
+      },
+    ],
+  },
+  {
+    title: "VALIDATION",
+    items: [
+      {
+        label: "USGS earthquake catalogue",
+        href: "https://earthquake.usgs.gov/earthquakes/search/",
+      },
+      { label: "NASA FIRMS", href: "https://firms.modaps.eosdis.nasa.gov/" },
+      { label: "NASA HLS", href: "https://hls.gsfc.nasa.gov/" },
+    ],
+  },
 ];
 
 const formatNumber = (value: number): string => value.toLocaleString("en-US");
@@ -254,8 +279,14 @@ export const MethodPage = () => {
           <p className="m-intro__lead" data-intro>
             And how we check that the map is right.
           </p>
-          {TABS.length > 1 && (
-            <div className="m-tabs" role="group" aria-label="Hazard" data-intro>
+        </header>
+
+        <SatelliteTeardown />
+
+        {TABS.length > 1 && (
+          <div className="m-switch">
+            <p className="m-switch__label">FROM ECHOES TO A MAP · PICK A HAZARD</p>
+            <div className="m-tabs" role="group" aria-label="Hazard">
               {TABS.map(({ id, label }) => (
                 <button
                   key={id}
@@ -269,8 +300,8 @@ export const MethodPage = () => {
                 </button>
               ))}
             </div>
-          )}
-        </header>
+          </div>
+        )}
 
         <section
           className="m-steps"
@@ -374,22 +405,23 @@ export const MethodPage = () => {
         </section>
       </main>
 
-      <footer className="s-footer">
-        <div className="s-footer__cols">
-          <div className="s-footer__identity">
-            <p className="s-footer__name">{APP_NAME}</p>
-            <p>Built for the NASA International Space Apps Challenge 2026. Chía, Colombia.</p>
-          </div>
-          <div className="s-footer__identity">
-            <p>NASA-ISRO NISAR L2 GCOV and GUNW products, Alaska Satellite Facility DAAC.</p>
-            <p>NASA NISAR Observation Plan (frames and planned passes).</p>
-          </div>
-          <div className="s-footer__identity">
-            <p>USGS earthquake catalogue (event times and epicentres).</p>
-            <p>NASA FIRMS and HLS (fire detections and optical burn index, for validation).</p>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter
+        lon={-75.32}
+        lat={4.89}
+        coordLabel="NEVADO DEL RUIZ · 4.89° N, 75.32° W"
+        kicker="HECHO EN COLOMBIA · WHY GROUND MOTION MATTERS"
+        headline="Volcanoes swell before they erupt. Radar can measure the swelling from orbit."
+        photo={{
+          src: "/footer/nevado-del-ruiz.jpg",
+          tag: "SEEN FROM THE ISS",
+          title: "Nevado del Ruiz, 5,389 m",
+          sub: "In 1985 its mudflows buried the town of Armero and killed at least 23,000 people.",
+          credit: "Photo: NASA Expedition 23 crew · ISS023-E-27737",
+          creditHref:
+            "https://earthobservatory.nasa.gov/images/43859/nevado-del-ruiz-volcano-colombia",
+        }}
+        columns={FOOTER_COLUMNS}
+      />
     </div>
   );
 };

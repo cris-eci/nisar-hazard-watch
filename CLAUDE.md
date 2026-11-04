@@ -1,7 +1,8 @@
 # CLAUDE.md — globe-ui
 
 Web app for the NASA Space Apps 2026 NISAR challenge (team project). Pages: landing (`/`), 3D
-globe explorer (`/explore`, `?frame=` or `?event=` deep links) and method & validation (`/method`).
+globe explorer (`/explore`, `?frame=` or `?event=` deep links), method & validation (`/method`) and
+the team (`/about`, data in `src/content/team.ts`).
 On the globe the user picks a NISAR radar frame or a featured event and sees its passes and an
 analysis: surface change (wildfire core; flood and deforestation behind the flag) or ground motion
 (earthquakes, from GUNW interferograms).

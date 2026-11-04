@@ -5,4 +5,5 @@
 interface ImportMetaEnv {
   readonly VITE_ANALYSIS_API_URL?: string;
   readonly VITE_ENABLED_HAZARDS?: string;
+  readonly VITE_EVENT_IMAGERY?: string;
 }

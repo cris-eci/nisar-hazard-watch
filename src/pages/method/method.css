@@ -466,3 +466,283 @@
     min-height: 45svh;
   }
 }
+
+/* Satellite teardown: a sticky three.js stage the scroll steps through. */
+.m-teardown {
+  position: relative;
+  height: 720vh;
+  margin-top: clamp(4rem, 3rem + 4vw, 7rem);
+}
+
+.m-teardown__stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.m-teardown__canvas {
+  position: absolute;
+  inset: 0 0 0 34%;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.m-teardown__canvas:active {
+  cursor: grabbing;
+}
+
+.m-teardown__callout {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.m-teardown__callout-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 0 4px rgba(235, 233, 228, 0.18);
+}
+
+.m-teardown__callout-line {
+  width: 48px;
+  height: 1px;
+  background: rgba(235, 233, 228, 0.5);
+}
+
+.m-teardown__callout-tag {
+  padding: 5px 10px;
+  border: 1px solid rgba(235, 233, 228, 0.14);
+  border-radius: 999px;
+  background: rgba(8, 16, 31, 0.86);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.m-teardown__panel {
+  position: absolute;
+  inset: 0 auto 0 6vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.m-teardown__text,
+.m-teardown-list li {
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.m-teardown__kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--gold);
+}
+
+.m-teardown__title {
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.m-teardown__body {
+  font-size: 17px;
+  color: #c4c1ba;
+  text-wrap: pretty;
+}
+
+.m-teardown__facts {
+  padding-top: 12px;
+  border-top: 1px solid rgba(235, 233, 228, 0.1);
+  display: flex;
+  gap: 24px;
+}
+
+.m-teardown__facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.m-teardown__fact-value {
+  font-size: 24px;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.m-teardown__fact-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.m-teardown__rail {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  translate: 0 -50%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.m-teardown__rail button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.m-teardown__rail span {
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+  transition:
+    width 200ms var(--ease-out),
+    height 200ms var(--ease-out),
+    background-color 200ms var(--ease-out);
+}
+
+.m-teardown__rail button[aria-current="step"] span {
+  width: 10px;
+  height: 10px;
+  background: var(--ink);
+}
+
+.m-teardown__hint {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 14px;
+  border: 1px solid rgba(235, 233, 228, 0.1);
+  border-radius: 999px;
+  background: rgba(4, 7, 14, 0.78);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  color: #c4c1ba;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.m-teardown__hint-note {
+  color: var(--muted);
+}
+
+.m-teardown__loading {
+  position: absolute;
+  left: 60%;
+  top: 50%;
+  translate: -50% -50%;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+/* Narrow screens: the model on top, the copy in a glass card below it. */
+@media (max-width: 51.24rem) {
+  .m-teardown__canvas {
+    inset: 0 0 auto;
+    height: 58vh;
+  }
+
+  .m-teardown__panel {
+    inset: 54vh 16px 60px;
+    justify-content: flex-start;
+  }
+
+  .m-teardown__text {
+    padding: 18px;
+    border-radius: 24px;
+    background: rgba(8, 16, 31, 0.86);
+  }
+
+  .m-teardown__title {
+    font-size: 26px;
+  }
+
+  .m-teardown__body {
+    font-size: 15px;
+  }
+
+  .m-teardown__rail,
+  .m-teardown__hint-note {
+    display: none;
+  }
+
+  .m-teardown__loading {
+    left: 50%;
+    top: 29vh;
+  }
+}
+
+/* No WebGL: the steps as a list beside the artist's concept. */
+.m-teardown-list {
+  max-width: 76rem;
+  margin: clamp(4rem, 3rem + 4vw, 7rem) auto 0;
+  padding: 0 var(--margin);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 3rem;
+  align-items: start;
+}
+
+.m-teardown-list img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+}
+
+.m-teardown-list ol {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.m-teardown-list .m-teardown__title {
+  font-size: var(--step-title);
+}
+
+/* The hazard switch, moved to sit right above the pipeline. */
+.m-switch {
+  padding: clamp(4rem, 3rem + 4vw, 7rem) var(--margin) 0;
+  text-align: center;
+}
+
+.m-switch__label {
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.m-switch .m-tabs {
+  margin-top: 1.25rem;
+}

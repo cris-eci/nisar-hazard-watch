@@ -252,6 +252,31 @@
   gap: 10px;
 }
 
+/* The team's signature under the intro's actions. */
+.x-intro__team {
+  margin: 22px auto 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(235, 233, 228, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--muted);
+  transition: color 160ms ease;
+}
+
+.x-intro__team:hover {
+  color: var(--ink);
+}
+
+.x-intro__team img {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 /* Bottom-left cards: tour and explore */
 .x-dock {
   position: absolute;
