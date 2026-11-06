@@ -5,6 +5,7 @@ import { polarizationShort, type ChangeHazard } from "@/features/analysis/hazard
 import type { GlobeOverlay } from "@/features/analysis/overlay.types";
 import { MapLegend } from "@/features/frame-panel/MapLegend";
 import { MethodDetails } from "@/features/frame-panel/MethodDetails";
+import { PassTimeline } from "@/features/frame-panel/PassTimeline";
 import { SegmentedControl } from "@/lib/SegmentedControl";
 
 type Layer = "severity" | "before" | "after";
@@ -26,20 +27,35 @@ const formatHa = (ha: number): string => `${ha.toLocaleString("en-US")} ha`;
 type ChangeResultProps = {
   hazard: ChangeHazard;
   analysis: ChangeAnalysis;
+  nextPassDate: string | undefined;
   onOverlayChange: (overlay: GlobeOverlay | undefined) => void;
 };
 
-export const ChangeResult = ({ hazard, analysis, onOverlayChange }: ChangeResultProps) => {
+export const ChangeResult = ({
+  hazard,
+  analysis,
+  nextPassDate,
+  onOverlayChange,
+}: ChangeResultProps) => {
   const [layer, setLayer] = useState<Layer>("severity");
+
   const { method, severityHa, layers } = analysis;
+
   const pol = polarizationShort(method.polarization);
   const colors = hazard.severityColors;
 
   useEffect(() => {
-    const url = { severity: layers.severityUrl, before: layers.beforeUrl, after: layers.afterUrl }[
-      layer
-    ];
-    onOverlayChange({ url, bounds: layers.bounds });
+    const url = {
+      severity: layers.severityUrl,
+      before: layers.beforeUrl,
+      after: layers.afterUrl,
+    }[layer];
+
+    onOverlayChange({
+      url,
+      bounds: layers.bounds,
+    });
+
     return () => onOverlayChange(undefined);
   }, [layers, layer, onOverlayChange]);
 
@@ -48,29 +64,53 @@ export const ChangeResult = ({ hazard, analysis, onOverlayChange }: ChangeResult
       <p data-testid="affected-area" className="x-result__big">
         {formatHa(analysis.affectedAreaHa)}
       </p>
+
       <p className="x-result__sub">
         {hazard.affectedLabel} · mean {pol} change {analysis.meanChangeDb} dB
       </p>
 
       <div className="x-severity__bar" aria-hidden="true">
         {SEVERITY_LEVELS.map(({ key }) => (
-          <div key={key} style={{ flexGrow: severityHa[key], backgroundColor: colors[key] }} />
+          <div
+            key={key}
+            style={{
+              flexGrow: severityHa[key],
+              backgroundColor: colors[key],
+            }}
+          />
         ))}
       </div>
+
       <dl className="x-severity__levels">
         {SEVERITY_LEVELS.map(({ key, label }) => (
           <div key={key}>
             <dt>
-              <span className="x-swatch" style={{ backgroundColor: colors[key] }} />
+              <span
+                className="x-swatch"
+                style={{
+                  backgroundColor: colors[key],
+                }}
+              />
+
               {label}
             </dt>
+
             <dd>{formatHa(severityHa[key])}</dd>
           </div>
         ))}
       </dl>
 
+      {hazard.id === "flood" && (
+        <PassTimeline
+          beforeDate={analysis.before.date}
+          afterDate={analysis.after.date}
+          nextPassDate={nextPassDate}
+        />
+      )}
+
       <div className="x-layer">
         <p className="x-mono">Layer on the globe</p>
+
         <SegmentedControl
           label="Map layer"
           options={LAYER_OPTIONS}
@@ -78,6 +118,7 @@ export const ChangeResult = ({ hazard, analysis, onOverlayChange }: ChangeResult
           onChange={setLayer}
           testIdPrefix="analysis-layer"
         />
+
         {layer === "severity" ? (
           <MapLegend
             bar={`linear-gradient(90deg, ${colors.low} 0 33%, ${colors.moderate} 33% 66%, ${colors.high} 66%)`}
@@ -88,7 +129,9 @@ export const ChangeResult = ({ hazard, analysis, onOverlayChange }: ChangeResult
           <MapLegend
             bar="linear-gradient(90deg, #000, #fff)"
             scale={["−22 dB", "−4 dB"]}
-            text={`${pol} backscatter on ${layer === "before" ? analysis.before.date : analysis.after.date}. ${hazard.backscatterHint}`}
+            text={`${pol} backscatter on ${
+              layer === "before" ? analysis.before.date : analysis.after.date
+            }. ${hazard.backscatterHint}`}
           />
         )}
       </div>
