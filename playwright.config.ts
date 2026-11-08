@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI) && process.env.CI !== "false";
 // Own port and env, so tests never depend on a developer's running server or .env.local.
-const PORT = 5174;
+// E2E_PORT lets parallel worktrees run their own server.
+const PORT = Number(process.env.E2E_PORT ?? 5174);
 const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
