@@ -1,0 +1,371 @@
+/*
+ * Cases page v7: a filter by question, one card per measured case and the five-hazard icon row.
+ * Tokens and the nav/footer live in site/site.css; the bars and chips in charts/charts.css.
+ */
+
+.k-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(7rem, 5rem + 4vw, 9rem) clamp(20px, 4vw, 48px) 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.k-intro {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.k-intro__kicker,
+.k-hazards__kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
+
+.k-intro__title {
+  font-size: clamp(40px, 5vw, 68px);
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.k-intro__lead {
+  font-size: 18px;
+  color: #c4c1ba;
+  text-wrap: pretty;
+}
+
+/* Filter chips */
+.k-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.k-filter {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px 0 10px;
+  border: 1px solid rgba(235, 233, 228, 0.16);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
+}
+
+.k-filter:hover {
+  color: var(--ink);
+  background: rgba(235, 233, 228, 0.06);
+}
+
+.k-filter[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--space);
+}
+
+.k-filter__count {
+  font-family: var(--mono);
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.k-empty {
+  padding: 28px;
+  border: 1px dashed rgba(235, 233, 228, 0.16);
+  border-radius: 24px;
+  color: var(--muted);
+}
+
+/* Cards */
+.k-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: 16px;
+}
+
+.k-card {
+  min-width: 0;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: 1px solid rgba(235, 233, 228, 0.09);
+  border-radius: 24px;
+  background: rgba(235, 233, 228, 0.035);
+}
+
+.k-card--pending {
+  border-color: rgba(235, 233, 228, 0.06);
+}
+
+.k-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.k-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgba(235, 233, 228, 0.55);
+  border-radius: 50%;
+  background: #0e1a33;
+  color: var(--ink);
+}
+
+.k-icon--large {
+  width: 48px;
+  height: 48px;
+}
+
+.k-icon--dashed {
+  border-style: dashed;
+}
+
+.k-card__titles {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.k-card__kicker {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.k-card__title {
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.k-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.k-chip {
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 11px;
+  border: 1px solid rgba(235, 233, 228, 0.18);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.k-chip--verdict {
+  border-color: transparent;
+  background: rgba(235, 233, 228, 0.05);
+  color: var(--ink);
+}
+
+/* Verdict glyphs (SPECS §2.7): departure a gold diamond, within a ring, insufficient a dashed ring. */
+.k-glyph {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.k-glyph--departure {
+  border-radius: 0;
+  background: var(--gold);
+  transform: rotate(45deg);
+}
+
+.k-glyph--within {
+  border: 1.5px solid var(--ink);
+}
+
+.k-glyph--insufficient {
+  border: 1.5px dashed var(--muted);
+}
+
+.k-card__stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.k-card__value {
+  font-family: var(--mono);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+}
+
+.k-card__line {
+  font-size: 13.5px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.k-card__thumb {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--night);
+  box-shadow: 0 0 0 1px rgba(235, 233, 228, 0.12);
+}
+
+.k-card__limit {
+  font-size: 13.5px;
+  color: #c4c1ba;
+  text-wrap: pretty;
+}
+
+.k-card__foot {
+  margin-top: auto;
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-top: 1px solid rgba(235, 233, 228, 0.08);
+}
+
+.site .k-card__source {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.site .k-card__source:hover {
+  color: var(--ink);
+}
+
+.site .k-card__cta {
+  flex: none;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--space);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.site .k-card__cta:hover {
+  background: #fff;
+  color: var(--space);
+}
+
+.site .k-card__cta--ghost {
+  border: 1px solid rgba(235, 233, 228, 0.2);
+  background: transparent;
+  color: var(--ink);
+}
+
+.site .k-card__cta--ghost:hover {
+  background: rgba(235, 233, 228, 0.08);
+  color: var(--ink);
+}
+
+/* Five hazards */
+.k-hazards {
+  margin-top: 24px;
+  padding: 28px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  align-items: center;
+  gap: 28px;
+  border: 1px solid rgba(235, 233, 228, 0.1);
+  border-radius: 28px;
+}
+
+.k-hazards__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.k-hazards__kicker {
+  color: var(--muted);
+}
+
+.k-hazards__title {
+  font-size: 28px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.k-hazards__body {
+  font-size: 14.5px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.k-hazards__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.k-hazard {
+  width: 84px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-align: center;
+}
+
+.k-hazard__note {
+  margin-top: -4px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+@media (max-width: 30rem) {
+  .k-card {
+    padding: 18px;
+  }
+
+  .k-hazards {
+    padding: 22px;
+  }
+
+  .k-hazards__row {
+    gap: 12px;
+  }
+}
