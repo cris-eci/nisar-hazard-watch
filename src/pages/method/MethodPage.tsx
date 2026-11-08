@@ -154,7 +154,8 @@ export const MethodPage = () => {
               </ol>
             </div>
             <p className="m-note" data-reveal>
-              A live question reads real radar, so it takes about a minute. Measured cases are
+              A live question will read real radar in about a minute once the backend API is
+              connected; until then its answer is a demo, labelled as such. Measured cases are
               precomputed and open instantly. Answers can be partial or insufficient: no usable
               pixels, a thin history, a masked point. Those are normal outcomes, and the explorer
               explains each one.

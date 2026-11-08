@@ -91,7 +91,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
       { label: "Source code", href: "https://github.com/cris-eci/nisar-hazard-watch" },
       {
         label: "API contract",
-        href: "https://github.com/cris-eci/nisar-hazard-watch/blob/main/docs/analysis-api.md",
+        href: "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
       },
       { label: "NISAR mission", href: "https://science.nasa.gov/mission/nisar/" },
       { label: "CesiumJS", href: "https://cesium.com/platform/cesiumjs/" },
@@ -295,7 +295,7 @@ export const LandingPage = () => {
             <p className="l-pipeline__total" data-reveal>
               <span>An answer, with its limits</span>
               <span className="l-pipeline__total-value">
-                About a minute once the pass is archived
+                Target: about a minute once the live API is connected
               </span>
             </p>
           </div>
@@ -417,7 +417,8 @@ export const LandingPage = () => {
             Ask the radar.
           </h2>
           <p className="l-close__body" data-reveal>
-            Open a measured case, or click any land and get an honest answer in about a minute.
+            Open a measured case, or click any land to try a live question (a labelled demo answer
+            for now).
           </p>
           <div className="l-close__action" data-reveal>
             <Link to="/explore" className="s-button s-button--large" testId="cta-band">

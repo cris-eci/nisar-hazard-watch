@@ -32,7 +32,8 @@ export const JobChecklist = ({ lens, done }: ChecklistProps) => (
       })}
     </ol>
     <p className="x-job__foot">
-      We read real radar for this exact spot, so it takes about a minute. You can keep exploring.
+      The passes are real; the answer is a demo until the live radar API is connected. You can keep
+      exploring.
     </p>
   </div>
 );
