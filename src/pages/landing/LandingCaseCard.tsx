@@ -15,7 +15,7 @@ export const LandingCaseCard = ({ item }: LandingCaseCardProps) => {
   const [failed, setFailed] = useState(false);
   const pending = item.pending === true;
   const lens = findLens(item.lens);
-  const meta = [item.region, item.when.toUpperCase(), lens?.chip.toUpperCase()]
+  const meta = [item.region.toUpperCase(), item.when.toUpperCase(), lens?.chip.toUpperCase()]
     .filter((part) => part !== undefined)
     .join(" · ");
 
