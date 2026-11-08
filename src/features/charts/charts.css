@@ -176,8 +176,14 @@
   margin: 0;
 }
 
+/*
+ * The columns live on the list and every row is a subgrid, so all tracks start and end at the same
+ * x: per-row grids gave "2,363 / 2,702" a shorter track than "165 / 506" and broke the 0–100% axis.
+ */
 .c-bars__rows {
   display: grid;
+  /* The track keeps a minimum so a narrow card wraps the label instead of collapsing the bar. */
+  grid-template-columns: minmax(5.5em, 1.1fr) minmax(4rem, 1.4fr) 3.6em auto;
   gap: 10px;
   margin: 0;
   padding: 0;
@@ -186,9 +192,9 @@
 
 .c-bars__row {
   display: grid;
-  grid-template-columns: minmax(7.5em, 1.1fr) 1.4fr 3.6em auto;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   align-items: center;
-  gap: 10px;
   font-size: 12.5px;
   color: #d4d2cc;
 }

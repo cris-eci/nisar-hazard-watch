@@ -459,21 +459,13 @@
   grid-row: span 2;
 }
 
-/*
- * Contrast bars on this page: the shared row ends in an auto-width count column, so rows with
- * longer counts got shorter tracks. A fixed count column keeps the 0–100% axis the same length.
- */
-.method .c-bars__row {
-  grid-template-columns: minmax(7.5em, 1.1fr) 1.4fr 3.6em 7.5em;
-}
-
-.method .c-bars__count {
-  text-align: right;
-}
-
+/* On phones the counts drop to their own line under the track, so the bars keep their room. */
 @media (max-width: 30rem) {
-  .method .c-bars__row {
+  .method .c-bars__rows {
     grid-template-columns: minmax(6.5em, 1fr) 1.4fr 3.6em;
+  }
+
+  .method .c-bars__row {
     row-gap: 2px;
   }
 
