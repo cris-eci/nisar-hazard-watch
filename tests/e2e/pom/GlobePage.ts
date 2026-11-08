@@ -4,114 +4,108 @@ import type { Locator, Page } from "@playwright/test";
 
 import { OBSERVATION_PLAN_QUERY_URL } from "@/features/frames/observationPlanApi";
 
-// Frame 47-3 (ascending, HH+HV) sits under the screen centre at the start view over Colombia.
-export const CENTER_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };
+// Frame 47-3 (ascending, HH+HV, over Colombia); its mocked plan lists 39 dates.
+export const LIVE_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };
 
 const PLAN_MOCK = readFileSync(
   new URL("../mocks/observation-plan-47-3.json", import.meta.url),
   "utf8",
 );
 
+// With a selection open, the camera centres the chip in the free area right of the 392 px panel,
+// left of the 288 px dock and above the 200 px timeline (1440 × 900 viewport).
+const FREE_CENTRE = { x: 392 + (1440 - 392 - 288) / 2, y: 72 + (900 - 72 - 200) / 2 };
+// Far enough from the centre to miss the point and marker, still inside the same NISAR frame.
+const OFF_CENTRE_PX = 90;
+
 export class GlobePage {
   private readonly page: Page;
+  readonly startCard: Locator;
   readonly framesStatus: Locator;
   readonly tooltip: Locator;
   readonly panel: Locator;
   readonly panelTitle: Locator;
-  readonly panelClose: Locator;
-  readonly analysisCard: Locator;
-  readonly passList: Locator;
-  readonly wholeGlobe: Locator;
-  readonly affectedArea: Locator;
-  readonly hazardPicker: Locator;
-  readonly maxDisplacement: Locator;
-  readonly eventBanner: Locator;
   readonly panelMeta: Locator;
-  readonly intro: Locator;
-  readonly tour: Locator;
+  readonly panelClose: Locator;
+  readonly panelStat: Locator;
+  readonly verdict: Locator;
+  readonly moreInfo: Locator;
+  readonly pending: Locator;
+  readonly sheet: Locator;
+  readonly techLimit: Locator;
+  readonly timeline: Locator;
+  readonly timelineCompare: Locator;
+  readonly timelineReadout: Locator;
+  readonly dock: Locator;
+  readonly jobChecklist: Locator;
+  readonly jobError: Locator;
+  readonly planPasses: Locator;
+  readonly wholeGlobe: Locator;
+  readonly helpButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
+    this.startCard = page.getByTestId("start-card");
     this.framesStatus = page.getByTestId("frames-status");
-    this.tooltip = page.getByTestId("frame-tooltip");
-    this.panel = page.getByTestId("frame-panel");
-    this.panelTitle = page.getByTestId("frame-panel-title");
-    this.panelClose = page.getByTestId("frame-panel-close");
-    this.analysisCard = page.getByTestId("analysis-card");
-    this.passList = page.getByTestId("pass-list");
+    this.tooltip = page.getByTestId("globe-tooltip");
+    this.panel = page.getByTestId("case-panel");
+    this.panelTitle = page.getByTestId("panel-title");
+    this.panelMeta = page.getByTestId("panel-meta");
+    this.panelClose = page.getByTestId("panel-close");
+    this.panelStat = page.getByTestId("panel-stat");
+    this.verdict = page.getByTestId("verdict");
+    this.moreInfo = page.getByTestId("more-info");
+    this.pending = page.getByTestId("pending");
+    this.sheet = page.getByTestId("sheet");
+    this.techLimit = page.getByTestId("tech-limit");
+    this.timeline = page.getByTestId("timeline");
+    this.timelineCompare = page.getByTestId("timeline-compare");
+    this.timelineReadout = page.getByTestId("timeline-readout");
+    this.dock = page.getByTestId("layer-dock");
+    this.jobChecklist = page.getByTestId("job-checklist");
+    this.jobError = page.getByTestId("job-error");
+    this.planPasses = page.getByTestId("plan-passes");
     this.wholeGlobe = page.getByTestId("whole-globe");
-    this.affectedArea = page.getByTestId("affected-area");
-    this.hazardPicker = page.getByRole("group", { name: "Hazard" });
-    this.maxDisplacement = page.getByTestId("max-displacement");
-    this.eventBanner = page.getByTestId("event-banner");
-    this.panelMeta = page.getByTestId("frame-panel-meta");
-    this.intro = page.getByTestId("intro-card");
-    this.tour = page.getByTestId("tour-card");
+    this.helpButton = page.getByTestId("help-button");
   }
 
-  event(id: string): Locator {
-    return this.page.getByTestId(`event-${id}`);
+  caseRow(id: string): Locator {
+    return this.page.getByTestId(`case-row-${id}`);
   }
 
-  analysisLayer(layer: "severity" | "before" | "after" | "displacement" | "fringes"): Locator {
-    return this.page.getByTestId(`analysis-layer-${layer}`);
+  lens(id: string): Locator {
+    return this.page.getByTestId(`lens-${id}`);
   }
 
-  passToggle(pass: "A" | "D"): Locator {
-    return this.page.getByTestId(`pass-toggle-${pass}`);
+  timelinePasses(kind: "base" | "target" | "meas" | "plan"): Locator {
+    return this.timeline.locator(`[data-testid^="timeline-pass-"][data-kind="${kind}"]`);
   }
 
-  async mockObservationPlan(response: { status: number } = { status: 200 }): Promise<void> {
-    await this.page.route(`${OBSERVATION_PLAN_QUERY_URL}**`, (route) =>
-      route.fulfill({
-        status: response.status,
+  // Answers every plan query with frame 47-3's dates; `failures` HTTP errors come first.
+  async mockObservationPlan({ status = 200, failures = 0 } = {}): Promise<void> {
+    let calls = 0;
+    await this.page.route(`${OBSERVATION_PLAN_QUERY_URL}**`, (route) => {
+      calls += 1;
+      const failing = status !== 200 && calls <= Math.max(failures, 1);
+      return route.fulfill({
+        status: failing ? status : 200,
         contentType: "application/json",
-        body: response.status === 200 ? PLAN_MOCK : "{}",
-      }),
-    );
+        body: failing ? "{}" : PLAN_MOCK,
+      });
+    });
   }
 
-  // The demo analysis takes ~1.5 s with a GPU, but software WebGL starves the main thread and
-  // stretches it to ~10 s when tests run in parallel.
-  async waitForAnalysis(): Promise<void> {
-    await this.affectedArea.waitFor({ timeout: 30_000 });
-  }
-
-  // Marks the intro as seen so the explorer opens in explore mode; the intro's own test skips this.
-  async skipIntro(): Promise<void> {
-    await this.page.addInitScript(() =>
-      window.localStorage.setItem("nisar-watch:welcome-dismissed", "1"),
-    );
-  }
-
+  // Hover and live questions need the frames snapshot, so every test waits for it.
   async goto(query = ""): Promise<void> {
     await this.page.goto(`/explore${query}`);
-    await this.framesStatus.filter({ hasText: "frames from the NISAR Observation Plan" }).waitFor();
+    await this.page.locator('main[data-frames="success"]').waitFor({ timeout: 30_000 });
   }
 
-  private center(): { x: number; y: number } {
-    const viewport = this.page.viewportSize();
-    if (viewport === null) throw new Error("Viewport size is not set");
-    return { x: viewport.width / 2, y: viewport.height / 2 };
+  async hoverLand(): Promise<void> {
+    await this.page.mouse.move(FREE_CENTRE.x + OFF_CENTRE_PX, FREE_CENTRE.y);
   }
 
-  async hoverCenter(): Promise<void> {
-    const { x, y } = this.center();
-    await this.page.mouse.move(x, y);
-  }
-
-  async clickCenter(): Promise<void> {
-    const { x, y } = this.center();
-    await this.page.mouse.click(x, y);
-  }
-
-  // At whole-globe zoom frame 47-3 is ~14 px across and the Andes event marker covers it, so a
-  // click there opens the event. Zoom in first, then click just south of the centre, inside 47-3.
-  async clickCenterFrameZoomedIn(): Promise<void> {
-    const { x, y } = this.center();
-    await this.page.mouse.move(x, y);
-    for (let i = 0; i < 6; i++) await this.page.mouse.wheel(0, -400);
-    await this.page.waitForTimeout(2000);
-    await this.page.mouse.click(x, y + 20);
+  async clickLand(): Promise<void> {
+    await this.page.mouse.click(FREE_CENTRE.x + OFF_CENTRE_PX, FREE_CENTRE.y);
   }
 }
