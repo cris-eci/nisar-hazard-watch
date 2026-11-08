@@ -2105,6 +2105,10 @@
     padding: 16px;
   }
 
+  .x-sheet__heading {
+    flex: 1 1 100%;
+  }
+
   .x-sheet__title {
     font-size: 24px;
   }
