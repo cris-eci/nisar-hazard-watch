@@ -1,469 +1,1018 @@
 /*
- * Method & validation v4: a scrollytelling of the four steps (text on the left, a sticky figure
- * that cross-fades per step on the right), then validation, limits and one closing action.
- * Tokens and shared parts live in site/site.css.
+ * Method v7: hero, satellite teardown, the Qadirabad scroll sequence, then the reference sections
+ * (six steps, band chart, lenses, works/fails, experimental models, landslides, colour key).
+ * Tokens and shared parts live in site/site.css; charts in features/charts/charts.css.
  */
 
-.m-intro {
-  padding: clamp(8rem, 6rem + 8vw, 13rem) var(--margin) 0;
-  text-align: center;
+.method {
+  --faint: #8d8a83;
+  --fainter: #6f6c66;
+  --ink-3: #c4c1ba;
+  --panel: rgba(235, 233, 228, 0.035);
+  --panel-line: rgba(235, 233, 228, 0.08);
 }
 
-.m-intro__title {
-  margin: 1rem auto 0;
-  max-width: 13ch;
-  font-size: clamp(3rem, 1rem + 6vw, 7rem);
-  letter-spacing: -0.045em;
-  line-height: 0.92;
+.method p,
+.method h1,
+.method h2,
+.method h3,
+.method ol,
+.method ul,
+.method figure {
+  margin: 0;
 }
 
-.m-intro__lead {
-  margin: 1.5rem auto 0;
-  max-width: 42ch;
-  font-size: var(--step-lead);
-  line-height: 1.45;
-  color: var(--muted);
-}
-
-/* Hazard switch: a pill track with the picked hazard in ink. */
-.m-tabs {
-  margin: 2.5rem auto 0;
-  display: inline-flex;
-  gap: 4px;
+/* Reading level, page-local: it sits under the shared nav on the right. */
+.m-mode {
+  position: fixed;
+  top: 4.25rem;
+  right: var(--margin);
+  z-index: 29;
+  display: flex;
+  gap: 2px;
   padding: 4px;
+  border: 1px solid rgba(235, 233, 228, 0.1);
   border-radius: 999px;
-  background: rgba(235, 233, 228, 0.08);
+  background: var(--glass);
+  backdrop-filter: blur(14px);
 }
 
-.m-tabs__tab {
-  padding: 0.6em 1.4em;
+.m-mode__option {
+  height: 32px;
+  padding: 0 14px;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--muted);
   font: inherit;
-  font-size: 0.9375rem;
+  font-size: 14px;
   font-weight: 500;
   cursor: pointer;
   transition:
-    background-color 240ms var(--ease-out),
-    color 240ms var(--ease-out);
+    background-color 200ms var(--ease-out),
+    color 200ms var(--ease-out);
 }
 
-.m-tabs__tab:hover {
+.m-mode__option:hover {
   color: var(--ink);
 }
 
-.m-tabs__tab[aria-pressed="true"] {
+.m-mode__option[aria-pressed="true"] {
   background: var(--ink);
   color: var(--space);
 }
 
-/* Steps */
-.m-steps {
-  padding: clamp(4rem, 3rem + 4vw, 7rem) var(--margin) 0;
-}
-
-.m-steps__grid {
+/* Hero */
+.m-hero {
   max-width: 76rem;
   margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-  gap: clamp(2rem, 4vw, 5rem);
-}
-
-.m-step {
-  min-height: 72svh;
+  padding: clamp(9rem, 7rem + 6vw, 12rem) var(--margin) 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  opacity: 0.28;
-  transition: opacity 400ms var(--ease-out);
+  gap: 16px;
 }
 
-.m-step[aria-current="step"] {
-  opacity: 1;
-}
-
-.m-step__num {
+.m-hero__kicker,
+.m-kicker,
+.m-seq__kicker {
   font-family: var(--mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0.06em;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.m-hero__kicker {
   color: var(--gold);
 }
 
-.m-step__title {
-  margin-top: 0.75rem;
-  font-size: clamp(2rem, 1.3rem + 2.2vw, 3.25rem);
-  letter-spacing: -0.035em;
-  line-height: 1;
+.m-hero__title {
+  max-width: 16ch;
+  font-size: clamp(40px, 5.4vw, 76px);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  text-wrap: balance;
 }
 
-.m-step__body {
-  margin-top: 1rem;
-  max-width: 36ch;
-  color: var(--muted);
+.m-hero__lead {
+  max-width: 60ch;
+  font-size: 19px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-wrap: pretty;
 }
 
-.m-step__formula {
-  margin-top: 1.25rem;
-  align-self: flex-start;
-  padding: 0.6em 1em;
-  border-radius: 12px;
-  background: var(--night);
-  font-family: var(--mono);
-  font-size: 0.9375rem;
+/* Qadirabad sequence: a tall section, a sticky stage, five stacked frames that crossfade. */
+.m-seq {
+  position: relative;
+  height: 520vh;
 }
 
-/* Figure */
-.m-figure {
+.m-seq__stage {
   position: sticky;
-  top: max(5.5rem, calc(50svh - 17rem));
-}
-
-.m-figure__frame {
-  position: relative;
-  aspect-ratio: 1;
+  top: 0;
+  height: 100vh;
   overflow: hidden;
-  border-radius: var(--radius);
-  background: var(--deep);
-}
-
-.m-figure__layer {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  transform: scale(1.04);
-  transition:
-    opacity 600ms var(--ease-out),
-    transform 900ms var(--ease-out);
-}
-
-.m-figure__layer[data-active="true"] {
-  opacity: 1;
-  transform: none;
-}
-
-.m-figure__image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  image-rendering: pixelated;
-}
-
-.m-figure__image[data-place="left"],
-.m-figure__image[data-place="right"] {
-  width: 49%;
-}
-
-.m-figure__image[data-place="right"] {
-  left: 51%;
-}
-
-.m-figure__timeline,
-.m-figure__summary {
-  position: absolute;
-  inset: 0;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: clamp(1.5rem, 4vw, 3rem);
+  align-items: center;
 }
 
-.m-figure__rail {
+.m-seq__inner {
   position: relative;
-  height: 2px;
-  background: rgba(235, 233, 228, 0.15);
+  width: 100%;
+  max-width: 76rem;
+  height: min(600px, calc(100vh - 8rem));
+  margin: 4rem auto 0;
+  padding: 0 var(--margin);
+  box-sizing: border-box;
 }
 
-.m-figure__mark {
-  --tone: var(--ink);
-  position: absolute;
-  top: -7px;
+.m-seq__kicker {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.75rem;
-  translate: -50% 0;
+  gap: 8px 12px;
+  color: var(--gold);
 }
 
-.m-figure__mark[data-tone="event"] {
-  --tone: #dc2626;
-}
-
-.m-figure__mark[data-tone="after"] {
-  --tone: var(--gold);
-}
-
-.m-figure__dot {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--tone);
-  border-radius: 50%;
-  background: var(--space);
-}
-
-.m-figure__mark:not([data-tone="before"]) .m-figure__dot {
-  background: var(--tone);
-}
-
-.m-figure__date {
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  color: var(--tone);
-}
-
-.m-figure__label {
-  font-size: var(--step-small);
-  white-space: nowrap;
-  color: var(--muted);
-}
-
-.m-figure__note {
-  margin-top: 6.5rem;
-  text-align: center;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-
-.m-figure__summary {
-  gap: 1.75rem;
-}
-
-.m-figure__value {
-  font-size: clamp(2.5rem, 1.6rem + 2.6vw, 4rem);
-  letter-spacing: -0.04em;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
-/* The explorer's displacement colours: red toward the satellite, blue away. */
-.m-figure__value[data-tone="toward"] {
-  color: #ef4444;
-}
-
-.m-figure__value[data-tone="away"] {
-  color: #60a5fa;
-}
-
-.m-figure__value-label {
-  margin-top: 0.35rem;
-  color: var(--muted);
-}
-
-.m-figure__loading {
+.m-seq__frame {
   position: absolute;
-  inset: 0;
+  inset: 0 var(--margin);
   display: grid;
-  place-items: center;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  color: var(--muted);
-}
-
-.m-figure__caption {
-  position: absolute;
-  left: 0.875rem;
-  right: 0.875rem;
-  bottom: 0.875rem;
-  display: flex;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(24px, 5vw, 72px);
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  white-space: nowrap;
   pointer-events: none;
 }
 
-.m-figure__caption .s-chip {
-  background: rgba(4, 7, 14, 0.7);
-  font-size: 0.6875rem;
+.m-seq__frames {
+  list-style: none;
+  padding: 0;
 }
 
-/* Over the grey radar pictures the amber tint alone is unreadable: the same tint on dark glass. */
-.m-figure__caption .m-demo-chip {
-  background:
-    linear-gradient(rgba(245, 158, 11, 0.18), rgba(245, 158, 11, 0.18)), rgba(4, 7, 14, 0.7);
-  backdrop-filter: blur(8px);
+.m-seq__text {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.m-demo-chip {
-  display: inline-block;
-  padding: 0.35em 0.8em;
-  border-radius: 999px;
-  background: rgba(245, 158, 11, 0.18);
+.m-seq__n,
+.m-seq__tech {
   font-family: var(--mono);
-  font-size: 0.6875rem;
-  letter-spacing: 0.05em;
-  color: var(--demo);
+  font-size: 13px;
+  color: var(--muted);
 }
 
-.m-figure__progress {
-  margin-top: 0.875rem;
+.m-seq__tech {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.m-seq__title {
+  font-size: clamp(30px, 3.4vw, 50px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.m-seq__body {
+  max-width: 44ch;
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.m-seq__figure {
+  position: relative;
+  justify-self: end;
+  width: min(100%, 560px, calc(100vh - 10rem));
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #0b1424;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.m-seq__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  image-rendering: pixelated;
+}
+
+.m-seq__bars {
+  position: absolute;
+  inset: 0;
+  padding: 36px 36px 64px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  background: var(--deep);
+  font-size: 13px;
+}
+
+.m-seq__caption {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-seq__tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(4, 7, 14, 0.82);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.m-seq__ramp {
+  width: 120px;
+  height: 6px;
+  border-radius: 2px;
+}
+
+.m-seq__dots {
+  position: absolute;
+  left: var(--margin);
+  bottom: 0;
   display: flex;
   gap: 6px;
 }
 
-.m-figure__progress > div {
-  flex: 1;
+.m-seq__dots span {
+  width: 28px;
   height: 3px;
   border-radius: 2px;
-  background: rgba(235, 233, 228, 0.15);
-  transition: background-color 300ms var(--ease-out);
+  background: rgba(235, 233, 228, 0.2);
 }
 
-.m-figure__progress > [data-done="true"] {
-  background: var(--gold);
+/* Before GSAP takes over only the first frame shows, so nothing overlaps on the first paint. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-seq__frame:not(:first-child) .m-seq__text,
+  .m-seq__frame:not(:first-child) .m-seq__figure {
+    opacity: 0;
+  }
 }
 
-/* Validation */
-.m-validation__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 1rem 2rem;
+/* Reduced motion: no pin, the five frames stacked in reading order. */
+@media (prefers-reduced-motion: reduce) {
+  .m-seq {
+    height: auto;
+    padding: var(--gap-section) 0 0;
+  }
+
+  .m-seq__stage {
+    position: static;
+    height: auto;
+    overflow: visible;
+  }
+
+  .m-seq__inner {
+    height: auto;
+    margin-top: 0;
+  }
+
+  .m-seq__frames {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  .m-seq__frame {
+    position: static;
+    pointer-events: auto;
+  }
+
+  .m-seq__figure {
+    width: min(100%, 480px);
+  }
+
+  .m-seq__dots {
+    display: none;
+  }
 }
 
-.m-validation__note {
-  max-width: 36ch;
-  font-size: 0.9375rem;
-  color: var(--muted);
-}
-
-.m-validation__note .m-demo-chip {
-  margin-right: 0.5rem;
-  padding: 0.15em 0.6em;
-}
-
-.m-validation__grid {
-  margin-top: clamp(2.5rem, 2rem + 2vw, 4rem);
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border-radius: var(--radius);
-  background: rgba(235, 233, 228, 0.1);
-}
-
-.m-validation__cell {
+/* Reference sections */
+.m-wrap {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding: var(--gap-section) var(--margin) var(--gap-section);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: clamp(1.5rem, 2.5vw, 2.5rem);
-  background: var(--deep);
+  gap: clamp(80px, 10vw, 136px);
 }
 
-.m-validation__value {
-  font-size: clamp(3.5rem, 2rem + 4vw, 6rem);
-  font-weight: 300;
-  letter-spacing: -0.05em;
-  line-height: 0.95;
-  color: var(--gold);
-  font-variant-numeric: tabular-nums;
-}
-
-.m-validation__what {
-  margin-top: 1rem;
-  font-size: 1.25rem;
-  letter-spacing: -0.02em;
-}
-
-.m-validation__metric {
-  font-size: 0.9375rem;
-  color: var(--muted);
-}
-
-.m-validation__against {
-  margin-top: auto;
-  padding-top: 1.25rem;
-  font-family: var(--mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.03em;
-  color: var(--muted);
-}
-
-/* Limits */
-.m-limits {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
-  gap: 2rem clamp(2rem, 4vw, 5rem);
-}
-
-.m-limits__item {
+.m-section {
   display: flex;
-  gap: 1.25rem;
-  padding: 1.25rem 0;
-  border-top: 1px solid rgba(235, 233, 228, 0.1);
-  color: var(--ink-2);
+  flex-direction: column;
+  gap: 24px;
 }
 
-.m-limits__num {
-  padding-top: 0.2rem;
-  font-family: var(--mono);
-  font-size: 0.8125rem;
-  color: var(--gold);
-}
-
-/* Close */
-.m-close {
-  padding-bottom: clamp(5rem, 4rem + 4vw, 8rem);
-  text-align: center;
-}
-
-.m-close__heading {
-  font-size: clamp(2.75rem, 1rem + 5vw, 6rem);
-  letter-spacing: -0.045em;
-  line-height: 0.92;
-}
-
-.m-close__actions {
-  margin-top: 2rem;
+.m-section__head {
+  max-width: 780px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 1.25rem;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.m-close__link {
+.m-h2 {
+  font-size: clamp(30px, 3.4vw, 48px);
   font-weight: 500;
+  letter-spacing: -0.04em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.m-lead {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.m-note {
+  max-width: 72ch;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.m-panel {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid var(--panel-line);
+  border-radius: 24px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m-panel--wide {
+  padding: 24px;
+}
+
+.m-panel__label {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Six steps */
+.m-pipe {
+  position: relative;
+  margin-top: 4px;
+}
+
+.m-pipe__rail,
+.m-pipe__bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7px;
+  height: 2px;
+  background: rgba(235, 233, 228, 0.12);
+}
+
+.m-pipe__bar {
+  background: var(--gold);
+  transform-origin: 0 50%;
+}
+
+.m-pipe__steps {
+  position: relative;
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 28px 20px;
+}
+
+.m-pipe__step {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.m-pipe__node {
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  background: var(--space);
+}
+
+.m-pipe__n {
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--gold);
+}
+
+.m-pipe__title {
+  font-size: 17px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.m-pipe__body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.m-pipe__tech {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+/* Band charts: the departure chart large, the two others stacked beside it. */
+.m-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 16px;
+}
+
+.m-band__departure {
+  grid-row: span 2;
 }
 
 /*
- * Narrow screens: one column. The figure goes first and sticks under the nav so each step still
- * shows its picture; a flex column (not grid) lets it stick across the whole list. The step that
- * counts as current moves down to the visible part (useMethodMotion).
+ * Contrast bars on this page: the shared row ends in an auto-width count column, so rows with
+ * longer counts got shorter tracks. A fixed count column keeps the 0–100% axis the same length.
  */
+.method .c-bars__row {
+  grid-template-columns: minmax(7.5em, 1.1fr) 1.4fr 3.6em 7.5em;
+}
+
+.method .c-bars__count {
+  text-align: right;
+}
+
+@media (max-width: 30rem) {
+  .method .c-bars__row {
+    grid-template-columns: minmax(6.5em, 1fr) 1.4fr 3.6em;
+    row-gap: 2px;
+  }
+
+  .method .c-bars__count {
+    grid-column: 2 / -1;
+  }
+}
+
+/* Lenses */
+.m-lenses {
+  list-style: none;
+  padding: 0;
+  border-top: 1px solid rgba(235, 233, 228, 0.1);
+}
+
+.m-lens {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 12px 32px;
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(235, 233, 228, 0.1);
+}
+
+.m-lens__who,
+.m-slides__who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.m-lens__icon,
+.m-slides__icon {
+  width: 40px;
+  height: 40px;
+  flex: none;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid rgba(235, 233, 228, 0.55);
+  border-radius: 50%;
+  background: #0e1a33;
+  color: var(--ink);
+}
+
+.m-lens__icon--dashed {
+  border-style: dashed;
+}
+
+.m-lens__name {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.m-lens__chip {
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.m-lens__tag {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.m-lens__compares {
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.m-lens__limit {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* Works / fails cards */
+.m-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 16px;
+}
+
+.m-card {
+  min-width: 0;
+  padding: 22px;
+  border: 1px solid rgba(235, 233, 228, 0.09);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.m-card--works {
+  background: var(--panel);
+}
+
+.m-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-card__tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+/* Works = gold diamond, fails = dashed ring: the verdict glyphs, so shape carries the meaning. */
+.m-card__glyph {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border: 1.5px dashed var(--muted);
+  border-radius: 50%;
+}
+
+.m-card--works .m-card__glyph {
+  border: 0;
+  border-radius: 0;
+  background: var(--gold);
+  transform: rotate(45deg);
+}
+
+.m-card__where {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-align: right;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.m-card__title {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.22;
+  text-wrap: balance;
+}
+
+.m-card__stat {
+  font-family: var(--mono);
+  font-size: 30px;
+  letter-spacing: -0.02em;
+}
+
+.m-card__body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-3);
+  text-wrap: pretty;
+}
+
+.m-card__foot {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.m-card__intervals {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-card__note {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.m-interval {
+  --c: #e8894a;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) 62px;
+  gap: 10px;
+  align-items: center;
+}
+
+.m-interval--hv {
+  --c: #6fb3e8;
+}
+
+.m-interval__k {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--c);
+}
+
+.m-interval__track {
+  position: relative;
+  height: 22px;
+}
+
+.m-interval__axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 1px;
+  background: rgba(235, 233, 228, 0.15);
+}
+
+.m-interval__zero {
+  position: absolute;
+  top: 2px;
+  width: 1px;
+  height: 18px;
+  background: var(--ink);
+}
+
+.m-interval__ci {
+  position: absolute;
+  top: 5px;
+  height: 12px;
+  box-sizing: border-box;
+  border-inline: 1.5px solid var(--c);
+}
+
+.m-interval__ci::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 5px;
+  height: 1.5px;
+  background: var(--c);
+}
+
+/* HH a circle, HV a square: the channel markers of the band chart. */
+.m-interval__point {
+  position: absolute;
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+.m-interval--hv .m-interval__point {
+  border-radius: 2px;
+}
+
+.m-interval__v {
+  font-family: var(--mono);
+  font-size: 12px;
+  text-align: right;
+}
+
+/* Transformer benchmark */
+.m-bench {
+  padding: 24px;
+  border: 1px solid rgba(235, 233, 228, 0.1);
+  border-radius: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 28px;
+  align-items: center;
+}
+
+.m-bench__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-bench__glyph {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border: 1.5px dashed var(--muted);
+  border-radius: 50%;
+}
+
+.m-bench__title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  text-wrap: balance;
+}
+
+.m-bench__body {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+.m-bench__regions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.m-bench__region {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.m-bench__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13.5px;
+}
+
+.m-bench__hidden {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+}
+
+.m-bench__row {
+  display: grid;
+  grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 72px;
+  gap: 10px;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.m-bench__track {
+  position: relative;
+  height: 10px;
+  border-radius: 2px;
+  background: rgba(235, 233, 228, 0.06);
+}
+
+.m-bench__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+  background: #6f6c66;
+}
+
+.m-bench__row--0 {
+  color: var(--ink);
+}
+
+.m-bench__row--0 .m-bench__fill {
+  background: repeating-linear-gradient(135deg, rgba(4, 7, 14, 0.6) 0 2px, transparent 2px 5px)
+    #ebe9e4;
+}
+
+.m-bench__row--1 .m-bench__fill {
+  background: #a9a69e;
+}
+
+.m-bench__v {
+  font-family: var(--mono);
+  text-align: right;
+  color: var(--ink);
+}
+
+/* Experimental models */
+.m-models__link {
+  align-self: flex-start;
+  font-size: 14px;
+}
+
+/* Landslides: copy beside a card with the checks. */
+.m-slides {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 28px;
+  align-items: start;
+}
+
+.m-slides__card {
+  padding: 24px;
+  border: 1px solid rgba(235, 233, 228, 0.1);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.m-slides__icon {
+  width: 56px;
+  height: 56px;
+  border: 1.5px dashed rgba(235, 233, 228, 0.6);
+}
+
+.m-slides__tag {
+  text-transform: uppercase;
+}
+
+.m-slides__name {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.m-slides__checks {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-slides__checks li {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--ink-2);
+}
+
+.m-slides__n {
+  margin-top: 3px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--gold);
+}
+
+/* Colour key */
+.m-palettes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 12px;
+}
+
+.m-palette {
+  padding: 18px;
+  border: 1px solid var(--panel-line);
+  border-radius: 20px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-palette__title {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.m-palette__bar {
+  height: 12px;
+  border-radius: 3px;
+}
+
+.m-palette__ends {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+.m-palette__note {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
 @media (max-width: 50rem) {
-  .m-steps__grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
+  .m-band {
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .m-figure {
+  .m-band__departure {
+    grid-row: auto;
+  }
+
+  /* The pinned stage stacks: picture on top, copy under it. */
+  .m-seq__inner {
+    height: calc(100svh - 7rem);
+    margin-top: 5rem;
+  }
+
+  .m-seq__kicker {
+    font-size: 10.5px;
+    letter-spacing: 0.05em;
+  }
+
+  .m-seq__frame {
+    inset: 56px var(--margin) 20px;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    align-items: start;
+    gap: 18px;
+  }
+
+  .m-seq__figure {
     order: -1;
-    top: 4.5rem;
-    z-index: 1;
-    width: min(100%, 34svh);
-    margin-inline: auto;
-    padding-bottom: 0.75rem;
-    background: var(--space);
-    box-shadow: 0 0 0 100vmax var(--space);
-    clip-path: inset(0 -100vmax);
+    justify-self: center;
+    width: min(100%, 38svh);
+    border-radius: 18px;
   }
 
-  /* Short enough that the current step's text stays in the band below the figure. */
-  .m-step {
-    min-height: 45svh;
+  .m-seq__title {
+    font-size: 26px;
+  }
+
+  .m-seq__body {
+    font-size: 15px;
+  }
+
+  .m-seq__bars {
+    padding: 16px 16px 48px;
+    font-size: 12px;
+  }
+
+  .m-mode {
+    top: auto;
+    bottom: 16px;
+  }
+}
+
+@media (max-width: 50rem) and (prefers-reduced-motion: reduce) {
+  .m-seq__inner {
+    margin-top: 0;
+  }
+
+  .m-seq__frame {
+    grid-template-rows: auto;
+  }
+
+  .m-seq__figure {
+    width: min(100%, 420px);
   }
 }
 
@@ -728,21 +1277,4 @@
 
 .m-teardown-list .m-teardown__title {
   font-size: var(--step-title);
-}
-
-/* The hazard switch, moved to sit right above the pipeline. */
-.m-switch {
-  padding: clamp(4rem, 3rem + 4vw, 7rem) var(--margin) 0;
-  text-align: center;
-}
-
-.m-switch__label {
-  font-family: var(--mono);
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
-
-.m-switch .m-tabs {
-  margin-top: 1.25rem;
 }
