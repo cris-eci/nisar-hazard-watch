@@ -38,11 +38,6 @@ export default defineConfig({
     // The production build, as deployed: no dev-server reloads mid-test.
     command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
     url: BASE_URL,
-    // Process env beats .env files in Vite: pin the deployed config (all four hazards, demo data).
-    env: {
-      VITE_ENABLED_HAZARDS: "wildfire,earthquake,flood,deforestation",
-      VITE_ANALYSIS_API_URL: "",
-    },
     reuseExistingServer: !isCI,
     timeout: 120_000,
   },
