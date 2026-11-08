@@ -1,6 +1,6 @@
 /*
- * Landing page v4: one scroll-driven story over a fixed Earth, then the proof (compare, pipeline,
- * events, mission) and one closing action. Text over imagery gets a shadow for contrast; the
+ * Landing page v7: one scroll-driven story over a fixed Earth that ends on Qadirabad, then the
+ * proof (compare, pipeline, measured cases, honesty, data sources, mission) and one closing action. Text over imagery gets a shadow for contrast; the
  * callout is glass. Tokens and shared parts live in site/site.css.
  */
 
@@ -61,8 +61,23 @@
   pointer-events: auto;
 }
 
-.l-hero__more {
+.site .l-hero__story {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.85em 1.4em;
+  border: 1px solid rgba(235, 233, 228, 0.3);
+  border-radius: 999px;
+  background: rgba(4, 7, 14, 0.35);
+  backdrop-filter: blur(10px);
   font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.site .l-hero__story:hover {
+  background: rgba(4, 7, 14, 0.55);
+  color: var(--ink);
 }
 
 .l-layer--a {
@@ -91,8 +106,24 @@
   max-width: 40ch;
 }
 
+.l-layer__head--c {
+  margin-top: 0.75rem;
+}
+
+/* Qadirabad sits over bright desert and farmland, so this layer needs the hero's shadow. */
+.l-layer--c :is(.s-mono-label, .s-head, .l-layer__body) {
+  text-shadow:
+    0 1px 18px rgba(4, 7, 14, 0.95),
+    0 0 4px rgba(4, 7, 14, 0.8);
+}
+
+.l-layer--c .l-layer__body {
+  color: var(--ink-2);
+}
+
 .l-layer__body--c {
   margin-top: 1.25rem;
+  max-width: 36ch;
 }
 
 /* `translate`, not `transform`: the timeline animates transform (x) on these. */
@@ -132,7 +163,7 @@
   opacity: 0;
 }
 
-/* Callout: placed on the epicentre every frame by EarthHero's callback. */
+/* Callout: placed on the case point every frame by EarthHero's callback. */
 .l-callout {
   position: absolute;
   left: 0;
@@ -166,47 +197,51 @@
   backdrop-filter: blur(16px);
 }
 
-.l-callout__row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.l-callout__row img {
-  width: 72px;
-  height: 72px;
-  border-radius: 10px;
-  object-fit: cover;
-  background: var(--night);
-}
-
-.l-callout__value {
-  font-size: 1.875rem;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
 .l-callout__label {
-  margin-top: 0.25rem;
+  margin-bottom: 6px;
   font-size: 0.8125rem;
   line-height: 1.3;
   color: var(--muted);
 }
 
+.l-callout__bar {
+  display: grid;
+  grid-template-columns: 5.2rem 1fr 3rem;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.l-callout__track {
+  position: relative;
+  height: 8px;
+  border-radius: 2px;
+  background: rgba(235, 233, 228, 0.08);
+}
+
+.l-callout__track > span {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+}
+
+.l-callout__value {
+  font-family: var(--mono);
+  text-align: right;
+}
+
 .l-callout__meta {
   margin-top: 0.625rem;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: 0 0.75rem;
+  white-space: nowrap;
   font-family: var(--mono);
   font-size: 0.6875rem;
   letter-spacing: 0.04em;
   color: var(--muted);
-}
-
-.l-callout__demo {
-  color: var(--demo);
 }
 
 /* Compare */
@@ -366,14 +401,14 @@
   font-weight: 500;
 }
 
-/* Events: a pinned stage; the track slides sideways as the section scrolls. */
-.l-events {
+/* Measured cases: a pinned stage; the track slides sideways as the section scrolls. */
+.l-cases {
   position: relative;
   height: 300vh;
   margin-top: clamp(6rem, 4rem + 6vw, 10rem);
 }
 
-.l-events__stage {
+.l-cases__stage {
   position: sticky;
   top: 0;
   height: 100svh;
@@ -383,7 +418,7 @@
   justify-content: center;
 }
 
-.l-events__head {
+.l-cases__head {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
@@ -392,13 +427,13 @@
   padding-inline: var(--margin);
 }
 
-.l-events__note {
+.l-cases__note {
   max-width: 40ch;
   font-size: 0.9375rem;
   color: var(--muted);
 }
 
-.l-events__track {
+.l-cases__track {
   margin-top: clamp(2rem, 1rem + 3vw, 3.5rem);
   display: flex;
   gap: clamp(1rem, 2vw, 1.5rem);
@@ -475,8 +510,8 @@
   color: var(--ink-2);
 }
 
-.l-card__chip--demo {
-  color: var(--demo);
+.l-card__chip--pending {
+  color: var(--muted);
 }
 
 .l-card__text {
@@ -514,6 +549,130 @@
   margin-top: 1rem;
   font-weight: 500;
   color: var(--gold);
+}
+
+/* Honesty: the method's failure, with its counts, next to the claim. */
+.l-honesty__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+  align-items: center;
+  gap: clamp(2rem, 4vw, 4rem);
+}
+
+.l-honesty__heading {
+  margin-top: 1rem;
+  font-size: clamp(2.25rem, 1.2rem + 3.2vw, 4.25rem);
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.l-honesty__body {
+  margin-top: 1.25rem;
+  max-width: 40ch;
+  color: var(--muted);
+}
+
+.l-honesty__link {
+  margin-top: 1.5rem;
+}
+
+.l-honesty__card {
+  min-width: 0;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid rgba(235, 233, 228, 0.1);
+  border-radius: 24px;
+  background: rgba(8, 16, 31, 0.8);
+}
+
+/*
+ * Every row shares one set of columns, so all tracks start and end at the same x: per-row grids
+ * gave "2,363 / 2,702" a shorter track than "165 / 506", which breaks the shared 0–100% axis.
+ */
+.l-honesty__card .c-bars__rows {
+  grid-template-columns: minmax(6.5em, 1fr) minmax(4rem, 1.4fr) auto auto;
+}
+
+.l-honesty__card .c-bars__row {
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+}
+
+.l-honesty__caption {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.l-honesty__title {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.l-honesty__sub {
+  display: block;
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.site .l-honesty__source {
+  font-size: 0.8125rem;
+  color: var(--muted);
+}
+
+.site .l-honesty__source:hover {
+  color: var(--ink);
+}
+
+/* Data sources: one hairline grid, each cell a link to the archive or catalogue. */
+.l-sources__list {
+  margin-top: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  border-top: 1px solid var(--hairline);
+}
+
+.l-sources__list > li {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.site .l-sources__item {
+  height: 100%;
+  padding: 1.25rem 1.25rem 1.25rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  color: var(--ink);
+}
+
+.site .l-sources__item:hover .l-sources__name {
+  color: var(--gold-hover);
+}
+
+.l-sources__tag {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+}
+
+.l-sources__name {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  transition: color 160ms var(--ease-out);
+}
+
+.l-sources__what {
+  font-size: 0.875rem;
+  color: var(--muted);
+  text-wrap: pretty;
 }
 
 /* Mission */
@@ -592,7 +751,7 @@
 
 /*
  * Reduced motion: no pinning. The hero and layers A, B and C stack as plain sections over a static
- * globe that stays put behind them; the events become a native horizontal scroll.
+ * globe that stays put behind them; the cases become a native horizontal scroll.
  */
 .landing[data-motion="reduced"] .l-story {
   height: auto;
@@ -639,26 +798,38 @@
   display: none;
 }
 
-.landing[data-motion="reduced"] .l-events {
+.landing[data-motion="reduced"] .l-cases {
   height: auto;
 }
 
-.landing[data-motion="reduced"] .l-events__stage {
+.landing[data-motion="reduced"] .l-cases__stage {
   position: static;
   height: auto;
   overflow: visible;
 }
 
-.landing[data-motion="reduced"] .l-events__track {
+.landing[data-motion="reduced"] .l-cases__track {
   width: auto;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scroll-padding-inline: var(--margin);
 }
 
-.landing[data-motion="reduced"] .l-events__track > li {
+.landing[data-motion="reduced"] .l-cases__track > li {
   flex: none;
   scroll-snap-align: start;
+}
+
+@media (max-width: 30rem) {
+  .l-honesty__card {
+    padding: 1.125rem;
+  }
+
+  /* The label wraps before the track or the counts lose room. */
+  .l-honesty__card .c-bars__rows {
+    grid-template-columns: minmax(0, 1fr) minmax(3.5rem, 1.2fr) auto auto;
+    column-gap: 8px;
+  }
 }
 
 @media (max-width: 40rem) {

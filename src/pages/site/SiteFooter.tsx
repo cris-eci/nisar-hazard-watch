@@ -20,16 +20,20 @@ type SiteFooterProps = {
   coordLabel: string;
   kicker: string;
   headline: string;
-  photo: FooterPhoto;
-  columns: FooterColumn[];
+  // Optional: the cases page keeps the footer to its links.
+  photo?: FooterPhoto;
+  columns?: FooterColumn[];
   note?: string;
   flagStripe?: boolean;
 };
 
+export const SITE_VERSION = "Design v7 · 0.7.0";
+
 const PROJECT: FooterLink[] = [
   { label: "Home", href: "/" },
-  { label: "Method", href: "/method" },
   { label: "Explorer", href: "/explore" },
+  { label: "Measured cases", href: "/cases" },
+  { label: "Method", href: "/method" },
   { label: "About us", href: "/about" },
 ];
 
@@ -45,7 +49,7 @@ export const SiteFooter = ({
   kicker,
   headline,
   photo,
-  columns,
+  columns = [],
   note,
   flagStripe = false,
 }: SiteFooterProps) => {
@@ -102,17 +106,19 @@ export const SiteFooter = ({
             </div>
           </div>
 
-          <figure className="s-foot__place">
-            <img src={photo.src} alt="" width={80} height={80} loading="lazy" />
-            <figcaption>
-              <span className="s-foot__place-tag">{photo.tag}</span>
-              <span className="s-foot__place-title">{photo.title}</span>
-              <span className="s-foot__place-sub">{photo.sub}</span>
-              <a href={photo.creditHref} className="s-foot__place-credit">
-                {photo.credit}
-              </a>
-            </figcaption>
-          </figure>
+          {photo !== undefined && (
+            <figure className="s-foot__place">
+              <img src={photo.src} alt="" width={80} height={80} loading="lazy" />
+              <figcaption>
+                <span className="s-foot__place-tag">{photo.tag}</span>
+                <span className="s-foot__place-title">{photo.title}</span>
+                <span className="s-foot__place-sub">{photo.sub}</span>
+                <a href={photo.creditHref} className="s-foot__place-credit">
+                  {photo.credit}
+                </a>
+              </figcaption>
+            </figure>
+          )}
         </div>
 
         <div className="s-foot__cols">
@@ -134,7 +140,12 @@ export const SiteFooter = ({
       </p>
 
       <div className="s-foot__base">
-        <span>Team Nova Frontier · NASA Space Apps 2026 · Chía</span>
+        <span className="s-foot__credit">
+          <span>Team Nova Frontier · NASA Space Apps 2026 · Chía</span>
+          <span className="s-foot__version" data-testid="site-version">
+            {SITE_VERSION}
+          </span>
+        </span>
         <span className="s-foot__disclaimer">
           Earth: NASA Blue Marble. NISAR is a joint mission of NASA and ISRO; this project is not
           affiliated with either agency.
