@@ -43,7 +43,7 @@ const PROJECT_LINKS: { tag: string; title: string; sub: string; href: string }[]
   {
     tag: "HOW IT WORKS",
     title: "Method and validation",
-    sub: "Two radar passes, one map",
+    sub: "One honest question, asked of real radar",
     href: "/method",
   },
 ];

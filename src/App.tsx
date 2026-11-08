@@ -12,6 +12,9 @@ const LandingPage = lazy(async () => ({
 const AboutPage = lazy(async () => ({
   default: (await import("@/pages/about/AboutPage")).AboutPage,
 }));
+const CasesPage = lazy(async () => ({
+  default: (await import("@/pages/cases/CasesPage")).CasesPage,
+}));
 const MethodPage = lazy(async () => ({
   default: (await import("@/pages/method/MethodPage")).MethodPage,
 }));
@@ -22,6 +25,7 @@ const isLegacyExplorerLink = (): boolean =>
 
 const CurrentPage = ({ pathname }: { pathname: string }) => {
   if (pathname === "/explore" || isLegacyExplorerLink()) return <ExplorerPage />;
+  if (pathname === "/cases") return <CasesPage />;
   if (pathname === "/method") return <MethodPage />;
   if (pathname === "/about") return <AboutPage />;
   return <LandingPage />;
