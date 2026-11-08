@@ -68,11 +68,12 @@ export const ResultSummary = ({ subject, mode, onMore }: SummaryProps) => {
 export const PendingSummary = ({ item }: { item: Case }) => (
   <>
     <div className="x-pending" data-testid="pending">
-      <p className="x-pending__title">No measurement yet</p>
-      <p>{item.verdictLine}</p>
+      <p className="x-pending__title">{item.verdictLine}</p>
       {item.reason !== undefined && <p className="x-pending__why">{item.reason}</p>}
     </div>
-    <p className="x-panel__stat">Location {item.statLine}</p>
+    <p className="x-panel__stat">
+      <strong>{item.stat}</strong> · {item.statLine}
+    </p>
     <ul className="x-facts">
       {item.quality.map((fact) => (
         <li key={fact.k}>

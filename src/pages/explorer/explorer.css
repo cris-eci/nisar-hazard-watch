@@ -699,6 +699,11 @@
   gap: 6px;
 }
 
+/* The compact chart is too short for the gap message to sit over the few passes legibly. */
+.x-panel .c-band__empty {
+  background: rgba(8, 16, 31, 0.92);
+}
+
 .x-panel__stat {
   font-size: 12.5px;
   color: var(--faint);
@@ -817,7 +822,7 @@
 }
 
 .x-pending__title {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 500;
   color: var(--ink);
 }
