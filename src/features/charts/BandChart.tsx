@@ -193,7 +193,7 @@ export const BandChart = ({
   ).length;
 
   return (
-    <figure className={`c-band${compact ? "c-band--compact" : ""}`} data-testid="band-chart">
+    <figure className={compact ? "c-band c-band--compact" : "c-band"} data-testid="band-chart">
       <div className="c-band__plot" style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={rows} margin={{ top: 18, right: 12, bottom: 4, left: tech ? 0 : 4 }}>

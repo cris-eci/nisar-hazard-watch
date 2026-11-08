@@ -15,7 +15,7 @@ type ContrastBarsProps = {
 export const ContrastBars = ({ group, mode, compact = false }: ContrastBarsProps) => {
   const showCounts = !compact || mode === "technical";
   return (
-    <figure className={`c-bars${compact ? "c-bars--compact" : ""}`} data-testid="contrast-bars">
+    <figure className={compact ? "c-bars c-bars--compact" : "c-bars"} data-testid="contrast-bars">
       <ul className="c-bars__rows">
         {group.rows.map((row) => {
           const value = percent(row.k, row.n);
