@@ -615,6 +615,141 @@
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
+/* Flood satellite observation timeline */
+
+.x-flood-timeline {
+  margin-top: 22px;
+  padding: 18px 16px;
+  border: 1px solid rgba(125, 211, 252, 0.14);
+  border-radius: 14px;
+  background: rgba(14, 25, 48, 0.55);
+}
+
+.x-flood-timeline__heading {
+  margin-bottom: 20px;
+}
+
+.x-flood-timeline__heading > .x-mono {
+  margin: 0;
+  color: #7dd3fc;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.x-flood-timeline__description {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Timeline rail */
+
+.x-flood-timeline__rail {
+  position: relative;
+  height: 18px;
+  margin: 0 10px;
+}
+
+.x-flood-timeline__line {
+  position: absolute;
+  top: 8px;
+  height: 2px;
+}
+
+.x-flood-timeline__line--observed {
+  left: 0;
+  width: 50%;
+  background: linear-gradient(90deg, #7dd3fc, #2563eb);
+}
+
+.x-flood-timeline__line--planned {
+  left: 50%;
+  right: 0;
+  height: 0;
+  border-top: 2px dashed var(--gold);
+  opacity: 0.8;
+}
+
+/* Timeline dots */
+
+.x-flood-timeline__dot {
+  position: absolute;
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.x-flood-timeline__dot--before {
+  left: 0;
+  background: #7dd3fc;
+  box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.12);
+}
+
+.x-flood-timeline__dot--after {
+  left: 50%;
+  background: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.14);
+}
+
+.x-flood-timeline__dot--next {
+  left: 100%;
+  background: var(--deep);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 0 3px rgba(201, 180, 139, 0.08);
+}
+
+/* Timeline information */
+
+.x-flood-timeline__events {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.x-flood-timeline__events > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.x-flood-timeline__events > div:nth-child(2) {
+  align-items: center;
+  text-align: center;
+}
+
+.x-flood-timeline__events > div:last-child {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.x-flood-timeline__label {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.x-flood-timeline__events time,
+.x-flood-timeline__events .x-mono {
+  color: var(--ink-2);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.x-flood-timeline__status {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.x-flood-timeline__events > div:last-child .x-flood-timeline__status {
+  color: var(--gold);
+}
 
 .x-result__sub {
   margin-top: 6px;

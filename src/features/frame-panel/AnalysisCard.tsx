@@ -26,14 +26,29 @@ const buildRequest = (
   today: string,
   event: FeaturedEvent | undefined,
 ): AnalysisRequest | undefined => {
-  const base = { hazard: hazard.id, track: frame.track, frame: frame.frame };
+  const base = {
+    hazard: hazard.id,
+    track: frame.track,
+    frame: frame.frame,
+  };
+
   if (event?.pair !== undefined) {
     const [beforeDate, afterDate] = event.pair;
-    return { ...base, beforeDate, afterDate, focus: event.focus };
+
+    return {
+      ...base,
+      beforeDate,
+      afterDate,
+      focus: event.focus,
+    };
   }
+
   const pair = pickComparisonPair(acquisitions, today, hazard.requiresCrossPol);
+
   if (pair === undefined) return undefined;
+
   const [before, after] = pair;
+
   return {
     ...base,
     beforeDate: before.date,
@@ -51,6 +66,7 @@ export const AnalysisCard = ({
   onOverlayChange,
 }: AnalysisCardProps) => {
   const request = buildRequest(hazard, frame, acquisitions, today, event);
+
   const { state, retry } = useAsync(
     (signal) =>
       request === undefined
@@ -58,17 +74,22 @@ export const AnalysisCard = ({
         : fetchAnalysis(frame, request, signal),
     request && `${hazard.id}:${frame.id}:${request.beforeDate}:${request.afterDate}`,
   );
+
   const analysis = state?.status === "success" ? state.data : undefined;
   const isDeformation = hazard.kind === "deformation";
   const pol = polarizationShort(hazard.polarization);
+
+  // First planned acquisition after today.
+  const nextPassDate = acquisitions.find((acquisition) => acquisition.date > today)?.date;
 
   if (request === undefined) {
     return (
       <>
         <h3 className="x-panel__section-title">{hazard.analysisTitle}</h3>
+
         <p className="x-panel__note">
-          Not enough {hazard.requiresCrossPol ? "HH+HV " : ""}passes yet to compare before and after
-          on this frame.
+          Not enough {hazard.requiresCrossPol ? "HH+HV " : ""}
+          passes yet to compare before and after on this frame.
         </p>
       </>
     );
@@ -78,6 +99,7 @@ export const AnalysisCard = ({
     <>
       <div className="x-panel__section-head">
         <h3 className="x-panel__section-title">{hazard.analysisTitle}</h3>
+
         {analysis?.isDemo === true && (
           <span
             title="Generated in the browser until the NISAR pipeline API is connected"
@@ -87,6 +109,7 @@ export const AnalysisCard = ({
           </span>
         )}
       </div>
+
       <p className="x-mono x-panel__pair">
         {request.beforeDate} → {request.afterDate} ·{" "}
         {isDeformation ? "interferogram" : `${pol} change`}
@@ -99,7 +122,9 @@ export const AnalysisCard = ({
               ? "Unwrapping the interferogram between both passes…"
               : `Comparing ${pol} backscatter between both passes…`}
           </p>
+
           <div className="x-shimmer" style={{ height: 44, width: 180 }} />
+
           <div className="x-shimmer" style={{ height: 8, borderRadius: 4 }} />
         </div>
       )}
@@ -109,6 +134,7 @@ export const AnalysisCard = ({
           <p>
             The {hazard.analysisTitle.toLowerCase()} failed: {state.error.message}
           </p>
+
           <button type="button" onClick={retry} className="x-panel__retry">
             Try again
           </button>
@@ -116,8 +142,14 @@ export const AnalysisCard = ({
       )}
 
       {analysis?.kind === "change" && hazard.kind === "change" && (
-        <ChangeResult hazard={hazard} analysis={analysis} onOverlayChange={onOverlayChange} />
+        <ChangeResult
+          hazard={hazard}
+          analysis={analysis}
+          nextPassDate={nextPassDate}
+          onOverlayChange={onOverlayChange}
+        />
       )}
+
       {analysis?.kind === "deformation" && (
         <DeformationResult analysis={analysis} onOverlayChange={onOverlayChange} />
       )}

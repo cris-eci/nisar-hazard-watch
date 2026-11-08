@@ -34,7 +34,16 @@ export const TEAM: TeamMember[] = [
     handle: "@chocomilitos",
     degree: "Statistical Engineering",
   },
-  { name: "Katheryn Sofía Guasca Chavarro", handle: "@kathee26", degree: "Systems Engineering" },
+  {
+    name: "Katheryn Sofía Guasca Chavarro",
+    handle: "@kathee26",
+    degree: "Systems Engineering",
+    photo: "/team/katheryn-guasca.png",
+    role: "Front-end developer",
+    built: "Flood analysis interface, event timeline and data visualizations",
+    github: "https://github.com/KillerZeus666",
+    linkedin: "https://www.linkedin.com/in/katheryn-sof%C3%ADa-guasca-chavarro-73a93b35a/",
+  },
 ];
 
 // First name plus the first surname: the third word, or the second when there are only two.
