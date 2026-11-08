@@ -1002,8 +1002,10 @@
   }
 }
 
+/* The narrow pinned stage above sets a fixed height; stacked frames need their natural one. */
 @media (max-width: 50rem) and (prefers-reduced-motion: reduce) {
   .m-seq__inner {
+    height: auto;
     margin-top: 0;
   }
 
