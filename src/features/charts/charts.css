@@ -471,7 +471,6 @@
   align-items: center;
   gap: 10px;
   border-radius: 4px;
-  outline-offset: 3px;
 }
 
 .c-metrics__k {
@@ -508,8 +507,7 @@
   border-radius: 3px;
 }
 
-.c-metrics__row:hover .c-metrics__fill,
-.c-metrics__row:focus-visible .c-metrics__fill {
+.c-metrics__row:hover .c-metrics__fill {
   outline: 1.5px solid #c9b48b;
 }
 
@@ -551,8 +549,7 @@
   pointer-events: none;
 }
 
-.c-metrics__row:hover .c-metrics__tip,
-.c-metrics__row:focus-visible .c-metrics__tip {
+.c-metrics__row:hover .c-metrics__tip {
   display: flex;
 }
 

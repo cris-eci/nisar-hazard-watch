@@ -30,7 +30,10 @@ export const MetricsChart = ({ models, mode }: MetricsChartProps) => {
   const tech = mode === "technical";
   const legend: MetricId[] = tech ? METRIC_ORDER : ["f1"];
   return (
-    <figure className={`c-metrics${tech ? "c-metrics--tech" : ""}`} data-testid="metrics-chart">
+    <figure
+      className={tech ? "c-metrics c-metrics--tech" : "c-metrics"}
+      data-testid="metrics-chart"
+    >
       <div className="c-metrics__legend">
         {legend.map((id) => (
           <span key={id} className="c-metrics__key">
@@ -68,7 +71,9 @@ export const MetricsChart = ({ models, mode }: MetricsChartProps) => {
                 <p className="c-metrics__label">
                   {test.label}
                   <span
-                    className={`c-metrics__tag${test.warn === true ? "c-metrics__tag--warn" : ""}`}
+                    className={
+                      test.warn === true ? "c-metrics__tag c-metrics__tag--warn" : "c-metrics__tag"
+                    }
                   >
                     {test.tag}
                   </span>
@@ -81,7 +86,6 @@ export const MetricsChart = ({ models, mode }: MetricsChartProps) => {
                       key={id}
                       className="c-metrics__row"
                       data-testid={`metric-${id}`}
-                      tabIndex={0}
                       {...(value === null
                         ? { role: "img", "aria-label": `${name}: not reported` }
                         : {
@@ -94,7 +98,11 @@ export const MetricsChart = ({ models, mode }: MetricsChartProps) => {
                     >
                       <span className="c-metrics__k">{METRIC_LABEL[id]}</span>
                       <span
-                        className={`c-metrics__track${value === null ? "c-metrics__track--empty" : ""}`}
+                        className={
+                          value === null
+                            ? "c-metrics__track c-metrics__track--empty"
+                            : "c-metrics__track"
+                        }
                       >
                         {value === null ? (
                           <span className="c-metrics__none">Not reported</span>
