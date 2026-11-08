@@ -1,263 +1,408 @@
 import "@/pages/site/site.css";
+import "@/features/charts/charts.css";
 import "@/pages/explorer/explorer.css";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import type { HazardId } from "@/features/analysis/analysis.types";
-import { ENABLED_HAZARDS, HAZARDS } from "@/features/analysis/hazards";
-import type { GlobeOverlay } from "@/features/analysis/overlay.types";
-import { HazardPicker } from "@/features/controls/HazardPicker";
-import { PassToggle } from "@/features/controls/PassToggle";
-import { EventsList } from "@/features/events/EventsList";
-import { FEATURED_EVENTS, findEvent, type FeaturedEvent } from "@/features/events/events";
-import { FramePanel } from "@/features/frame-panel/FramePanel";
-import type { Frame, PassDirection } from "@/features/frames/frame.types";
-import { loadFrames } from "@/features/frames/frames";
-import { GlobeView } from "@/features/globe/GlobeView";
-import { IntroCard } from "@/features/onboarding/IntroCard";
-import { rememberIntroSeen, wasIntroSeen } from "@/features/onboarding/introSeen";
-import { TourCard } from "@/features/onboarding/TourCard";
-import { APP_NAME } from "@/lib/appName";
-import { Link } from "@/lib/Link";
-import { SegmentedControl } from "@/lib/SegmentedControl";
-import { useAsync, type AsyncState } from "@/lib/useAsync";
+import { CasePanel } from "@/features/case-panel/CasePanel";
+import { PendingSummary, ResultSummary } from "@/features/case-panel/CaseSummary";
+import { ShowRealContext } from "@/features/case-panel/showReal";
+import { caseSubject, liveSubject, type Subject } from "@/features/case-panel/subject";
+import {
+  CASES,
+  chipBounds,
+  findCase,
+  findLens,
+  LENSES,
+  type Case,
+  type LensId,
+} from "@/features/cases/cases";
+import type { ChartMode } from "@/features/charts/chartTokens";
+import type { Frame, LonLat } from "@/features/frames/frame.types";
+import { findFrameAt, loadFrames } from "@/features/frames/frames";
+import { GlobeView, type GlobeScene } from "@/features/globe/GlobeView";
+import { formatLonLat, gridMetres, LIVE_CHIP_KM, liveAnswer } from "@/features/live/liveQuestion";
+import { JobChecklist, JobProblem, PlanPasses } from "@/features/live/LiveSummary";
+import { useLiveJob } from "@/features/live/useLiveJob";
+import { MoreInfoSheet } from "@/features/sheet/MoreInfoSheet";
+import { PassTimeline } from "@/features/timeline/PassTimeline";
+import { useAsync } from "@/lib/useAsync";
+import { LayerDock, type DrapeKind } from "@/pages/explorer/LayerDock";
+import { HintPill, StartCard } from "@/pages/explorer/StartCard";
+import { TopBar, type ContextChip } from "@/pages/explorer/TopBar";
 
-const NO_FRAMES: Frame[] = [];
+type Selection =
+  | { kind: "case"; item: Case }
+  | {
+      kind: "live";
+      frame: Frame;
+      point: LonLat;
+      lens: LensId;
+      // A live question started from a case's lens chips can go back to that case.
+      fromCase: Case | undefined;
+      run: number;
+    };
+
+const DEFAULT_LENS: LensId = "flood_wetland";
+const CHIP_ZOOM = 3.2;
+// Chocó has no processed square yet, so the camera shows the region around the event instead.
+const REGION_KM = 240;
+const REGION_ZOOM = 1;
+const STEP_MS = 1000;
+const REDUCED_STEP_MS = 80;
+const DEFAULT_OPACITY = 85;
 const today = new Date().toISOString().slice(0, 10);
 
-const enabledIds = new Set<HazardId>(ENABLED_HAZARDS.map(({ id }) => id));
-const VISIBLE_EVENTS = FEATURED_EVENTS.filter(({ hazard }) => enabledIds.has(hazard));
+const isLens = (value: string | null): value is LensId => LENSES.some((lens) => lens.id === value);
 
-const DEFAULT_HAZARD = ENABLED_HAZARDS[0].id;
-const isEnabledHazard = (id: string | null): id is HazardId =>
-  id !== null && enabledIds.has(id as HazardId);
-
-// Intro on a first visit; a guided tour of the featured events; or free exploration.
-type Mode = "intro" | "tour" | "explore";
-
-const MODE_OPTIONS: Array<{ value: Exclude<Mode, "intro">; label: string }> = [
-  { value: "tour", label: "Guided tour" },
-  { value: "explore", label: "Explore" },
-];
-
-// The view lives in the URL (?event=id, or ?frame=track-frame&hazard=id) so it can be shared.
-// A shared link skips the intro and opens straight on what it points at.
+// Shared links: ?case=<id>, or ?frame=<track-frame>[&lens=<id>] for a live question.
 const readParams = () => {
   const params = new URLSearchParams(window.location.search);
-  const event = findEvent(params.get("event"));
-  if (event !== undefined && enabledIds.has(event.hazard)) {
-    return { event, frameId: event.frameId, hazard: event.hazard, mode: "explore" as Mode };
-  }
-  const hazard = params.get("hazard");
-  const frameId = params.get("frame");
+  const lens = params.get("lens");
   return {
-    event: undefined,
-    frameId,
-    hazard: isEnabledHazard(hazard) ? hazard : DEFAULT_HAZARD,
-    mode: (frameId !== null || wasIntroSeen() ? "explore" : "intro") as Mode,
+    item: findCase(params.get("case")),
+    frameId: params.get("frame"),
+    lens: isLens(lens) ? lens : DEFAULT_LENS,
   };
 };
 
-// An event implies its frame and hazard; the default hazard is left out to keep links short.
-const viewParams = (
-  event: FeaturedEvent | undefined,
-  frameId: string | null,
-  hazard: HazardId,
-): Record<string, string> => {
-  if (event !== undefined) return { event: event.id };
-  return {
-    ...(frameId !== null && { frame: frameId }),
-    ...(hazard !== DEFAULT_HAZARD && { hazard }),
-  };
+const paramsOf = (selection: Selection | undefined): string => {
+  if (selection === undefined) return "";
+  if (selection.kind === "case") return new URLSearchParams({ case: selection.item.id }).toString();
+  return new URLSearchParams({
+    frame: selection.frame.id,
+    ...(selection.lens !== DEFAULT_LENS && { lens: selection.lens }),
+  }).toString();
 };
+
+const frameUnder = (frames: Frame[], point: LonLat): Frame | undefined =>
+  findFrameAt(frames, point, "A") ?? findFrameAt(frames, point, "D");
+
+const bboxCentre = ({ bbox: [west, south, east, north] }: Frame): LonLat => [
+  (west + east) / 2,
+  (south + north) / 2,
+];
+
+const country = (item: Case): string => item.place.split(",").at(-1)?.trim() ?? item.place;
+
+const prefersReducedMotion = (): boolean =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export const ExplorerPage = () => {
   const [initial] = useState(readParams);
-  const { state: framesState, retry } = useAsync(loadFrames, "frames");
-  // Undefined until the user picks one, so a shared link opens on the linked frame's pass.
-  const [chosenPass, setChosenPass] = useState<PassDirection>();
-  const [selectedId, setSelectedId] = useState(initial.frameId);
-  const [event, setEvent] = useState<FeaturedEvent | undefined>(initial.event);
-  const [overlay, setOverlay] = useState<GlobeOverlay>();
-  const [hazardId, setHazardId] = useState<HazardId>(initial.hazard);
-  const [mode, setMode] = useState<Mode>(initial.mode);
-  const [tourIndex, setTourIndex] = useState(0);
+  const [selection, setSelection] = useState<Selection | undefined>(
+    initial.item && { kind: "case", item: initial.item },
+  );
+  // A shared ?frame= link can only open once the frames snapshot is in.
+  const linkRef = useRef(initial.item === undefined ? initial.frameId : null);
+  const [linkPending, setLinkPending] = useState(
+    initial.item === undefined && initial.frameId !== null,
+  );
+  const [collapsed, setCollapsed] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [mode, setMode] = useState<ChartMode>("plain");
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [showReal, setShowReal] = useState(true);
+  const [reduceMotion, setReduceMotion] = useState(prefersReducedMotion);
+  const [drapeKind, setDrapeKind] = useState<DrapeKind>("change");
+  const [opacity, setOpacity] = useState(DEFAULT_OPACITY);
   const [homeRequest, setHomeRequest] = useState(0);
+  const [unavailable, setUnavailable] = useState(false);
+
+  const ask = useCallback(
+    (frame: Frame, point: LonLat, lens: LensId = DEFAULT_LENS, fromCase?: Case) => {
+      setSelection((previous) => ({
+        kind: "live",
+        frame,
+        point,
+        lens,
+        fromCase,
+        run: previous?.kind === "live" ? previous.run + 1 : 0,
+      }));
+      setCollapsed(false);
+      setSheetOpen(false);
+      setHelpOpen(false);
+    },
+    [],
+  );
+
+  const loadFramesAndLink = useCallback(
+    async (signal: AbortSignal) => {
+      const loaded = await loadFrames(signal);
+      const linked = linkRef.current;
+      if (linked !== null) {
+        linkRef.current = null;
+        const frame = loaded.find((entry) => entry.id === linked);
+        if (frame !== undefined) ask(frame, bboxCentre(frame), initial.lens);
+        setLinkPending(false);
+      }
+      return loaded;
+    },
+    [ask, initial.lens],
+  );
+  const { state: framesState, retry: retryFrames } = useAsync(loadFramesAndLink, "frames");
+  const frames = useMemo(
+    () => (framesState?.status === "success" ? framesState.data : []),
+    [framesState],
+  );
+
+  const live = selection?.kind === "live" ? selection : undefined;
+  const runKey = live === undefined ? "" : `${live.point.join(",")}|${live.lens}|${live.run}`;
+  const job = useLiveJob(live?.frame, runKey, reduceMotion ? REDUCED_STEP_MS : STEP_MS);
+  const liveFrameId = live?.frame.id;
+  const answer = useMemo(
+    () => (liveFrameId === undefined ? undefined : liveAnswer(liveFrameId)),
+    [liveFrameId],
+  );
+
+  const openCase = useCallback((item: Case) => {
+    setSelection({ kind: "case", item });
+    setCollapsed(false);
+    setSheetOpen(false);
+    setHelpOpen(false);
+    setDrapeKind("change");
+  }, []);
+
+  const onGlobeAsk = useCallback((frame: Frame, point: LonLat) => ask(frame, point), [ask]);
 
   useEffect(() => {
+    if (linkPending) return;
     const url = new URL(window.location.href);
-    url.search = new URLSearchParams(viewParams(event, selectedId, hazardId)).toString();
+    url.search = paramsOf(selection);
     window.history.replaceState(null, "", url);
-  }, [event, selectedId, hazardId]);
+  }, [selection, linkPending]);
 
-  const frames = framesState?.status === "success" ? framesState.data : NO_FRAMES;
-  const selectedFrame = useMemo(
-    () => frames.find((frame) => frame.id === selectedId),
-    [frames, selectedId],
-  );
-  const pass = chosenPass ?? selectedFrame?.pass ?? "A";
-
-  const select = useCallback((frame: Frame | undefined) => {
-    setSelectedId(frame?.id ?? null);
-    setEvent(undefined);
-  }, []);
-  const closePanel = useCallback(() => select(undefined), [select]);
-
-  const openEvent = useCallback((next: FeaturedEvent) => {
-    setEvent(next);
-    setHazardId(next.hazard);
-    setChosenPass(undefined);
-    setSelectedId(next.frameId);
+  const close = useCallback(() => {
+    setSelection(undefined);
+    setSheetOpen(false);
   }, []);
 
-  const changeHazard = (next: HazardId) => {
-    setHazardId(next);
-    // An event belongs to one hazard; keep the frame but drop the event context.
-    if (event !== undefined && event.hazard !== next) setEvent(undefined);
+  const wholeGlobe = () => {
+    close();
+    setHelpOpen(false);
+    setHomeRequest((count) => count + 1);
   };
 
-  const explore = useCallback(() => {
-    rememberIntroSeen();
-    setMode("explore");
-  }, []);
+  // Esc closes the innermost thing first: menu, then sheet, then the selection (SPECS §4).
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (helpOpen) setHelpOpen(false);
+      else if (sheetOpen) setSheetOpen(false);
+      else close();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [helpOpen, sheetOpen, close]);
 
-  // Past the last event the tour hands over to free exploration, on that event.
-  const goTour = useCallback(
-    (index: number) => {
-      const next = VISIBLE_EVENTS[index];
-      if (next === undefined) {
-        explore();
-        return;
-      }
-      rememberIntroSeen();
-      setMode("tour");
-      setTourIndex(index);
-      openEvent(next);
-    },
-    [explore, openEvent],
-  );
-
-  const showWholeGlobe = () => {
-    closePanel();
-    setHomeRequest((n) => n + 1);
+  const chooseLens = (lens: LensId) => {
+    if (selection === undefined) return;
+    if (selection.kind === "case") {
+      if (lens === selection.item.lens) return;
+      const frame = frameUnder(frames, selection.item.focus);
+      if (frame !== undefined) ask(frame, selection.item.focus, lens, selection.item);
+      return;
+    }
+    if (lens === selection.lens) return;
+    if (selection.fromCase !== undefined && lens === selection.fromCase.lens) {
+      openCase(selection.fromCase);
+      return;
+    }
+    ask(selection.frame, selection.point, lens, selection.fromCase);
   };
+
+  const item = selection?.kind === "case" ? selection.item : undefined;
+  const subject: Subject | undefined =
+    item !== undefined && item.pending !== true
+      ? caseSubject(item)
+      : live !== undefined && answer !== undefined && job.ready
+        ? liveSubject(
+            live.point,
+            live.lens,
+            `Track ${live.frame.track} · Frame ${live.frame.frame}`,
+            answer,
+          )
+        : undefined;
+
+  const scene = sceneOf(selection, job.ready, drapeKind, opacity);
+  const context: ContextChip | undefined =
+    item !== undefined
+      ? { icon: item.hazard, name: item.name, when: item.when }
+      : live !== undefined
+        ? {
+            icon: findLens(live.lens)?.icon ?? "flood",
+            name: formatLonLat(live.point),
+            when: "Live question",
+          }
+        : undefined;
+
+  const showTimeline = item?.timeline !== undefined && item.pending !== true && !sheetOpen;
+  const showDock = item?.crops !== undefined && !sheetOpen;
 
   return (
-    <main className="site explorer">
-      <GlobeView
-        frames={frames}
-        pass={pass}
-        selectedFrame={selectedFrame}
-        overlay={overlay}
-        interactive={mode === "explore"}
-        events={VISIBLE_EVENTS}
-        homeRequest={homeRequest}
-        onSelect={select}
-        onOpenEvent={openEvent}
-      />
-
-      <header className="x-top">
-        <Link to="/" className="x-pill x-pill--mark">
-          {APP_NAME}
-        </Link>
-        {mode !== "intro" && (
-          <SegmentedControl
-            label="Mode"
-            options={MODE_OPTIONS}
-            value={mode}
-            onChange={(next) => (next === "tour" ? goTour(0) : explore())}
-            testIdPrefix="mode"
-            variant="bar"
+    <ShowRealContext value={showReal}>
+      <main
+        className="site explorer"
+        data-frames={framesState?.status ?? "loading"}
+        data-reduce-motion={reduceMotion}
+      >
+        {unavailable ? (
+          <div className="x-nogl" data-testid="no-webgl">
+            <p className="x-nogl__pill">3D globe unavailable in this browser · panels still work</p>
+          </div>
+        ) : (
+          <GlobeView
+            frames={frames}
+            cases={CASES}
+            scene={scene}
+            view={sheetOpen ? "sheet" : "panel"}
+            reduceMotion={reduceMotion}
+            homeRequest={homeRequest}
+            onOpenCase={openCase}
+            onAsk={onGlobeAsk}
+            onUnavailable={() => setUnavailable(true)}
           />
         )}
-        <nav className="x-top__actions" aria-label="Main">
-          <button
-            type="button"
-            data-testid="whole-globe"
-            onClick={showWholeGlobe}
-            className="x-pill"
+
+        <TopBar
+          context={context}
+          helpOpen={helpOpen}
+          showReal={showReal}
+          reduceMotion={reduceMotion}
+          onHelp={setHelpOpen}
+          onShowReal={setShowReal}
+          onReduceMotion={setReduceMotion}
+          onWholeGlobe={wholeGlobe}
+        />
+
+        {selection === undefined && (
+          <>
+            <StartCard frames={framesState} onOpen={openCase} onRetryFrames={retryFrames} />
+            <HintPill />
+          </>
+        )}
+
+        {selection !== undefined && (
+          <CasePanel
+            meta={
+              item !== undefined
+                ? `${item.pending === true ? "Event context" : "Measured case"} · ${item.region}`
+                : `Live question · Track ${live?.frame.track} · Frame ${live?.frame.frame}`
+            }
+            title={
+              item !== undefined
+                ? `${item.name}, ${country(item)}`
+                : formatLonLat(live?.point ?? [0, 0])
+            }
+            lens={item?.lens ?? live?.lens ?? DEFAULT_LENS}
+            collapsed={collapsed || sheetOpen}
+            onLens={chooseLens}
+            onToggle={() => (sheetOpen ? setSheetOpen(false) : setCollapsed(!collapsed))}
+            onClose={close}
           >
-            Whole globe
-          </button>
-          <Link to="/method" className="x-pill">
-            Method
-          </Link>
-        </nav>
-      </header>
-
-      {mode === "intro" && (
-        <IntroCard
-          frameCount={framesState?.status === "success" ? frames.length : undefined}
-          eventCount={VISIBLE_EVENTS.length}
-          onStartTour={() => goTour(0)}
-          onExplore={explore}
-        />
-      )}
-
-      {mode === "tour" && (
-        <TourCard events={VISIBLE_EVENTS} index={tourIndex} onGo={goTour} onExit={explore} />
-      )}
-
-      {mode === "explore" && (
-        <section aria-label="Explore" className="x-dock x-explore x-glass">
-          <h1 className="x-explore__help">
-            Point at any land to see a NISAR frame. Click it to compare its latest two passes.
-          </h1>
-          <HazardPicker hazards={ENABLED_HAZARDS} value={hazardId} onChange={changeHazard} />
-          <div className="x-explore__row">
-            <PassToggle value={pass} onChange={setChosenPass} />
-            {VISIBLE_EVENTS.length > 0 && (
-              <button
-                type="button"
-                onClick={() => goTour(0)}
-                className="x-text-button x-text-button--gold"
-              >
-                Back to tour
-              </button>
+            {item?.pending === true && <PendingSummary item={item} />}
+            {subject !== undefined && (
+              <ResultSummary subject={subject} mode={mode} onMore={() => setSheetOpen(true)} />
             )}
+            {live !== undefined &&
+              !job.ready &&
+              (job.plan?.status === "error" ||
+              (job.plan?.status === "success" && job.plan.data.length === 0) ? (
+                <JobProblem job={job} onPickCase={close} />
+              ) : (
+                <JobChecklist lens={live.lens} done={job.done} />
+              ))}
+            {live !== undefined && job.plan?.status === "success" && job.plan.data.length > 0 && (
+              <PlanPasses passes={job.plan.data} today={today} />
+            )}
+          </CasePanel>
+        )}
+
+        {showDock && (
+          <LayerDock
+            kind={drapeKind}
+            opacity={opacity}
+            onKind={setDrapeKind}
+            onOpacity={setOpacity}
+          />
+        )}
+
+        {showTimeline && item.timeline !== undefined && (
+          <div className="x-timeline-wrap" data-collapsed={collapsed}>
+            <PassTimeline key={item.id} data={item.timeline} />
           </div>
-          <FramesStatus state={framesState} count={frames.length} onRetry={retry} />
-          <EventsList events={VISIBLE_EVENTS} activeId={event?.id} onOpen={openEvent} />
-        </section>
-      )}
+        )}
 
-      {selectedFrame !== undefined && (
-        <FramePanel
-          key={`${selectedFrame.id}:${event?.id ?? ""}:${hazardId}`}
-          hazard={HAZARDS[hazardId]}
-          frame={selectedFrame}
-          event={event}
-          today={today}
-          onClose={closePanel}
-          onOverlayChange={setOverlay}
-        />
-      )}
-    </main>
+        {sheetOpen && subject !== undefined && (
+          <MoreInfoSheet
+            subject={subject}
+            mode={mode}
+            onMode={setMode}
+            onClose={() => setSheetOpen(false)}
+          />
+        )}
+      </main>
+    </ShowRealContext>
   );
 };
 
-type FramesStatusProps = {
-  state: AsyncState<Frame[]> | undefined;
-  count: number;
-  onRetry: () => void;
-};
-
-const FramesStatus = ({ state, count, onRetry }: FramesStatusProps) => {
-  if (state?.status === "error") {
-    return (
-      <div role="alert" data-testid="frames-status" className="x-mono x-explore__status">
-        Could not load NISAR frames.{" "}
-        <button type="button" onClick={onRetry} className="x-text-button x-text-button--gold">
-          Try again
-        </button>
-      </div>
-    );
+// What the globe draws for the current selection.
+const sceneOf = (
+  selection: Selection | undefined,
+  ready: boolean,
+  kind: DrapeKind,
+  opacity: number,
+): GlobeScene => {
+  const empty: GlobeScene = {
+    target: undefined,
+    outline: undefined,
+    point: undefined,
+    frame: undefined,
+    selectedCaseId: undefined,
+    drape: undefined,
+    drapeAlpha: opacity / 100,
+  };
+  if (selection === undefined) return empty;
+  if (selection.kind === "live") {
+    const box = chipBounds(selection.point, LIVE_CHIP_KM);
+    return {
+      ...empty,
+      target: { key: `live|${selection.point.join(",")}`, box, zoom: CHIP_ZOOM },
+      outline: {
+        box,
+        label: `Processed area · ${LIVE_CHIP_KM} km · ${gridMetres(LIVE_CHIP_KM)} m grid`,
+        processing: !ready,
+      },
+      point: selection.point,
+      frame: selection.frame,
+    };
   }
-  return (
-    <p role="status" data-testid="frames-status" className="x-mono x-explore__status">
-      {state?.status === "success"
-        ? `${count.toLocaleString("en-US")} frames from the NISAR Observation Plan`
-        : "Loading NISAR frames…"}
-    </p>
-  );
+  const { item } = selection;
+  if (item.chipKm === undefined) {
+    const pending = item.pending === true;
+    return {
+      ...empty,
+      target: {
+        key: item.id,
+        box: chipBounds(item.focus, pending ? REGION_KM : LIVE_CHIP_KM),
+        zoom: pending ? REGION_ZOOM : CHIP_ZOOM,
+      },
+      selectedCaseId: item.id,
+    };
+  }
+  const box = chipBounds(item.focus, item.chipKm);
+  return {
+    ...empty,
+    target: { key: item.id, box, zoom: CHIP_ZOOM },
+    outline: {
+      box,
+      label: `Processed area · ${item.chipKm} km · ${gridMetres(item.chipKm)} m grid`,
+      processing: false,
+    },
+    selectedCaseId: item.id,
+    drape:
+      item.crops === undefined
+        ? undefined
+        : { url: kind === "change" ? item.crops.change : item.crops.base, bounds: box },
+  };
 };

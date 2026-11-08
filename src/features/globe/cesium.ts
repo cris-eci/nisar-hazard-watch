@@ -5,6 +5,7 @@ import "cesium/Build/Cesium/Widgets/widgets.css";
 import {
   type Cartesian2,
   Cartographic,
+  Color,
   Credit,
   CameraEventType,
   ImageryLayer,
@@ -41,7 +42,12 @@ export const createViewer = (container: HTMLElement): Viewer => {
     sceneModePicker: false,
     selectionIndicator: false,
     timeline: false,
+    // A lost WebGL context is reported through scene.renderError, which the explorer turns into
+    // its "3D globe unavailable" pill instead of Cesium's own error panel.
+    showRenderLoopErrors: false,
   });
+  viewer.scene.backgroundColor = Color.fromCssColorString("#04070e");
+  viewer.scene.globe.baseColor = Color.fromCssColorString("#08101f");
   const controls = viewer.scene.screenSpaceCameraController;
   controls.maximumZoomDistance = MAX_ZOOM_OUT_METERS;
   // Touchpad pinch arrives as Ctrl + wheel, which Cesium ignores by default.
