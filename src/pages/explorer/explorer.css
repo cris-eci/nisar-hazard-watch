@@ -1359,9 +1359,13 @@
   color: var(--gold);
 }
 
+/* Masks the today line when the next pass sits right after it. */
 .x-tl__planned-label {
+  z-index: 1;
   top: 49px;
-  transform: translateX(-30%);
+  transform: translateX(-50%);
+  padding: 0 3px;
+  background: #0a1222;
   color: var(--ink-2);
 }
 
@@ -1445,6 +1449,7 @@
 
 /* Still dashed (a promise, not data), just brighter so the next pass stands out. */
 .x-tl__dot--next {
+  border-width: 2px;
   border-color: var(--ink);
 }
 

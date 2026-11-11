@@ -88,7 +88,10 @@ test.describe("Explorer: measured cases", () => {
       await expect(planned).toBeDisabled();
     await expect(globe.timelinePasses("plan").first()).toHaveAttribute("data-next", "true");
     await expect(globe.timelinePasses("plan").last()).not.toHaveAttribute("data-next");
-    await expect(globe.timeline.getByTestId("timeline-next")).toHaveText("Next · 16 Nov");
+    await expect(globe.timeline.getByTestId("timeline-next")).toHaveText("Next");
+    await expect(globe.timeline.getByTestId("timeline-planned-legend")).toContainText(
+      "next 16 Nov",
+    );
 
     await expect(globe.timelineCompare).toHaveAttribute("aria-pressed", "true");
     await expect(globe.timelineReadout).toHaveText(

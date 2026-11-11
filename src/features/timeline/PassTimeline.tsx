@@ -151,7 +151,7 @@ export const PassTimeline = ({ data }: PassTimelineProps) => {
             style={{ left: `${layout.next.left}%` }}
             data-testid="timeline-next"
           >
-            Next · {formatDay(layout.next.date, false)}
+            Next
           </span>
         )}
         {layout.passes.map((item) => {
@@ -221,6 +221,7 @@ export const PassTimeline = ({ data }: PassTimelineProps) => {
         <span data-testid="timeline-planned-legend">
           <i className="x-tl__key x-tl__key--plan" />
           Planned · a promise, not data
+          {layout.next !== undefined && ` · next ${formatDay(layout.next.date, false)}`}
         </span>
         <span data-off={!hasOptical}>
           <i className="x-tl__key x-tl__key--optical" />
