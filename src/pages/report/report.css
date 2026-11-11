@@ -1,0 +1,376 @@
+/*
+ * PDF report (r-*): a light A4 sheet (Report v7). Charts keep their dark plate so their colours
+ * match the explorer; print removes the page chrome and keeps those plates' colours.
+ */
+
+.r-page {
+  --r-ink: #14161b;
+  --r-muted: #555a63;
+  --r-faint: #6b6f77;
+  --r-line: #d6d2c8;
+  --r-accent: #7a6534;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: 32px 16px;
+  background: #d9d6cf;
+  color: var(--r-ink);
+  font-family: "Albert Sans", system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color-scheme: light;
+}
+
+.r-page :where(h1, h2, p, dl, dd, ul) {
+  margin: 0;
+}
+
+.r-page :where(ul) {
+  padding: 0;
+  list-style: none;
+}
+
+.r-page a {
+  color: var(--r-accent);
+  text-decoration: none;
+}
+
+.r-page a:hover {
+  color: #4f4120;
+}
+
+.r-actions {
+  max-width: 794px;
+  margin: 0 auto 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.r-button {
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 22, 27, 0.2);
+  background: transparent;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.r-page a.r-button {
+  color: var(--r-ink);
+}
+
+.r-button--dark {
+  border: 0;
+  background: var(--r-ink);
+  color: #fff;
+}
+
+.r-sheet {
+  max-width: 794px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 48px 52px;
+  background: #fff;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.r-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--r-ink);
+}
+
+.r-head__main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.r-kicker {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--r-accent);
+}
+
+.r-kicker--split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.r-title {
+  font-size: 28px;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.r-sub,
+.r-small {
+  color: var(--r-muted);
+}
+
+.r-small {
+  font-size: 12px;
+}
+
+.r-meta {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  line-height: 1.6;
+  text-transform: uppercase;
+  text-align: right;
+  color: var(--r-muted);
+}
+
+.r-summary {
+  padding: 16px 18px;
+  border: 1.5px dashed #9a9488;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.r-summary__head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--r-muted);
+}
+
+.r-summary__text {
+  font-size: 14px;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.r-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.r-keep {
+  break-inside: avoid;
+}
+
+.r-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--r-line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.r-facts > div {
+  padding: 10px 12px;
+  border-right: 1px solid #e6e2d8;
+}
+
+.r-facts > div:last-child {
+  border-right: 0;
+}
+
+.r-facts dt {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--r-muted);
+}
+
+.r-facts dd {
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.r-line {
+  text-wrap: pretty;
+}
+
+.r-dark {
+  padding: 16px;
+  border-radius: 10px;
+  background: #04070e;
+  color: #ebe9e4;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.r-empty {
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #ecebe7;
+  color: var(--r-muted);
+}
+
+.r-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.r-quality > div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #e6e2d8;
+}
+
+.r-quality dt {
+  color: var(--r-muted);
+}
+
+.r-quality dd {
+  font-weight: 500;
+  text-align: right;
+}
+
+.r-quality .r-quality__why {
+  grid-column: 1 / -1;
+  font-size: 11.5px;
+  font-weight: 400;
+  text-align: left;
+  color: var(--r-faint);
+}
+
+.r-mono {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  color: var(--r-muted);
+}
+
+.r-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.r-url {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--r-faint);
+  word-break: break-all;
+}
+
+.r-cases {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 15px;
+}
+
+.r-foot {
+  padding-top: 12px;
+  border-top: 1px solid var(--r-line);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--r-faint);
+}
+
+/* Provenance chips are drawn for dark surfaces; on the white sheet they need darker ink. */
+.r-sheet .c-prov--real {
+  border-color: rgba(20, 22, 27, 0.35);
+  color: var(--r-muted);
+}
+
+.r-sheet .c-prov--todo {
+  border-color: rgba(20, 22, 27, 0.45);
+  color: var(--r-muted);
+}
+
+.r-sheet .c-prov--demo {
+  color: #8a5a00;
+}
+
+.r-dark .c-prov--real {
+  border-color: rgba(235, 233, 228, 0.35);
+  color: #d4d2cc;
+}
+
+.r-dark .c-prov--demo {
+  color: #fcd34d;
+}
+
+@page {
+  size: A4;
+  margin: 14mm;
+}
+
+@media print {
+  .r-page {
+    padding: 0;
+    background: #fff;
+  }
+
+  .r-actions {
+    display: none;
+  }
+
+  .r-sheet {
+    max-width: none;
+    padding: 0;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .r-sheet {
+    padding: 24px 18px;
+  }
+
+  .r-head {
+    flex-direction: column;
+  }
+
+  .r-meta {
+    text-align: left;
+  }
+
+  .r-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .r-facts > div:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .r-facts > div:nth-child(-n + 2) {
+    border-bottom: 1px solid #e6e2d8;
+  }
+
+  .r-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
