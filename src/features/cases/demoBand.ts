@@ -1,4 +1,4 @@
-import type { Verdict } from "@/features/cases/cases";
+import type { Case, PassKind, TimelinePass, Verdict } from "@/features/cases/cases";
 
 /*
  * DEMO per-pass HH/HV values at the clicked point, from the design handoff. They stay demo until the
@@ -9,6 +9,7 @@ export type PassRole = "baseline" | "excluded" | "target";
 
 export type BandPass = { date: string; role: PassRole; hh: number | null; hv: number | null };
 
+// Generic demo dates: the live question and /method. Measured cases use their own (caseBandPasses).
 const DATES = [
   "2026-08-03",
   "2026-08-15",
@@ -50,6 +51,52 @@ export const demoBandPasses = (verdict: Verdict): BandPass[] =>
     hh: SERIES[verdict].hh[i] ?? null,
     hv: SERIES[verdict].hv[i] ?? null,
   }));
+
+const ROLE_OF: Partial<Record<PassKind, PassRole>> = {
+  base: "baseline",
+  target: "target",
+  meas: "excluded",
+};
+
+/*
+ * A case's band chart uses that case's own pass dates and roles (its timeline, up to the target
+ * pass), so the chart never contradicts the Pass Timeline; only the values stay DEMO. The demo
+ * baseline values fill the case's baselines from the end (the earliest get a gap when the case has
+ * more baselines than the demo), the target keeps the demo target value, and any measured pass before
+ * the target is drawn as an excluded gap. The demo's onset pass is dropped when the case has none.
+ * Passes after the target and planned ones have no demo value, so the chart ends at the target.
+ */
+export const alignDemoBand = (
+  verdict: Verdict,
+  timeline: TimelinePass[],
+): BandPass[] | undefined => {
+  const targetIndex = timeline.findIndex((item) => item.kind === "target");
+  if (targetIndex < 0) return undefined;
+  const demo = demoBandPasses(verdict);
+  const demoBaseline = demo.filter((item) => item.role === "baseline");
+  const demoTarget = demo.find((item) => item.role === "target");
+  const used = timeline.slice(0, targetIndex + 1);
+  const baselineCount = used.filter((item) => item.kind === "base").length;
+  let baselineSeen = 0;
+  return used.flatMap((item): BandPass[] => {
+    const role = ROLE_OF[item.kind];
+    if (role === undefined) return [];
+    if (role === "target")
+      return [{ date: item.date, role, hh: demoTarget?.hh ?? null, hv: demoTarget?.hv ?? null }];
+    if (role === "excluded") return [{ date: item.date, role, hh: null, hv: null }];
+    const value = demoBaseline[demoBaseline.length - baselineCount + baselineSeen];
+    baselineSeen += 1;
+    return [{ date: item.date, role, hh: value?.hh ?? null, hv: value?.hv ?? null }];
+  });
+};
+
+// Undefined when the lens has no band (InSAR); the fixed demo dates only when the case has no target.
+export const caseBandPasses = (item: Case): BandPass[] | undefined => {
+  if (item.band === undefined) return undefined;
+  const aligned =
+    item.timeline === undefined ? undefined : alignDemoBand(item.band, item.timeline.passes);
+  return aligned ?? demoBandPasses(item.band);
+};
 
 // The backend's diagnostic band is median ± max(3, 3·max(1.4826·MAD, 1)) dB. With these few demo
 // passes the MAD term never exceeds the floor, so the half-width is the 3 dB minimum.

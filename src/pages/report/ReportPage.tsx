@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 import { SOURCE, VERDICT } from "@/features/case-panel/verdicts";
 import { CASES, findCase, findLens, type Case } from "@/features/cases/cases";
-import { demoBandPasses } from "@/features/cases/demoBand";
+import { caseBandPasses } from "@/features/cases/demoBand";
 import { BandChart } from "@/features/charts/BandChart";
 import { ContrastBars } from "@/features/charts/ContrastBars";
 import { formatDay } from "@/features/timeline/timelineLayout";
@@ -76,6 +76,7 @@ const NoCase = ({ id }: { id: string | null }) => (
 const Report = ({ item }: { item: Case }) => {
   const lens = findLens(item.lens);
   const group = item.groups?.[0];
+  const bandPasses = caseBandPasses(item);
   const [lon, lat] = item.focus;
   const [generated] = useState(() => new Date().toISOString().slice(0, 10));
   return (
@@ -126,17 +127,13 @@ const Report = ({ item }: { item: Case }) => {
 
       <section className="r-block r-keep">
         <p className="r-kicker">Data 2 · The measurement at the point</p>
-        {item.band === undefined ? (
+        {bandPasses === undefined ? (
           <p className="r-empty">
             No point time series for this lens yet. Nothing is drawn rather than a made-up line.
           </p>
         ) : (
           <div className="r-dark">
-            <BandChart
-              passes={demoBandPasses(item.band)}
-              mode="technical"
-              height={REPORT_CHART_PX}
-            />
+            <BandChart passes={bandPasses} mode="technical" height={REPORT_CHART_PX} />
           </div>
         )}
       </section>
