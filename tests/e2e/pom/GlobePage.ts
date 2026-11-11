@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import type { Locator, Page } from "@playwright/test";
 
 import { OBSERVATION_PLAN_QUERY_URL } from "@/features/frames/observationPlanApi";
+import { ONBOARDING_KEY } from "@/features/onboarding/onboarding";
 
 // Frame 47-3 (ascending, HH+HV, over Colombia); its mocked plan lists 39 dates.
 export const LIVE_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };
@@ -93,6 +94,11 @@ export class GlobePage {
         body: failing ? "{}" : PLAN_MOCK,
       });
     });
+  }
+
+  // Marks the quick tour as seen before the page loads, as on any visit after the first.
+  async skipOnboarding(): Promise<void> {
+    await this.page.addInitScript((key) => window.localStorage.setItem(key, "1"), ONBOARDING_KEY);
   }
 
   // Hover and live questions need the frames snapshot, so every test waits for it.
