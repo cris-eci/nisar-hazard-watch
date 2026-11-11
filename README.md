@@ -1,237 +1,182 @@
 <div align="center">
 
-<img src="docs/screenshots/landing-hero.jpg" alt="NISAR Hazard Watch landing page: the headline &quot;Earth, without the clouds.&quot; over a 3D Earth with its cloud cover" width="100%">
+<img src="docs/screenshots/landing-hero.jpg" alt="NISAR Hazard Watch landing page: the headline &quot;Earth, without the clouds.&quot; over a 3D Earth, with Open the explorer and The Chenab flood buttons" width="100%">
 
 # NISAR Hazard Watch
 
 **Earth, without the clouds.**
 
-NASA-ISRO NISAR radar sees the ground through cloud, smoke and night. NISAR Hazard Watch turns its
-passes into maps anyone can read: burn scars, floods, forest loss and earthquake ground motion, on
-an interactive 3D globe.
+NASA-ISRO's NISAR radar sees the ground through cloud and at night. NISAR Hazard Watch is a
+**radar evidence explorer**: pick a place and it shows whether the radar echo there changed beyond
+that place's own normal range, checks it against a second satellite, and says plainly what the
+radar can't tell. No forecasts, no probabilities, no causes.
 
-[![Live demo](https://img.shields.io/badge/live%20demo-open%20the%20globe-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app)
-[![Method](https://img.shields.io/badge/method-%26%20validation-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app/method)
+[![Live demo](https://img.shields.io/badge/live%20demo-open%20the%20explorer-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app)
+[![Method](https://img.shields.io/badge/method-how%20it%20works-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app/method)
 
 [![CI](https://github.com/nisar-hazard-watch/nisar-hazard-watch/actions/workflows/ci.yml/badge.svg)](https://github.com/nisar-hazard-watch/nisar-hazard-watch/actions/workflows/ci.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
 ![CesiumJS](https://img.shields.io/badge/CesiumJS-3D%20globe-6caddf)
+![Recharts](https://img.shields.io/badge/Recharts-3-22b5bf)
 ![three.js](https://img.shields.io/badge/three.js-landing%20scene-04070e?logo=threedotjs&logoColor=white)
 ![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-0b3d91)
 
 **[Live demo](https://nisar-hazard-watch.vercel.app)** ·
-**[Guided tour](https://nisar-hazard-watch.vercel.app/explore)** ·
-**[Method & validation](https://nisar-hazard-watch.vercel.app/method)** ·
-**[API contract](docs/analysis-api.md)**
+**[Cases](https://nisar-hazard-watch.vercel.app/cases)** ·
+**[Method](https://nisar-hazard-watch.vercel.app/method)** ·
+**[Science backend](https://github.com/Ch0comilo/NISAR-Modeling)**
 
 </div>
 
 > [!IMPORTANT]
-> **Prototype status.** Everything that says _where_ and _when_ is real NASA, ASF and USGS data:
-> the 16,663 frame outlines, every satellite pass, the earthquakes and their radar pairs. The
-> analysis drawn on top (burn maps, flood extents, ground motion, validation figures) is
-> **simulated demo data**, labelled **Demo data** in the app, until the
-> [NISAC_Data_Lab](#architecture) pipeline is connected. See [What is real and what is demo](#what-is-real-and-what-is-demo).
+> **Prototype status (design v7).** The NISAR frames, the satellite passes and every number in the
+> measured cases are **real**: frames and passes come from NASA's NISAR Observation Plan, case
+> numbers and layer images from the science team's reports
+> ([Ch0comilo/NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling)). Some things are still
+> **demo**: the per-pass band chart series, the pass timeline dates, and the answer to a live
+> question on any other land. Every value carries a **Real** / **Demo** / **To fill** chip in the
+> app; Demo and To fill chips can't be hidden. See
+> [What is real and what is demo](#what-is-real-and-what-is-demo).
 
 ## Contents
 
-- [The story](#the-story)
+- [Pages](#pages)
 - [The explorer](#the-explorer)
-- [Four hazards, one contract](#four-hazards-one-contract)
-- [Method & validation](#method--validation)
-- [Why radar](#why-radar)
-- [Features](#features)
+- [Measured cases](#measured-cases)
+- [Data sources and where they are fetched](#data-sources-and-where-they-are-fetched)
 - [What is real and what is demo](#what-is-real-and-what-is-demo)
-- [Featured events](#featured-events)
-- [Architecture](#architecture)
+- [In progress](#in-progress)
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
 - [Testing](#testing)
+- [Deploying](#deploying)
 - [Project structure](#project-structure)
 - [Contributing](#contributing)
-- [Roadmap](#roadmap)
-- [Data sources and credits](#data-sources-and-credits)
+- [Credits](#credits)
 
-## The story
+## Pages
 
-The landing page is one scroll over a fixed Earth. The clouds dissolve, NISAR's orbit appears while
-a counter climbs to twelve days, then the planet turns to the M7.5 epicentre in Venezuela and shows
-what two passes can measure.
+| Path       | Page                                                                                                                                                         |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/`        | Landing: one scroll story over a three.js Earth, a drag-to-compare radar vs. optical view, the pipeline, the cases carousel, where the method fails, sources |
+| `/explore` | The explorer: a CesiumJS globe with the measured cases and every NISAR frame                                                                                 |
+| `/cases`   | The measured cases as cards, filterable by question                                                                                                          |
+| `/method`  | How it works: satellite teardown, the Qadirabad sequence, six steps, the band chart, the five lenses, experimental models, landslides, colour key            |
+| `/about`   | The team (Nova Frontier) and project links                                                                                                                   |
+
+Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
+`/explore?frame=47-3` (optionally `&lens=<id>`) asks a live question on a NISAR frame. Old
+`/?frame=` links still open the explorer.
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/landing-orbit.jpg" alt="The planet with NISAR's gold orbit and a counter reading 12 days: every place, every twelve days"></td>
-    <td width="50%"><img src="docs/screenshots/landing-epicentre.jpg" alt="The planet turned to the Venezuela epicentre, a callout showing demo interferogram fringes and 31.3 cm of peak motion"></td>
+    <td width="50%"><img src="docs/screenshots/landing-compare.jpg" alt="Drag-to-compare view of North Dakota fields: NISAR radar on the left, a cloudy Sentinel-2 view on the right"></td>
+    <td width="50%"><img src="docs/screenshots/cases.jpg" alt="Cases page: Four places, measured honestly, with question filters and the Qadirabad and Chókwè cards"></td>
   </tr>
   <tr>
-    <td align="center"><b>Every place, every twelve days</b><br><sub>NISAR's orbit and its 12-day repeat cycle</sub></td>
-    <td align="center"><b>Down to the centimetre</b><br><sub>The Venezuela M7.5 epicentre, demo fringes</sub></td>
+    <td align="center"><b>Same fields, one day apart</b><br><sub>NISAR radar vs. Sentinel-2 over North Dakota</sub></td>
+    <td align="center"><b>Cases</b><br><sub>Four measured places and one pending event</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/method-band.jpg" alt="Method page: the band chart in three states, changed beyond its range, within its range and not enough radar yet"></td>
+    <td width="50%"><img src="docs/screenshots/about.jpg" alt="About page: Six people, one orbit, the team around the Nova Frontier logo"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Method</b><br><sub>Reading the band chart (demo series)</sub></td>
+    <td align="center"><b>About</b><br><sub>Team Nova Frontier</sub></td>
   </tr>
 </table>
-
-<img src="docs/screenshots/landing-compare.jpg" alt="Drag-to-compare view of North Dakota farmland: NISAR radar on the left shows every field and gold centre-pivot circles, Sentinel-2 on the right is mostly cloud" width="100%">
-
-<p align="center"><b>Same fields, one day apart.</b> Drag across NISAR radar and a cloudy Sentinel-2 view of North Dakota.<br><sub>NISAR first image (NASA/JPL-Caltech) and NASA HLS (contains modified Copernicus Sentinel-2 data).</sub></p>
 
 ## The explorer
 
-A real globe of every NISAR frame. Start with a two-minute guided tour of four events, or explore
-freely: point at any land to see its frame, click to compare its latest two passes.
+<img src="docs/screenshots/explorer-case.jpg" alt="Explorer on the Qadirabad case: the real change crop draped on the globe, the case panel with the verdict, band chart and contrast bars, the layer dock and the pass timeline" width="100%">
 
-<img src="docs/screenshots/explorer-tour.jpg" alt="Guided tour on the Venezuela M7.5 earthquake: the real NISAR frame outline in gold, demo line-of-sight displacement lobes on the coast, and the panel with 31.3 cm of peak motion" width="100%">
+<p align="center"><b>A measured case:</b> Qadirabad, Pakistan. The verdict, the real contrast bars and the report's change crop on the globe; the band chart and timeline dates are labelled demo.</p>
 
-<p align="center"><b>Guided tour, event 1 of 4:</b> the M7.5 earthquake at Catia La Mar, Venezuela, on its real NISAR frame (track 162 A, frame 7).</p>
-
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/explorer-intro.jpg" alt="Explorer intro card over the globe: four real events, two minutes, with Start the tour and Explore freely"></td>
-    <td width="50%"><img src="docs/screenshots/explorer-hover.jpg" alt="Explore mode: hovering the globe shows track 47, frame 3, HH+HV, with gold markers on the featured events"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Four real events, two minutes</b><br><sub>The intro on a first visit</sub></td>
-    <td align="center"><b>16,663 frames, hover to inspect</b><br><sub>Real outlines from the NISAR Observation Plan</sub></td>
-  </tr>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/explorer-fringes.jpg" alt="Interferogram fringes of the Venezuela earthquake draped on the globe, one colour cycle per 11.9 cm of motion"></td>
-    <td width="50%"><img src="docs/screenshots/explorer-wildfire.jpg" alt="Burn analysis on track 47, frame 3: severity classes on the globe, hectares by class, and the real pass dates with upcoming passes in gold"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Interferogram fringes</b><br><sub>Count the rings: 11.9 cm of motion each (demo)</sub></td>
-    <td align="center"><b>Burn severity and live passes</b><br><sub>Hectares by class (demo); pass dates from the live plan</sub></td>
-  </tr>
-</table>
-
-## Four hazards, one contract
-
-Two families of analysis share one API contract: **surface change** from GCOV backscatter
-(hectares) and **ground motion** from GUNW interferograms (centimetres). Each hazard is one entry in
-a registry; the UI never hard-codes a hazard.
+- **Start card:** the measured cases and the frames snapshot status; case markers on the globe.
+- **Case panel:** the question as lens chips ("Did it flood?", "Did the ground move?", …), the
+  verdict in plain words, the band chart, the contrast bars against the optical witness, a quality
+  strip and "More information".
+- **More information:** a large sheet with the five beats in full (question, measurement, verdict,
+  second witness, limits), the report figure, a drag-to-split compare tile, Plain / Technical
+  modes and sources.
+- **Layer dock:** the report's change or baseline crop draped on the globe, with an opacity slider.
+- **Pass timeline:** baseline, target, measured and planned passes, the optical lane and the next
+  planned pass.
+- **Live question:** hover any land to see its NISAR frame, click to ask about it. The frame's
+  passes are fetched live from the Observation Plan; the answer is a labelled demo until the
+  backend API exists.
+- **Help menu:** pages, "Show REAL labels" (hides only Real chips), reduce motion.
 
 <table>
   <tr>
-    <td width="25%"><img src="docs/screenshots/explorer-wildfire.jpg" alt="Wildfire burn severity"></td>
-    <td width="25%"><img src="docs/screenshots/explorer-flood.jpg" alt="Flood extent"></td>
-    <td width="25%"><img src="docs/screenshots/explorer-deforestation.jpg" alt="Forest loss"></td>
-    <td width="25%"><img src="docs/screenshots/explorer-tour.jpg" alt="Earthquake displacement"></td>
+    <td width="50%"><img src="docs/screenshots/explorer-start.jpg" alt="Explorer start card listing the measured cases over the globe with case markers"></td>
+    <td width="50%"><img src="docs/screenshots/explorer-live.jpg" alt="A live question on track 47, frame 3: demo verdict and the frame's real passes from the Observation Plan"></td>
   </tr>
   <tr>
-    <td align="center"><b>Wildfire</b><br><sub>HV drop · burn severity</sub></td>
-    <td align="center"><b>Flood</b><br><sub>HH drop · open water</sub></td>
-    <td align="center"><b>Forest loss</b><br><sub>HV drop · cleared canopy</sub></td>
-    <td align="center"><b>Earthquake</b><br><sub>GUNW · line-of-sight cm</sub></td>
+    <td align="center"><b>What did the radar see?</b><br><sub>The start card and case markers</sub></td>
+    <td align="center"><b>A live question</b><br><sub>Real passes, demo answer</sub></td>
   </tr>
 </table>
 
-<p align="center"><sub>All four analyses are demo data until the pipeline runs on them; flood and forest loss sit behind the hazard flag.</sub></p>
+<img src="docs/screenshots/explorer-sheet.jpg" alt="More information sheet for Qadirabad: the question, the real report figure, how it was computed, evidence and quality, sources" width="100%">
 
-## Method & validation
+<p align="center"><b>More information:</b> the real NISAR-Modeling report figure, how it was computed, evidence and quality, sources.</p>
 
-Four steps per hazard, told on the explorer's own demo rasters, then how each result is checked
-against independent data.
+## Measured cases
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/screenshots/method-fringes.jpg" alt="Method step 2 of 4 for earthquakes: convert phase to motion, with fringes beside the displacement map"></td>
-    <td width="50%"><img src="docs/screenshots/method-severity.jpg" alt="Method step 4 of 4 for wildfires: classify, with the severity classes over the after-fire HV image"></td>
-  </tr>
-  <tr>
-    <td align="center"><b>Convert phase to motion</b><br><sub>d = −λ / 4π × φ</sub></td>
-    <td align="center"><b>Classify the burn</b><br><sub>≤ −2 · −4 · −6 dB</sub></td>
-  </tr>
-</table>
+All numbers live in `src/features/cases/cases.ts`, copied from the
+[NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling) reports.
 
-<img src="docs/screenshots/method-validation.jpg" alt="Validation grid: 87 % of FIRMS detections inside the scar, 0.71 kappa against HLS dNBR, 1.8 cm RMS against GNSS, all labelled demo values" width="100%">
+| Case                        | Question             | Verdict                         | Headline                                            |
+| --------------------------- | -------------------- | ------------------------------- | --------------------------------------------------- |
+| Qadirabad, Chenab, Pakistan | Did it flood?        | Changed beyond its normal range | 64.3% vs 1.0% of new-water vs dry cells flagged     |
+| Chókwè, Limpopo, Mozambique | Did it flood?        | Changed beyond its normal range | 37.3% vs 0.7%, one assessment pass only             |
+| Richmond, Indiana, USA      | Did it flood?        | Not enough radar yet            | 0 new-water cells resolved by the optical snapshots |
+| Kumamoto, Kyushu, Japan     | Did the ground move? | Not enough radar yet            | 3 of 1,614 coherent cells eligible for corrections  |
+| Chocó, Colombia             | Did the ground move? | Pending (event context only)    | No measurement until InSAR corrections pass         |
 
-<p align="center"><b>Checked against independent data:</b> NASA FIRMS, HLS dNBR and GNSS stations.<br><sub>Demo values until real runs exist; the comparison method is final.</sub></p>
+## Data sources and where they are fetched
 
-## Why radar
+| Data                                     | Source                                                                                                                                                                                                                                | How the app gets it                                                                                                                                                                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NISAR frames (16,663 outlines)           | NASA NISAR Observation Plan, ArcGIS FeatureServer ([`nisar_merged_observation_plans/FeatureServer/0`](https://services7.arcgis.com/WSiUmUhlFx4CtMBB/arcgis/rest/services/nisar_merged_observation_plans/FeatureServer/0)), no API key | Snapshot in `public/data/frames.json` (fetched 2026-10-22), made by `pnpm frames:fetch` (`scripts/fetch-frames.ts`). The browser loads `/data/frames.json` and hit-tests frames locally, so hovering is instant and survives an API outage. |
+| Passes per frame (past and planned)      | Same FeatureServer, one query per track/frame                                                                                                                                                                                         | Fetched live in the browser when a live question runs (`fetchAcquisitions` in `src/features/frames/observationPlanApi.ts`).                                                                                                                 |
+| Basemap                                  | Esri World Imagery (`server.arcgisonline.com`), no key                                                                                                                                                                                | Cesium imagery tiles (`src/features/globe/cesium.ts`); no Cesium ion token.                                                                                                                                                                 |
+| Case numbers, verdicts, quality, sources | [Ch0comilo/NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling) reports (`flood_pilot_summary.json`, `FLOOD_CHARACTERIZATION.md`, `TEAM_HANDOFF.md`, …)                                                                       | Copied into `src/features/cases/cases.ts`; each value's source is in its chip tooltip.                                                                                                                                                      |
+| Case layer crops and report figures      | NISAR-Modeling report figures                                                                                                                                                                                                         | Static files in `public/cases/` (crops) and `public/cases/figures/`.                                                                                                                                                                        |
+| Experimental model metrics (Method)      | [Ch0comilo/NISAR-Models](https://github.com/Ch0comilo/NISAR-Models) model cards                                                                                                                                                       | Copied into `src/features/charts/metrics.ts` and `src/pages/method/methodContent.ts`.                                                                                                                                                       |
+| Landing and footer pictures              | NASA/JPL-Caltech, NASA Visible Earth, NASA HLS via Worldview, Wikimedia Commons                                                                                                                                                       | Static files in `public/landing/` and `public/footer/`, credited on the pages.                                                                                                                                                              |
 
-|                                   |                                                                                                           |
-| --------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| **Sees through clouds and smoke** | Optical satellites go blind over an active fire or a tropical storm. Radar brings its own signal.         |
-| **Every 12 days, day and night**  | NISAR maps almost all of Earth's land on a fixed cycle, so every change has a clean before and after.     |
-| **Down to the centimetre**        | L-band (24 cm) reaches through forest canopy, and comparing two passes measures how far the ground moved. |
-
-## Features
-
-- **A scroll-driven landing** over a three.js Earth: the clouds dissolve, the orbit appears, the
-  planet turns to an epicentre; a drag-to-compare radar vs. optical view; reduced motion honoured.
-- **3D globe of all 16,663 NISAR frames.** Hover to find a frame, click to fly to it. Frames come
-  from NASA's NISAR Observation Plan and are hit-tested locally, so hovering is instant.
-- **Two families of analysis behind one contract**
-  - _Surface change_ (GCOV backscatter): wildfire burn severity, flood extent, forest loss, in
-    hectares, with severity classes and before/after radar images draped on the terrain.
-  - _Ground motion_ (GUNW interferograms): earthquake line-of-sight displacement in centimetres,
-    with displacement and interferometric fringe layers.
-- **Featured events** with real NISAR before/after pairs: three 2026 earthquakes and a fire site.
-- **Satellite passes per frame**, live from the Observation Plan, flagging the HH+HV passes that
-  burn mapping needs.
-- **Shareable views**: `/explore?event=venezuela-2026`, `/explore?frame=47-3`.
-- **Guided tour**: an intro card, a step-by-step tour of the featured events (arrow keys work
-  too), then free exploration.
-- **Method & validation page**: the four steps per hazard on the app's own rasters, validation
-  sources and limits.
-- **Multi-hazard feature flag**: `VITE_ENABLED_HAZARDS` turns hazards on and off per deployment.
+There is no backend call yet: the science team's point exploration API is specified in
+[EXPLORE_API.md](https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md) and
+not connected.
 
 ## What is real and what is demo
 
-### ✅ Real
+The full element-by-element list is the design handoff's `DATA_PROVENANCE.md`. In short:
 
-| Element                                                                    | Source                                                              |
-| -------------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| 3D globe, navigation, hover, selection, deep links                         | The app itself                                                      |
-| The 16,663 NISAR frames (outlines, track, frame, pass, polarization modes) | NASA NISAR Observation Plan (snapshot in `public/data/frames.json`) |
-| Satellite passes per frame (past and planned dates, HH+HV or HH only)      | NASA NISAR Observation Plan API, fetched live                       |
-| Earthquakes in the featured events (date, magnitude, depth, epicentre)     | USGS earthquake catalogue                                           |
-| Before/after interferogram pairs for those earthquakes                     | NISAR L2 GUNW products on ASF DAAC (verified 2026-10-21)            |
-| Choice of the passes to compare (latest HH+HV pair for fires)              | App logic over the live pass data                                   |
-| Hazard feature flag, pages, intro and guided tour                          | The app itself (copy from public NISAR mission information)         |
-| Client for the analysis API (`VITE_ANALYSIS_API_URL`)                      | Working code; there is no backend to call yet                       |
+| Real                                                                             | Demo (chip always visible)                                                      |
+| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| NISAR frame outlines, track, frame, direction, HH+HV flag                        | Band chart series (HH/HV per pass) and its band, on cases and live questions    |
+| Pass dates for a live question's frame (Observation Plan)                        | Pass timeline dates (12-day spacing) and its "% outside range" bars             |
+| Case verdicts, contrast bars (cell counts), matched-pairs whisker, quality strip | The answer to a live question: verdict, quality, and the processing step timing |
+| Change and baseline crops draped on the globe, report figures in the sheet       |                                                                                 |
+| Method: works / fails cards, Transformer benchmark, experimental model metrics   |                                                                                 |
 
-### 🟡 Demo (simulated, labelled in the app)
+**To fill:** Chocó's event facts (Servicio Geológico Colombiano) and its NISAR frame. HV and
+HH−HV layers are not drawn at all until the backend serves them.
 
-| Element                                                  | What it takes to make it real                                                    |
-| -------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Burn maps: hectares, severity, before/after radar images | The NISAC_Data_Lab GCOV pipeline behind the [analysis API](docs/analysis-api.md) |
-| Earthquake displacement: centimetres, lobes, fringes     | Processing the real GUNW files for the featured pairs                            |
-| Flood and forest loss analyses                           | Same pipeline as wildfire, with their own thresholds                             |
-| Validation figures on `/method` (87 %, 0.71 κ, 1.8 cm)   | Comparing real results with NASA FIRMS, HLS dNBR and GNSS stations               |
-| The wildfire event (Colombian Andes)                     | Choosing a real fire with FIRMS detections inside the NISAR data window          |
-| Analysis loading time (~1.5 s)                           | Real time depends on the pipeline                                                |
+## In progress
 
-Demo results are seeded per frame and date pair, so the same view always shows the same result,
-and the map always agrees with the numbers next to it.
+On another branch, not in `main` yet: the guided story on the Qadirabad (Chenab) flood
+(`/explore?story=1`), a 4-step onboarding, Nova (a rule-based assistant, demo), and downloads
+(PNG, JSON/CSV, a printable report page). Until then the explorer's "Guided tour" switch is
+disabled ("Coming next") and the landing's "The Chenab flood" button opens the explorer.
 
-## Featured events
-
-| Event                                                 | Date       | NISAR pair (before → after) | Frame                |
-| ----------------------------------------------------- | ---------- | --------------------------- | -------------------- |
-| M7.5 earthquake, Catia La Mar, Venezuela (10 km deep) | 2026-06-24 | 2026-06-13 → 2026-06-25     | Track 162 A, frame 7 |
-| M6.8 earthquake, Kumamoto, Japan (8 km deep)          | 2026-07-28 | 2026-07-21 → 2026-08-14     | Track 24 A, frame 18 |
-| M7.7 earthquake, Pitaloza Arriba, Panama (13 km deep) | 2026-10-09 | 2026-10-05 → 2026-10-17     | Track 76 A, frame 5  |
-| Wildfire, Colombian Andes (demo site)                 | 2026-10-15 | Latest HH+HV pair           | Track 47 A, frame 3  |
-
-Kumamoto and Panama also have descending pairs, which allow separating vertical from horizontal
-motion.
-
-## Architecture
-
-```mermaid
-flowchart LR
-  OP["NASA NISAR<br/>Observation Plan API"] -->|frames snapshot| FJ["public/data/frames.json"]
-  OP -->|passes per frame, live| APP
-  FJ --> APP["NISAR Hazard Watch<br/>React + CesiumJS"]
-  USGS["USGS earthquake<br/>catalogue"] -->|curated events| APP
-  ASF["ASF DAAC<br/>NISAR GCOV / GUNW"] --> PIPE["NISAC_Data_Lab<br/>pipeline (Python)"]
-  PIPE -->|"analysis API<br/>(docs/analysis-api.md)"| APP
-  APP -.->|no API configured| DEMO["Seeded demo<br/>analyses"]
-```
-
-- **Analysis contract:** [`docs/analysis-api.md`](docs/analysis-api.md), mirrored by
-  `src/features/analysis/analysis.types.ts`. It maps every field to the pipeline functions.
-- **Hazard registry:** `src/features/analysis/hazards.ts`. Each hazard declares its family,
-  polarization, colours, copy and demo; the UI never hard-codes a hazard.
+Open questions for the science team are in issue
+[#2](https://github.com/nisar-hazard-watch/nisar-hazard-watch/issues/2).
 
 ## Getting started
 
@@ -244,82 +189,92 @@ pnpm dev            # http://localhost:5173
 
 | Command                              | What it does                                                |
 | ------------------------------------ | ----------------------------------------------------------- |
-| `pnpm dev`                           | Dev server                                                  |
-| `pnpm build` / `pnpm preview`        | Production build and local preview                          |
+| `pnpm dev`                           | Dev server on port 5173                                     |
+| `pnpm build` / `pnpm preview`        | Production build (`tsc -b && vite build`) and local preview |
 | `pnpm typecheck`                     | TypeScript, strict                                          |
-| `pnpm lint` / `pnpm format`          | oxlint / Prettier                                           |
+| `pnpm lint`                          | oxlint                                                      |
+| `pnpm format` / `pnpm format:check`  | Prettier, write or check                                    |
 | `pnpm test`                          | Unit tests (Vitest)                                         |
 | `pnpm test:e2e` / `pnpm test:e2e:ui` | End-to-end tests (Playwright), headless or in UI mode       |
-| `pnpm frames:fetch`                  | Refresh the NISAR frames snapshot from the Observation Plan |
+| `pnpm frames:fetch`                  | Refresh `public/data/frames.json` from the Observation Plan |
 
 ## Configuration
 
-Copy `.env.example` to `.env.local` to override the defaults in `.env`.
+**None.** The frontend reads no environment variables: the Observation Plan and Esri imagery need
+no key. Old variables such as `VITE_ENABLED_HAZARDS` or `VITE_ANALYSIS_API_URL` are unused and can
+be removed from any deployment.
 
-| Variable                | Default                                   | Description                                                                                              |
-| ----------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `VITE_ENABLED_HAZARDS`  | `wildfire,earthquake,flood,deforestation` | Hazards shown in the app. The picker appears with more than one. Unknown values fall back to `wildfire`. |
-| `VITE_ANALYSIS_API_URL` | _(empty)_                                 | Base URL of the analysis service. Empty runs on demo data.                                               |
+> [!WARNING]
+> Anything named `VITE_*` is baked into the JavaScript bundle and readable by every visitor. Never
+> put a secret there (an LLM API key, a token, a password). Secrets belong in a backend that the
+> browser calls.
 
 ## Testing
 
-- **Unit (Vitest):** hit-testing, Observation Plan parsing, pair selection, the hazard flag and the
-  demo simulations, including regression tests for fixed bugs.
-- **End-to-end (Playwright):** Page Object Model, `data-testid` locators and mocked network. Tests
-  run against the **production build** with pinned configuration, so local settings cannot change
-  the results.
-- **CI** runs lint, format, typecheck, unit tests, build and E2E on every push and pull request.
+- **Unit (Vitest):** `tests/unit/`, for pure logic: Observation Plan parsing, frame hit-testing,
+  the next planned pass, timeline layout, case data rules, live-question helpers, model metrics.
+- **End-to-end (Playwright):** one spec per page in `tests/e2e/` (`site`, `cases`, `method`,
+  `explorer`), page objects in `tests/e2e/pom/`, `data-testid` locators, the Observation Plan
+  mocked from `tests/e2e/mocks/`.
+- E2E runs against the **production build** (`pnpm build && pnpm preview`) on port 5174, or on
+  `E2E_PORT` when set, with reduced motion on. Headless Chromium renders Cesium with software WebGL
+  (SwiftShader), so it is slow; it uses two workers.
+- **CI** (GitHub Actions): lint, format check, typecheck, unit tests and build, then E2E, on every
+  push to `main` and every pull request.
+
+## Deploying
+
+The app is a static single-page build: `pnpm build` writes `dist/`. It is hosted on Vercel;
+`vercel.json` rewrites every path except `data/`, `cesium/` and `assets/` to `index.html`. Any
+static host works with the same fallback. No environment variables are needed.
 
 ## Project structure
 
 ```text
 src/
-├── pages/            Landing, Explorer, Method, About (one folder each) and the shared site/ system
-├── content/          Team data for the About page
+├── App.tsx            Page switch on the pathname (no router dependency)
+├── pages/             landing, explorer, cases, method, about, and site/ (shared nav, footer, tokens)
+├── content/           Team, data sources, the landing's Barh example
 ├── features/
-│   ├── analysis/     Contract, hazard registry, API client, demo simulations
-│   ├── events/       Featured events (real earthquakes, demo fire)
-│   ├── frame-panel/  Frame details, passes, analysis results
-│   ├── frames/       Frames snapshot, hit-testing, Observation Plan client
-│   ├── globe/        CesiumJS viewer, entities, camera
-│   └── onboarding/   Intro and guided tour cards
-└── lib/              Router, async state, shared UI
-docs/                 API contract and screenshots
-scripts/              Frames snapshot generator
-tests/                Unit (Vitest) and E2E (Playwright, page objects)
+│   ├── cases/         Measured cases, lenses, demo band series, hazard icons
+│   ├── case-panel/    Case and live-question panel: verdict, quality strip, chips
+│   ├── charts/        Band chart (Recharts), contrast bars, matched whisker, metrics chart
+│   ├── frames/        Frames snapshot, hit-testing, Observation Plan client, next planned pass
+│   ├── globe/         CesiumJS viewer, case markers, frame outlines, camera framing
+│   ├── live/          Live question: job steps, demo answer, the frame's planned passes
+│   ├── sheet/         "More information" sheet and compare tile
+│   └── timeline/      Pass timeline and its layout maths
+└── lib/               Navigation, async state, provenance chip, shared helpers
+public/                frames.json, case crops and figures, landing, footer and team pictures
+scripts/               Frames snapshot generator
+tests/                 Unit (Vitest) and E2E (Playwright, page objects, mocks)
+docs/screenshots/      README pictures
 ```
 
 ## Contributing
 
 - **Conventional commits** (`feat:`, `fix:`, `docs:`, …), enforced by commitlint. Husky and
   lint-staged run oxlint and Prettier before each commit.
-- **TypeScript strict** with `noUncheckedIndexedAccess`; named exports; `@/` imports; comments say
-  _why_, not _what_.
+- **TypeScript strict** with `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`; named
+  exports; `@/` imports; comments say _why_, not _what_.
 - Every async view handles loading, error (with retry) and empty states.
-- Project conventions for people and AI agents: [`CLAUDE.md`](CLAUDE.md).
+- Project conventions for people and AI agents: [`CLAUDE.md`](CLAUDE.md). Visual system:
+  [`DESIGN.md`](DESIGN.md).
 
-## Roadmap
+## Credits
 
-- [x] Globe with all NISAR frames and live passes
-- [x] Multi-hazard analysis contract (surface change + ground motion) and feature flag
-- [x] Featured events with real coseismic NISAR pairs
-- [x] Landing, method & validation and explorer in one visual system (v4), with a guided tour
-- [ ] Real GCOV burn analysis from the pipeline, validated against NASA FIRMS and HLS
-- [ ] Real GUNW ground motion for Kumamoto and Venezuela, validated against GNSS
-- [ ] A real wildfire event inside the NISAR data window
-- [ ] Ascending + descending decomposition into vertical and east-west motion
-- [ ] 3D terrain deformation view for earthquakes
-
-## Data sources and credits
-
-- **NASA-ISRO NISAR** L2 GCOV and GUNW products, distributed by the
+- **NASA-ISRO NISAR** L2 GCOV and GUNW products, via the
   [Alaska Satellite Facility DAAC](https://search.asf.alaska.edu/).
-- **NASA NISAR Observation Plan** (frames and planned passes).
-- **USGS** [earthquake catalogue](https://earthquake.usgs.gov/earthquakes/search/).
-- **NASA FIRMS** and **HLS** (planned validation sources).
-- Landing pictures, all public domain: NISAR's first image of North Dakota and the artist's
-  concept of NISAR (NASA/JPL-Caltech); Blue Marble and cloud imagery (NASA Visible Earth). Optical
-  view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via NASA Worldview.
-- Base imagery © Esri, Maxar, Earthstar Geographics. Globe by [CesiumJS](https://cesium.com/platform/cesiumjs/).
+- **NASA NISAR Observation Plan** (frames and passes).
+- **NASA JPL OPERA** DSWx-HLS and DIST-ALERT (the optical second witness in the science reports).
+- Science backend and models: [NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling) and
+  [NISAR-Models](https://github.com/Ch0comilo/NISAR-Models).
+- Landing pictures: NISAR's first image of North Dakota and the artist's concept of NISAR
+  (NASA/JPL-Caltech); Blue Marble and cloud imagery (NASA Visible Earth), all public domain.
+  Optical view: NASA HLS, contains modified Copernicus Sentinel-2 data (2025), via NASA Worldview.
+- Base imagery © Esri, Maxar, Earthstar Geographics. Globe by
+  [CesiumJS](https://cesium.com/platform/cesiumjs/).
+- Pass timeline's next-planned-pass idea: Katheryn Guasca
+  ([#1](https://github.com/nisar-hazard-watch/nisar-hazard-watch/pull/1)).
 
-Built for the **NASA International Space Apps Challenge 2026** (_NISAR surface change_ challenge).
+Built by team **Nova Frontier** for the **NASA International Space Apps Challenge 2026**.
