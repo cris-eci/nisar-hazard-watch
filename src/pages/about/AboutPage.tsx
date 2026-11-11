@@ -36,8 +36,8 @@ const PROJECT_LINKS: { tag: string; title: string; sub: string; href: string }[]
   {
     tag: "CODE",
     title: "GitHub repository",
-    sub: "cris-eci/nisar-hazard-watch",
-    href: "https://github.com/cris-eci/nisar-hazard-watch",
+    sub: "nisar-hazard-watch/nisar-hazard-watch",
+    href: "https://github.com/nisar-hazard-watch/nisar-hazard-watch",
   },
   { tag: "CHALLENGE", title: "Space Apps project page", sub: "", href: "" },
   {

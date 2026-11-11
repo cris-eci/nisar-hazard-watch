@@ -13,7 +13,7 @@ an interactive 3D globe.
 [![Live demo](https://img.shields.io/badge/live%20demo-open%20the%20globe-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app)
 [![Method](https://img.shields.io/badge/method-%26%20validation-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app/method)
 
-[![CI](https://github.com/cris-eci/nisar-hazard-watch/actions/workflows/ci.yml/badge.svg)](https://github.com/cris-eci/nisar-hazard-watch/actions/workflows/ci.yml)
+[![CI](https://github.com/nisar-hazard-watch/nisar-hazard-watch/actions/workflows/ci.yml/badge.svg)](https://github.com/nisar-hazard-watch/nisar-hazard-watch/actions/workflows/ci.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)
 ![CesiumJS](https://img.shields.io/badge/CesiumJS-3D%20globe-6caddf)

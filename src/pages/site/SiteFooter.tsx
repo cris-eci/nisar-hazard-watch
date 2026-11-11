@@ -78,7 +78,7 @@ export const SiteFooter = ({
                 Open the globe
               </Link>
               <a
-                href="https://github.com/cris-eci/nisar-hazard-watch"
+                href="https://github.com/nisar-hazard-watch/nisar-hazard-watch"
                 className="s-foot__button s-foot__button--ghost"
               >
                 GitHub
