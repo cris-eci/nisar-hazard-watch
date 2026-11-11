@@ -46,7 +46,7 @@ radar can't tell. No forecasts, no probabilities, no causes.
 - [Measured cases](#measured-cases)
 - [Data sources and where they are fetched](#data-sources-and-where-they-are-fetched)
 - [What is real and what is demo](#what-is-real-and-what-is-demo)
-- [In progress](#in-progress)
+- [Guided story, onboarding, Nova and reports](#guided-story-onboarding-nova-and-reports)
 - [Getting started](#getting-started)
 - [Configuration](#configuration)
 - [Testing](#testing)
@@ -64,10 +64,11 @@ radar can't tell. No forecasts, no probabilities, no causes.
 | `/cases`   | The measured cases as cards, filterable by question                                                                                                          |
 | `/method`  | How it works: satellite teardown, the Qadirabad sequence, six steps, the band chart, the five lenses, experimental models, landslides, colour key            |
 | `/about`   | The team (Nova Frontier) and project links                                                                                                                   |
+| `/report`  | `?case=<id>`: a printable one-page report for a measured case                                                                                                |
 
 Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
-`/explore?frame=47-3` (optionally `&lens=<id>`) asks a live question on a NISAR frame. Old
-`/?frame=` links still open the explorer.
+`/explore?frame=47-3` (optionally `&lens=<id>`) asks a live question on a NISAR frame;
+`/explore?story=1` starts the guided story. Old `/?frame=` links still open the explorer.
 
 <table>
   <tr>
@@ -107,7 +108,12 @@ Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 - **Live question:** hover any land to see its NISAR frame, click to ask about it. The frame's
   passes are fetched live from the Observation Plan; the answer is a labelled demo until the
   backend API exists.
-- **Help menu:** pages, "Show REAL labels" (hides only Real chips), reduce motion.
+- **Guided tour / Explore switch:** the guided story on the Chenab flood (see below).
+- **Nova:** the round button bottom right opens a chat that explains what is on screen (rule-based,
+  demo).
+- **Download menu:** a PNG of the globe, the case's timeline as JSON or CSV, and the PDF report.
+- **Help menu:** replay the quick tour, start the story, pages, "Show REAL labels" (hides only Real
+  chips), reduce motion.
 
 <table>
   <tr>
@@ -165,15 +171,51 @@ The full element-by-element list is the design handoff's `DATA_PROVENANCE.md`. I
 | Change and baseline crops draped on the globe, report figures in the sheet       |                                                                                 |
 | Method: works / fails cards, Transformer benchmark, experimental model metrics   |                                                                                 |
 
-**To fill:** Chocó's event facts (Servicio Geológico Colombiano) and its NISAR frame. HV and
-HH−HV layers are not drawn at all until the backend serves them.
+Nova's answers are demo too (rule-based, see below), and the report's summary is a template.
 
-## In progress
+**To fill:** Chocó's event facts (Servicio Geológico Colombiano) and its NISAR frame; in the guided
+story, chapter 1's areas and people affected and chapter 5's photos and news. HV and HH−HV layers
+are not drawn at all until the backend serves them.
 
-On another branch, not in `main` yet: the guided story on the Qadirabad (Chenab) flood
-(`/explore?story=1`), a 4-step onboarding, Nova (a rule-based assistant, demo), and downloads
-(PNG, JSON/CSV, a printable report page). Until then the explorer's "Guided tour" switch is
-disabled ("Coming next") and the landing's "The Chenab flood" button opens the explorer.
+## Guided story, onboarding, Nova and reports
+
+<img src="docs/screenshots/explorer-story.jpg" alt="Guided story, chapter 3 of 6: the real Qadirabad change map on the globe, a card with the before and change crops, and Nova's caption bar along the bottom" width="100%">
+
+<p align="center"><b>The guided story:</b> chapter 3 of 6, the real change map from the science team, with Nova's caption bar.</p>
+
+- **Guided story** (`/explore?story=1`; also the landing's "The Chenab flood" button, the start
+  card, the "Guided tour" switch and the Help menu): six chapters on the Qadirabad (Chenab) flood.
+  What happened, where, what the radar saw, the second witness, on the ground, what NISAR adds.
+  Each chapter moves the globe and shows a card plus a caption bar with Back / Play / Next; Play
+  advances every 9 seconds, ← → step through the chapters, Esc exits, and the last chapter's
+  Explore button opens the Qadirabad case. Nova can read the captions aloud where the browser has
+  a speech voice. Every number in it is the case's real report value.
+- **Quick onboarding:** four spotlight steps (cases, panel, layer dock, timeline) shown once per
+  browser on a plain `/explore` visit; "Seen" lives in `localStorage`. Help → "Replay the quick
+  tour" shows it again; Skip or Esc closes it.
+- **Nova:** a chat that only rephrases what is on screen and cites the case's own sources, in
+  Plain or Technical mode, with suggested questions. It is **rule-based, not an AI model**, and
+  carries a Demo chip. Questions about people or damage get "No data": the radar can't answer
+  them. The whole chat goes through one function, `novaAnswer(question, context)` in
+  `src/features/nova/novaAnswer.ts`, so a real model with citations can replace it without touching
+  the UI.
+- **Downloads** (top bar): "Screenshot of the globe" (PNG with a strip naming the place,
+  question, dates and legend, plus a Demo flag when the view has demo values), the open case's
+  pass timeline as JSON or CSV (every row flagged demo, the file names its source), and "PDF
+  report".
+- **Report** (`/report?case=<id>`): one printable page per measured case with data blocks taken
+  straight from `cases.ts` (question and verdict, the band chart, inside-versus-nearby bars,
+  evidence and quality, limits, sources) and a summary filled from a fixed template, labelled
+  "Not AI-written". "Save as PDF" uses the browser's print dialog. An unknown or missing case lists
+  the measured ones.
+
+<img src="docs/screenshots/explorer-nova.jpg" alt="Nova open on the Qadirabad case: a Demo chip, the rule-based assistant notice, a cited answer and a No data reply to a question about people affected" width="100%">
+
+<p align="center"><b>Nova:</b> rule-based and labelled demo; it cites the case's sources and answers "No data" about people affected.</p>
+
+**Still to fill in the story:** chapter 1's "Areas affected" and "People affected" (from the
+PMD/FFD bulletin, official figures only) and chapter 5's photos and news items. They show as
+bracketed slots with a To fill chip until credited, linked material is copied from its source.
 
 Open questions for the science team are in issue
 [#2](https://github.com/nisar-hazard-watch/nisar-hazard-watch/issues/2).
@@ -213,9 +255,11 @@ be removed from any deployment.
 
 - **Unit (Vitest):** `tests/unit/`, for pure logic: Observation Plan parsing, frame hit-testing,
   the next planned pass, timeline layout, case data rules, live-question helpers, model metrics.
-- **End-to-end (Playwright):** one spec per page in `tests/e2e/` (`site`, `cases`, `method`,
-  `explorer`), page objects in `tests/e2e/pom/`, `data-testid` locators, the Observation Plan
-  mocked from `tests/e2e/mocks/`.
+- **End-to-end (Playwright):** specs in `tests/e2e/` (`site`, `cases`, `method`, `explorer`,
+  and `story` for the guided story, onboarding, Nova, downloads and the report), page objects in
+  `tests/e2e/pom/` (`GlobePage`, `MethodPage`), `data-testid` locators, the Observation Plan mocked
+  from `tests/e2e/mocks/`. `GlobePage.skipOnboarding()` marks the quick tour as seen, as on any
+  visit after the first.
 - E2E runs against the **production build** (`pnpm build && pnpm preview`) on port 5174, or on
   `E2E_PORT` when set, with reduced motion on. Headless Chromium renders Cesium with software WebGL
   (SwiftShader), so it is slow; it uses two workers.
@@ -233,16 +277,20 @@ static host works with the same fallback. No environment variables are needed.
 ```text
 src/
 ├── App.tsx            Page switch on the pathname (no router dependency)
-├── pages/             landing, explorer, cases, method, about, and site/ (shared nav, footer, tokens)
+├── pages/             landing, explorer, cases, method, about, report, and site/ (nav, footer, tokens)
 ├── content/           Team, data sources, the landing's Barh example
 ├── features/
 │   ├── cases/         Measured cases, lenses, demo band series, hazard icons
 │   ├── case-panel/    Case and live-question panel: verdict, quality strip, chips
 │   ├── charts/        Band chart (Recharts), contrast bars, matched whisker, metrics chart
+│   ├── downloads/     Globe PNG with its context strip, timeline JSON/CSV
 │   ├── frames/        Frames snapshot, hit-testing, Observation Plan client, next planned pass
 │   ├── globe/         CesiumJS viewer, case markers, frame outlines, camera framing
 │   ├── live/          Live question: job steps, demo answer, the frame's planned passes
+│   ├── nova/          Nova chat and its rule-based answers (novaAnswer)
+│   ├── onboarding/    The 4-step quick tour
 │   ├── sheet/         "More information" sheet and compare tile
+│   ├── story/         The guided story's chapters and cards
 │   └── timeline/      Pass timeline and its layout maths
 └── lib/               Navigation, async state, provenance chip, shared helpers
 public/                frames.json, case crops and figures, landing, footer and team pictures

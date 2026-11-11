@@ -10,8 +10,9 @@ Pages (`src/App.tsx` switches on the pathname; no router dependency):
 - `/` landing (`src/pages/landing/`), `/cases` (`src/pages/cases/`), `/method`
   (`src/pages/method/`), `/about` (`src/pages/about/`, team data in `src/content/team.ts`).
 - `/explore` the CesiumJS explorer (`src/pages/explorer/`). Deep links: `?case=<id>` opens a
-  measured case; `?frame=<track-frame>[&lens=<id>]` asks a live question. Legacy `/?frame=` links
-  also open the explorer.
+  measured case; `?frame=<track-frame>[&lens=<id>]` asks a live question; `?story=1` starts the
+  guided story. Legacy `/?frame=` links also open the explorer.
+- `/report?case=<id>` a printable one-page report for a measured case (`src/pages/report/`).
 
 Design source of truth: `design_handoff_v7/` next to this repo (outside git) (`SPECS.md`, `DATA_PROVENANCE.md`). Visual system:
 `DESIGN.md`.
@@ -56,7 +57,8 @@ plus the E2E spec(s) you touched.
   report figures are static files in `public/cases/`. Pass timeline dates in `cases.ts` are DEMO
   (12-day spacing) until the backend serves real ones.
 - **Demo values:** the band chart series (`src/features/cases/demoBand.ts`, with the backend's band
-  rule) and the live-question answer (`src/features/live/liveQuestion.ts`, picked from the frame id)
+  rule; a case's series sits on its own timeline dates up to the target via `caseBandPasses`) and
+  the live-question answer (`src/features/live/liveQuestion.ts`, picked from the frame id)
   are DEMO until `POST /v1/explore` exists (spec: NISAR-Modeling `docs/EXPLORE_API.md`). No backend
   is called today.
 - **Experimental model metrics** on `/method`: `src/features/charts/metrics.ts`, from the
@@ -89,8 +91,8 @@ Mirrors the conventions used at work (consoles-ui-monorepo), kept as simple as t
 - **Named exports only.** Default exports are allowed only in tool configs.
 - **Arrow-function components**, props as a `type` above the component.
 - **`@/` imports** inside `src/` and tests, never `../`.
-- **Feature folders:** `src/features/<feature>/` (cases, case-panel, charts, frames, globe, live,
-  sheet, timeline); shared helpers in `src/lib/`; page code in `src/pages/<page>/`.
+- **Feature folders:** `src/features/<feature>/` (cases, case-panel, charts, downloads, frames,
+  globe, live, nova, onboarding, sheet, story, timeline); shared helpers in `src/lib/`; page code in `src/pages/<page>/`.
 - **CSS per page with its prefix:** `s-` shared site (`src/pages/site/site.css`, tokens), `l-`
   landing, `k-` cases, `m-` method, `a-` about, `x-` explorer, `c-` charts and chips
   (`src/features/charts/charts.css`).
@@ -104,9 +106,13 @@ Mirrors the conventions used at work (consoles-ui-monorepo), kept as simple as t
 - **Unit (Vitest):** `tests/unit/`, for pure logic (Observation Plan parsing, hit-testing, timeline
   layout, case data rules, live-question helpers). A fixed bug gets a regression test that says
   which case it covers.
-- **E2E (Playwright):** one spec per page in `tests/e2e/` (`site`, `cases`, `method`, `explorer`),
-  **Page Object Model** in `tests/e2e/pom/` (`GlobePage`, `MethodPage`), locators by `data-testid`,
-  the Observation Plan mocked with `page.route()` from `tests/e2e/mocks/`.
+- **E2E (Playwright):** specs in `tests/e2e/` (`site`, `cases`, `method`, `explorer`, and `story`
+  for the guided story, onboarding, Nova, downloads and `/report`), **Page Object Model** in
+  `tests/e2e/pom/` (`GlobePage`, `MethodPage`), locators by `data-testid`, the Observation Plan
+  mocked with `page.route()` from `tests/e2e/mocks/`.
+- The quick tour shows on a first plain `/explore` visit (not on `?case=`, `?frame=` or
+  `?story=1`). `GlobePage.skipOnboarding()` marks it seen in `localStorage` before the page loads,
+  for tests that must not see it; its overlay lets clicks through except on its card.
 - E2E builds and serves the **production build** (`pnpm build && pnpm preview`) on port 5174, or on
   `E2E_PORT` so parallel worktrees can run their own server. With `reuseExistingServer` outside CI,
   stop any stale server on that port first.
@@ -125,8 +131,20 @@ Mirrors the conventions used at work (consoles-ui-monorepo), kept as simple as t
 - Deploy: static build on Vercel; `vercel.json` rewrites every path except `data/`, `cesium/` and
   `assets/` to `index.html`.
 
-## In progress elsewhere
+## Guided story, onboarding, Nova, downloads and report
 
-The guided story (`/explore?story=1`), 4-step onboarding, Nova (rule-based, DEMO) and downloads /
-report page are on another branch. Until they land, the explorer's "Guided tour" switch is
-disabled ("Coming next").
+- **Guided story** (`/explore?story=1`, `src/features/story/`): six chapters on the case marked
+  `tour` (Qadirabad, Chenab flood). Card per chapter plus a caption bar (Back / Play / Next, ← →,
+  Esc exits); Play advances every 9 s; optional Web Speech voice reads the captions. Numbers are the
+  case's REAL values. **TO FILL:** chapter 1 "Areas affected" / "People affected" (PMD/FFD
+  bulletin, official figures only) and chapter 5 photos and news; they stay bracketed slots with a
+  TO FILL chip until credited, linked material is copied in.
+- **Quick onboarding** (`src/features/onboarding/`): four spotlight steps (start card, panel,
+  layer dock, timeline), once per browser (`localStorage`, guarded); Help → "Replay the quick tour".
+- **Nova** (`src/features/nova/`): rule-based, DEMO chip, says so in the chat. It only rephrases
+  what is on screen and cites the case's sources; impact questions get "No data". The swap point
+  for a real model is `novaAnswer(question, context)` in `src/features/nova/novaAnswer.ts`; the UI
+  only calls that.
+- **Downloads** (`src/features/downloads/`): globe PNG with a context strip, timeline JSON/CSV
+  (every row `demo: true`), and "PDF report", which opens `/report?case=<id>`: DATA blocks straight
+  from `cases.ts` plus a template summary labelled "Not AI-written"; "Save as PDF" prints.

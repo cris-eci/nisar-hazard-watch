@@ -126,8 +126,8 @@ Explorer: panel title 24 px; body 13–15 px; quality-strip key mono 9.5 px, val
 ### Navigation
 
 `SiteNav`: wordmark left; Cases, Method, About and the "Open the explorer" pill right (short label
-on phones). The explorer has its own top bar (above). The "Guided tour" switch is disabled with
-"Coming next" until the story ships.
+on phones). The explorer has its own top bar (above). Its "Guided tour" / "Explore" switch starts and leaves
+the guided story (`?story=1`).
 
 ### Charts (`src/features/charts/`)
 
@@ -212,6 +212,7 @@ proposes a proper mobile bottom sheet for a later round.
 
 ## Known gaps
 
-- The guided story, onboarding, Nova and downloads are in progress on another branch.
+- Guided story: chapter 1's areas and people affected and chapter 5's photos and news are TO FILL
+  slots. Nova is rule-based (DEMO) until a real model replaces `novaAnswer`.
 - HV and HH−HV layers are not drawn until the backend serves them.
 - UI copy is English only.
