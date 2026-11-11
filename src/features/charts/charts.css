@@ -1,0 +1,589 @@
+/* Shared charts and chips (c-*): band chart, contrast bars, matched whisker, provenance chips.
+ * Used by the explorer, Method and the report. Data colours live in the components; UI is ink/gold. */
+
+.c-prov {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: help;
+}
+
+.c-prov--real {
+  border: 1px solid rgba(235, 233, 228, 0.35);
+  color: #d4d2cc;
+}
+
+.c-prov--demo {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fcd34d;
+}
+
+.c-prov--todo {
+  border: 1px dashed rgba(235, 233, 228, 0.45);
+  color: #a9a69e;
+}
+
+/* Band chart */
+.c-band {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.c-band__plot {
+  position: relative;
+  width: 100%;
+}
+
+.c-band__empty {
+  position: absolute;
+  inset: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 16px;
+  border: 1px dashed rgba(169, 166, 158, 0.6);
+  border-radius: 10px;
+  background: rgba(8, 16, 31, 0.6);
+  font-size: 12.5px;
+  color: #a9a69e;
+}
+
+.c-band__empty-title {
+  font-size: 15px;
+  color: #ebe9e4;
+}
+
+.c-band__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.c-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: #a9a69e;
+}
+
+.c-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.c-legend__band {
+  width: 16px;
+  height: 9px;
+  border: 1px dashed rgba(235, 233, 228, 0.45);
+  background: rgba(235, 233, 228, 0.12);
+}
+
+.c-legend__ring {
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid #ebe9e4;
+  border-radius: 50%;
+}
+
+.c-band__sentence {
+  font-size: 14.5px;
+  color: #d4d2cc;
+  text-wrap: pretty;
+}
+
+.c-band__tech {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 11px;
+}
+
+.c-band__tech div {
+  display: grid;
+  grid-template-columns: 7.5em 1fr;
+  gap: 8px;
+}
+
+.c-band__tech dt {
+  color: #8d8a83;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.c-band__tech dd {
+  margin: 0;
+  color: #d4d2cc;
+}
+
+/* Glass tooltip, shared by every chart */
+.c-tip {
+  min-width: 170px;
+  padding: 10px 12px;
+  border: 1px solid rgba(235, 233, 228, 0.14);
+  border-radius: 12px;
+  background: rgba(8, 16, 31, 0.92);
+  backdrop-filter: blur(16px);
+  font-size: 12.5px;
+  color: #ebe9e4;
+}
+
+.c-tip__date {
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.c-tip__phase {
+  margin-bottom: 6px;
+  color: #a9a69e;
+}
+
+.c-tip__row {
+  display: grid;
+  grid-template-columns: 18px 28px 1fr;
+  align-items: center;
+  gap: 4px 6px;
+}
+
+.c-tip__value {
+  justify-self: end;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+}
+
+.c-tip__sub {
+  grid-column: 2 / -1;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 10.5px;
+  color: #8d8a83;
+}
+
+/* Contrast bars */
+.c-bars {
+  margin: 0;
+}
+
+/*
+ * The columns live on the list and every row is a subgrid, so all tracks start and end at the same
+ * x: per-row grids gave "2,363 / 2,702" a shorter track than "165 / 506" and broke the 0–100% axis.
+ */
+.c-bars__rows {
+  display: grid;
+  /* The track keeps a minimum so a narrow card wraps the label instead of collapsing the bar. */
+  grid-template-columns: minmax(5.5em, 1.1fr) minmax(4rem, 1.4fr) 3.6em auto;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.c-bars__row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  font-size: 12.5px;
+  color: #d4d2cc;
+}
+
+.c-bars__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.25;
+}
+
+.c-bars__swatch {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+}
+
+.c-bars__track {
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(235, 233, 228, 0.06);
+  overflow: hidden;
+}
+
+.c-bars--compact .c-bars__track {
+  height: 10px;
+}
+
+.c-bars__fill {
+  display: block;
+  height: 100%;
+  min-width: 1px;
+  border-radius: 3px;
+}
+
+.c-bars__value {
+  justify-self: end;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 12px;
+  color: #ebe9e4;
+}
+
+.c-bars__count {
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 11px;
+  color: #8d8a83;
+  white-space: nowrap;
+}
+
+/* Matched-pairs whisker */
+.c-whisker {
+  position: relative;
+  margin: 0;
+  padding-bottom: 4px;
+}
+
+.c-whisker__title {
+  font-size: 13.5px;
+  color: #ebe9e4;
+}
+
+.c-whisker__n {
+  font-size: 12px;
+  color: #a9a69e;
+}
+
+.c-whisker__plot {
+  display: block;
+  width: 100%;
+  height: 28px;
+  margin-top: 22px;
+}
+
+.c-whisker__point {
+  position: absolute;
+  top: 58px;
+  width: 0;
+}
+
+.c-whisker__point::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: -6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #0072b2;
+  box-shadow: 0 0 0 2px #ebe9e4;
+}
+
+.c-whisker__point span {
+  position: absolute;
+  left: 0;
+  top: -30px;
+  transform: translateX(-50%);
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 11px;
+  color: #ebe9e4;
+  white-space: nowrap;
+}
+
+.c-whisker__ticks {
+  position: relative;
+  height: 16px;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 10px;
+  color: #8d8a83;
+}
+
+.c-whisker__ticks span {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.c-whisker__line {
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: #a9a69e;
+}
+
+/* Metrics chart (Method · experimental models). One fixed 0–1 axis for every row. */
+.c-metrics {
+  position: relative;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: #ebe9e4;
+}
+
+.c-metrics__legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  font-size: 12px;
+  color: #a9a69e;
+}
+
+.c-metrics__key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.c-metrics__swatch {
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.c-metrics__axis {
+  margin-left: auto;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8d8a83;
+}
+
+/* Precision solid, recall vertical hatch, F1 bright, IoU diagonal hatch. */
+.c-metric--precision {
+  background: #d4d2cc;
+}
+
+.c-metric--recall {
+  background: repeating-linear-gradient(90deg, rgba(4, 7, 14, 0.55) 0 2px, transparent 2px 5px)
+    #d4d2cc;
+}
+
+.c-metric--f1 {
+  background: #ebe9e4;
+}
+
+.c-metric--iou {
+  background: repeating-linear-gradient(135deg, rgba(4, 7, 14, 0.55) 0 2px, transparent 2px 5px)
+    #a9a69e;
+}
+
+.c-metrics__model {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.8fr) minmax(0, 1.6fr);
+  gap: 12px 18px;
+  align-items: start;
+  padding-top: 14px;
+  border-top: 1px solid rgba(235, 233, 228, 0.08);
+}
+
+.c-metrics__head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.c-metrics__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.c-metrics__badge {
+  padding: 2px 7px;
+  border: 1px solid rgba(235, 233, 228, 0.25);
+  border-radius: 999px;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 9.5px;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #d4d2cc;
+}
+
+.c-metrics__sub {
+  font-size: 12.5px;
+  color: #a9a69e;
+}
+
+.c-metrics__impl {
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 10.5px;
+  color: #8d8a83;
+}
+
+.c-metrics__card {
+  font-size: 12px;
+  color: #c9b48b;
+}
+
+.c-metrics__card:hover {
+  color: #dccaa3;
+}
+
+.c-metrics__tests {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.c-metrics__test {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.c-metrics__label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 12.5px;
+  color: #d4d2cc;
+}
+
+.c-metrics__tag {
+  padding: 1px 6px;
+  border: 1px solid rgba(235, 233, 228, 0.2);
+  border-radius: 999px;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #a9a69e;
+}
+
+.c-metrics__tag--warn {
+  border: 1px dashed rgba(252, 211, 77, 0.6);
+  color: #fcd34d;
+}
+
+.c-metrics__row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) 52px;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+}
+
+.c-metrics__k {
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #a9a69e;
+}
+
+.c-metrics__track {
+  position: relative;
+  height: 14px;
+  border-radius: 3px;
+  background: rgba(235, 233, 228, 0.06);
+}
+
+.c-metrics--tech .c-metrics__track {
+  height: 12px;
+}
+
+/* A missing score is a dashed empty track, never a bar at 0. */
+.c-metrics__track--empty {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(235, 233, 228, 0.08) 0 4px,
+    transparent 4px 8px
+  );
+}
+
+.c-metrics__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 3px;
+}
+
+.c-metrics__row:hover .c-metrics__fill {
+  outline: 1.5px solid #c9b48b;
+}
+
+.c-metrics__none {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 9.5px;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #a9a69e;
+}
+
+.c-metrics__v {
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 12.5px;
+  text-align: right;
+  color: #ebe9e4;
+}
+
+.c-metrics__track--empty + .c-metrics__v {
+  color: #6f6c66;
+}
+
+.c-metrics__tip {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  z-index: 3;
+  width: 240px;
+  display: none;
+  flex-direction: column;
+  gap: 3px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.c-metrics__row:hover .c-metrics__tip {
+  display: flex;
+}
+
+.c-metrics__tip-title {
+  font-weight: 500;
+}
+
+.c-metrics__tip-v {
+  font-family: var(--mono, "JetBrains Mono", monospace);
+  font-size: 12px;
+}
+
+.c-metrics__tip-d {
+  font-size: 11.5px;
+  color: #a9a69e;
+}
+
+.c-metrics__caption {
+  font-size: 13px;
+  color: #a9a69e;
+}
+
+@media (max-width: 40rem) {
+  .c-metrics__model {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .c-metrics__axis {
+    margin-left: 0;
+  }
+}

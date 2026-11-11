@@ -1,14 +1,15 @@
 import { APP_NAME } from "@/lib/appName";
 import { Link } from "@/lib/Link";
 
-type SitePage = "landing" | "method" | "about";
+export type SitePage = "landing" | "cases" | "method" | "about";
 
 type SiteNavProps = {
   page: SitePage;
 };
 
-const PAGE_LINKS: { page: SitePage; to: string; label: string; testId?: string }[] = [
-  { page: "method", to: "/method", label: "Method" },
+const PAGE_LINKS: { page: SitePage; to: string; label: string; testId: string }[] = [
+  { page: "cases", to: "/cases", label: "Cases", testId: "nav-cases" },
+  { page: "method", to: "/method", label: "Method", testId: "nav-method" },
   { page: "about", to: "/about", label: "About", testId: "nav-about" },
 ];
 
@@ -19,15 +20,6 @@ export const SiteNav = ({ page }: SiteNavProps) => (
       {APP_NAME}
     </Link>
     <div className="s-nav__links">
-      {/* From another page a full load, on purpose: the events sit below the pinned story. */}
-      {page !== "about" && (
-        <a
-          href={page === "landing" ? "#events" : "/#events"}
-          className="s-nav__link s-nav__link--events"
-        >
-          Events
-        </a>
-      )}
       {PAGE_LINKS.map(({ page: target, to, label, testId }) =>
         target === page ? (
           <a key={to} href={to} className="s-nav__link" aria-current="page" data-testid={testId}>
@@ -40,7 +32,9 @@ export const SiteNav = ({ page }: SiteNavProps) => (
         ),
       )}
       <Link to="/explore" className="s-nav__pill" testId="nav-explore">
-        Open the globe
+        {/* Phones keep the short label so the three page links still fit at 390 px. */}
+        <span className="s-nav__pill-long">Open the explorer</span>
+        <span className="s-nav__pill-short">Explore</span>
       </Link>
     </div>
   </nav>

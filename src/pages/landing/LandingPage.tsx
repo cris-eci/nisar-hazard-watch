@@ -1,22 +1,18 @@
 import "@/pages/site/site.css";
 import "@/pages/landing/landing.css";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 
-import {
-  generateDeformationField,
-  summarizeDeformation,
-} from "@/features/analysis/mock/deformationField";
-import { fringeColor } from "@/features/analysis/mock/mockDeformation";
-import { toPngUrl } from "@/features/analysis/mock/png";
-import { GRID_SIZE } from "@/features/analysis/mock/scarField";
-import { FEATURED_EVENTS } from "@/features/events/events";
+import { BARH_GROUP, BARH_SOURCE } from "@/content/barh";
+import { DATA_SOURCES } from "@/content/dataSources";
+import { CASES, formatPercent, OPTICAL, percent } from "@/features/cases/cases";
+import { ContrastBars } from "@/features/charts/ContrastBars";
 import { Link } from "@/lib/Link";
-import { whenIdle } from "@/lib/whenIdle";
+import { ProvenanceChip } from "@/lib/ProvenanceChip";
 import { CompareSlider } from "@/pages/landing/CompareSlider";
 import { EarthHero, type EarthControls, type Project } from "@/pages/landing/EarthHero";
-import { EventCard } from "@/pages/landing/EventCard";
 import { facingRotation, lonLatToVec } from "@/pages/landing/geo";
+import { LandingCaseCard } from "@/pages/landing/LandingCaseCard";
 import { useLandingMotion } from "@/pages/landing/useLandingMotion";
 import { SiteFooter, type FooterColumn } from "@/pages/site/SiteFooter";
 import { SiteNav } from "@/pages/site/SiteNav";
@@ -24,11 +20,14 @@ import { prefersReducedMotion } from "@/pages/site/siteMotion";
 
 const reducedMotion = prefersReducedMotion();
 
-const STORY_EVENT_ID = "venezuela-2026";
-const storyEvent = FEATURED_EVENTS.find(({ id }) => id === STORY_EVENT_ID);
-const STORY_FOCUS = storyEvent?.focus ?? [-67.221, 10.595];
-// The explorer's demo seed for this event (hazard:frame:before:after), so both pages show one value.
-const STORY_SEED = "earthquake:162-7:2026-06-13:2026-06-25";
+// The story ends on the guided tour's case; its numbers come from cases.ts, never from here.
+const STORY_CASE_ID = "qadirabad";
+const storyCase = CASES.find(({ id }) => id === STORY_CASE_ID);
+const STORY_FOCUS = storyCase?.focus ?? [73.713, 32.329];
+// New water against dry land: the headline comparison. Existing water stays on the cases page.
+const CALLOUT_ROWS = (storyCase?.groups?.[0]?.rows ?? [])
+  .filter(({ color }) => color !== OPTICAL.stableWater)
+  .map((row) => ({ ...row, label: row.label.replace(" (optical)", "") }));
 
 const HOME = facingRotation(-74, 4); // Colombia
 const TARGET = facingRotation(STORY_FOCUS[0], STORY_FOCUS[1]);
@@ -48,19 +47,12 @@ const initialControls = (): EarthControls => ({
 });
 
 const STEPS: { when: string; what: string }[] = [
-  { when: "Day 0", what: "First pass, the before image" },
-  { when: "Day 12", what: "NISAR returns to the same frame" },
+  { when: "Months", what: "Earlier passes set each spot's normal range" },
+  { when: "Day 0", what: "NISAR passes again after the event" },
   { when: "A few days", what: "ASF publishes the radar products" },
-  { when: "Minutes", what: "The pipeline compares both passes" },
-  { when: "Seconds", what: "The change is drawn on the globe" },
+  { when: "A minute", what: "The new pass is checked against the range" },
+  { when: "Same day", what: "An optical satellite is asked to agree" },
 ];
-
-const EVENT_LINES: Record<string, { name: string; meta: string }> = {
-  "venezuela-2026": { name: "Venezuela", meta: "M7.5 · 2026-06-24 · TRACK 162 A" },
-  "kumamoto-2026": { name: "Kumamoto, Japan", meta: "M6.8 · 2026-07-28 · TRACK 24 A" },
-  "panama-2026": { name: "Pitaloza Arriba, Panama", meta: "M7.7 · 2026-10-09 · TRACK 76 A" },
-  "andes-fire-demo": { name: "Colombian Andes", meta: "WILDFIRE · DEMO SITE · TRACK 47 A" },
-};
 
 const MISSION: { heading: string; body: string }[] = [
   {
@@ -86,8 +78,11 @@ const FOOTER_COLUMNS: FooterColumn[] = [
         href: "https://nisar.jpl.nasa.gov/mission/get-to-know-sar/observation-plan/",
       },
       { label: "ASF DAAC", href: "https://search.asf.alaska.edu/" },
-      { label: "USGS catalogue", href: "https://earthquake.usgs.gov/earthquakes/search/" },
-      { label: "NASA HLS / Sentinel-2", href: "https://hls.gsfc.nasa.gov/" },
+      {
+        label: "OPERA products",
+        href: "https://www.jpl.nasa.gov/go/opera/products/dist-product-suite/",
+      },
+      { label: "Science backend", href: "https://github.com/Ch0comilo/NISAR-Modeling" },
     ],
   },
   {
@@ -96,7 +91,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
       { label: "Source code", href: "https://github.com/cris-eci/nisar-hazard-watch" },
       {
         label: "API contract",
-        href: "https://github.com/cris-eci/nisar-hazard-watch/blob/main/docs/analysis-api.md",
+        href: "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
       },
       { label: "NISAR mission", href: "https://science.nasa.gov/mission/nisar/" },
       { label: "CesiumJS", href: "https://cesium.com/platform/cesiumjs/" },
@@ -107,26 +102,12 @@ const FOOTER_COLUMNS: FooterColumn[] = [
 const FOOTER_NOTE =
   "Pictures: NISAR first image of North Dakota and artist's concept of NISAR (NASA/JPL-Caltech); " +
   "Blue Marble and cloud imagery (NASA Visible Earth), all public domain. Optical view: NASA HLS, " +
-  "contains modified Copernicus Sentinel-2 data (2025), via NASA Worldview. Event imagery: Esri " +
+  "contains modified Copernicus Sentinel-2 data (2025), via NASA Worldview. Case imagery: Esri " +
   "World Imagery.";
 
-type DemoFringes = { url: string; maxTowardCm: number };
-
-// The 256² field takes a moment, so it waits until the browser is idle after the first paint.
-const useDemoFringes = (): DemoFringes | undefined => {
-  const [fringes, setFringes] = useState<DemoFringes>();
-  useEffect(() => {
-    const build = () => {
-      const field = generateDeformationField(STORY_SEED, GRID_SIZE);
-      // Pixel area only scales the deformed-area figure, which the callout does not show.
-      const { maxTowardCm } = summarizeDeformation(field, 0);
-      const url = toPngUrl(GRID_SIZE, (i) => fringeColor(field.losCm[i] ?? 0));
-      setFringes({ url, maxTowardCm });
-    };
-    return whenIdle(build);
-  }, []);
-  return fringes;
-};
+const MEASURED_COUNT = CASES.filter(({ pending }) => pending !== true).length;
+const COUNT_WORDS = ["NO", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT"];
+const measuredLabel = `${COUNT_WORDS[MEASURED_COUNT] ?? MEASURED_COUNT} MEASURED CASE${MEASURED_COUNT === 1 ? "" : "S"}`;
 
 export const LandingPage = () => {
   const root = useRef<HTMLDivElement>(null);
@@ -136,12 +117,11 @@ export const LandingPage = () => {
   const setCloudCover = useCallback((value: number) => {
     cloudCover.current = value;
   }, []);
-  const fringes = useDemoFringes();
   useLandingMotion(root, { controls, setCloudCover, home: HOME, target: TARGET });
 
   // Moves the callout every frame with a transform, never through React state. The card slides
-  // sideways to stay on screen; the marker stays on the epicentre.
-  const followEpicentre = useCallback((project: Project, c: EarthControls) => {
+  // sideways to stay on screen; the marker stays on the case point.
+  const followCasePoint = useCallback((project: Project, c: EarthControls) => {
     const element = callout.current;
     const card = element?.lastElementChild;
     if (element === null || !(card instanceof HTMLElement)) return;
@@ -153,8 +133,6 @@ export const LandingPage = () => {
     element.style.opacity = String(c.callout);
     card.style.translate = `${shift}px 0`;
   }, []);
-
-  const events = FEATURED_EVENTS.filter(({ id }) => id in EVENT_LINES);
 
   return (
     <div ref={root} className="site landing" data-motion={reducedMotion ? "reduced" : "full"}>
@@ -170,7 +148,7 @@ export const LandingPage = () => {
             <EarthHero
               cloudCover={cloudCover}
               controls={controls}
-              onFrame={followEpicentre}
+              onFrame={followCasePoint}
               reducedMotion={reducedMotion}
             />
 
@@ -179,16 +157,20 @@ export const LandingPage = () => {
                 Earth, without the clouds.
               </h1>
               <p className="l-hero__lead" data-intro>
-                NISAR Hazard Watch turns NASA-ISRO radar passes into maps of burn scars, floods and
-                moving ground, through cloud, smoke and night.
+                NASA-ISRO&apos;s NISAR radar sees through cloud and at night. Pick a place: we
+                compare its latest pass with its own history, check a second satellite, and say
+                plainly what the radar can&apos;t tell.
               </p>
               <div className="l-hero__actions" data-intro>
                 <Link to="/explore" className="s-button" testId="cta-explore">
-                  Open the globe
+                  Open the explorer
                 </Link>
-                <a href="#compare" className="l-hero__more">
-                  See through the clouds ↓
-                </a>
+                <Link to="/explore?story=1" className="l-hero__story" testId="cta-story">
+                  <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M8 5.5v13l10.5-6.5z" fill="currentColor" />
+                  </svg>
+                  The Chenab flood · 1 min
+                </Link>
               </div>
             </header>
 
@@ -213,12 +195,18 @@ export const LandingPage = () => {
             </div>
 
             <div className="l-layer l-layer--side l-layer--c" data-layer="c">
-              <h2 className="s-head">Down to the centimetre.</h2>
+              <p className="s-mono-label">QADIRABAD, PAKISTAN · 26 JUL 2026</p>
+              <h2 className="s-head l-layer__head--c">When the river rose, the radar went dark.</h2>
               <p className="l-layer__body l-layer__body--c">
-                Comparing two passes, NISAR can measure ground motion of about a centimetre. Here,
-                the M7.5 earthquake at Catia La Mar, Venezuela.
+                Calm water bounces radar away. Where an optical satellite saw new water, NISAR had
+                flagged 64% of cells; on dry land, 1%. It also flagged 17% of water that was already
+                there, and we say so.
               </p>
-              <Link to={`/explore?event=${STORY_EVENT_ID}`} className="s-gold-link l-layer__link">
+              <Link
+                to={`/explore?case=${STORY_CASE_ID}`}
+                className="s-gold-link l-layer__link"
+                testId="story-case-link"
+              >
                 Open this event on the globe →
               </Link>
             </div>
@@ -226,25 +214,27 @@ export const LandingPage = () => {
             <div ref={callout} className="l-callout" aria-hidden="true">
               <div className="l-callout__marker" />
               <div className="l-callout__card">
-                <div className="l-callout__row">
-                  {fringes !== undefined && (
-                    <img
-                      src={fringes.url}
-                      alt="Demo interferogram fringes"
-                      width={72}
-                      height={72}
-                    />
-                  )}
-                  <div>
-                    <p className="l-callout__value">
-                      {fringes === undefined ? "…" : `${fringes.maxTowardCm} cm`}
-                    </p>
-                    <p className="l-callout__label">peak motion toward the satellite</p>
-                  </div>
-                </div>
+                <p className="l-callout__label">Cells flagged by the radar</p>
+                {/* Fixed 0–100% track, like every share on the site. */}
+                {CALLOUT_ROWS.map(({ label, k, n, color }) => {
+                  const value = percent(k, n);
+                  return (
+                    <div key={label} className="l-callout__bar">
+                      <span>{label}</span>
+                      <span className="l-callout__track">
+                        <span style={{ width: `${value}%`, background: color }} />
+                      </span>
+                      <span className="l-callout__value">{formatPercent(value)}</span>
+                    </div>
+                  );
+                })}
                 <div className="l-callout__meta">
-                  <span>2026-06-13 → 06-25</span>
-                  <span className="l-callout__demo">DEMO DATA</span>
+                  <span>
+                    {CALLOUT_ROWS.map(
+                      ({ k, n }) => `${k.toLocaleString("en-US")} / ${n.toLocaleString("en-US")}`,
+                    ).join(" · ")}
+                  </span>
+                  <span>NISAR-MODELING</span>
                 </div>
               </div>
             </div>
@@ -285,9 +275,9 @@ export const LandingPage = () => {
               From orbit to your map.
             </h2>
             <p className="l-pipeline__lead" data-reveal>
-              A change map needs two radar passes over the same ground. Most of the wait is the
-              satellite coming back around; once both passes are on the archive, the rest takes
-              minutes.
+              Every answer needs a history: earlier passes tell us what&apos;s normal for that exact
+              spot. Then one new pass is checked against it, and a second satellite is asked to
+              agree or not.
             </p>
             <div className="l-pipeline__track">
               <div className="l-pipeline__rail" />
@@ -303,33 +293,91 @@ export const LandingPage = () => {
               </ol>
             </div>
             <p className="l-pipeline__total" data-reveal>
-              <span>A map of what changed</span>
-              <span className="l-pipeline__total-value">About two weeks</span>
+              <span>An answer, with its limits</span>
+              <span className="l-pipeline__total-value">
+                Target: about a minute once the live API is connected
+              </span>
             </p>
           </div>
         </section>
 
-        <section id="events" className="l-events" aria-labelledby="events-heading">
-          <div className="l-events__stage">
-            <div className="l-events__head">
-              <h2 id="events-heading" className="s-head">
-                Real events, real passes.
+        <section id="cases" className="l-cases" aria-labelledby="cases-heading">
+          <div className="l-cases__stage">
+            <div className="l-cases__head">
+              <h2 id="cases-heading" className="s-head">
+                Measured cases, real passes.
               </h2>
-              <p className="l-events__note">
-                Event dates and NISAR passes are real. The analyses drawn on top are demo data until
-                the team&apos;s pipeline runs on them.
+              <p className="l-cases__note">
+                Each number comes from the science team&apos;s published reports, failures included.{" "}
+                <Link to="/cases" className="s-gold-link" testId="landing-all-cases">
+                  All cases →
+                </Link>
               </p>
             </div>
-            <ul className="l-events__track">
-              {events.map((event) => {
-                const line = EVENT_LINES[event.id];
-                if (line === undefined) return null;
-                return (
-                  <li key={event.id}>
-                    <EventCard event={event} name={line.name} meta={line.meta} />
-                  </li>
-                );
-              })}
+            <ul className="l-cases__track">
+              {CASES.map((item) => (
+                <li key={item.id}>
+                  <LandingCaseCard item={item} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
+        <section className="s-section l-honesty" data-section aria-labelledby="honesty-heading">
+          <div className="s-container l-honesty__grid">
+            <div>
+              <p className="s-mono-label" data-reveal>
+                WHERE IT FAILS, IN THE OPEN
+              </p>
+              <h2 id="honesty-heading" className="l-honesty__heading" data-reveal>
+                We publish where the method gets it wrong.
+              </h2>
+              <p className="l-honesty__body" data-reveal>
+                At Barh, India, the rule that caught 87.5% of new water also flagged 32.6% of water
+                that was already there. A radar change is evidence, not a verdict. We never guess a
+                cause, a probability or a depth.
+              </p>
+              <Link to="/method" className="s-gold-link l-honesty__link" testId="honesty-method">
+                Where it works and where it fails →
+              </Link>
+            </div>
+            <figure className="l-honesty__card" data-reveal data-testid="honesty-bars">
+              <figcaption className="l-honesty__caption">
+                <span>
+                  <span className="l-honesty__title">{BARH_GROUP.title}</span>
+                  <span className="l-honesty__sub">{BARH_GROUP.sub}</span>
+                </span>
+                <ProvenanceChip kind="real" source={BARH_SOURCE.label} />
+              </figcaption>
+              <ContrastBars group={BARH_GROUP} mode="plain" />
+              <a
+                href={BARH_SOURCE.href}
+                className="l-honesty__source"
+                target="_blank"
+                rel="noopener"
+              >
+                {BARH_SOURCE.label} ↗
+              </a>
+            </figure>
+          </div>
+        </section>
+
+        <section className="s-section l-sources" data-section aria-labelledby="sources-heading">
+          <div className="s-container">
+            <h2 id="sources-heading" className="s-mono-label" data-reveal>
+              THE DATA WE USE
+            </h2>
+            <ul className="l-sources__list" data-testid="data-sources">
+              {DATA_SOURCES.map(({ tag, name, what, href }) => (
+                <li key={name} data-reveal>
+                  <a href={href} className="l-sources__item" target="_blank" rel="noopener">
+                    <span className="l-sources__tag">{tag}</span>
+                    <span className="l-sources__name">{name} ↗</span>
+                    <span className="l-sources__what">{what}</span>
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </section>
@@ -363,18 +411,18 @@ export const LandingPage = () => {
 
         <section className="s-section--wide l-close" data-section aria-labelledby="close-heading">
           <p className="s-mono-label" data-reveal>
-            16,663 FRAMES ON NISAR&apos;S PLAN
+            {measuredLabel} · ANY POINT ON LAND
           </p>
           <h2 id="close-heading" className="l-close__heading" data-reveal>
-            Pick any frame.
+            Ask the radar.
           </h2>
           <p className="l-close__body" data-reveal>
-            Point at the globe to see NISAR&apos;s frames, open one to list its passes, or start
-            with a real earthquake.
+            Open a measured case, or click any land to try a live question (a labelled demo answer
+            for now).
           </p>
           <div className="l-close__action" data-reveal>
             <Link to="/explore" className="s-button s-button--large" testId="cta-band">
-              Open the globe
+              Open the explorer
             </Link>
           </div>
         </section>

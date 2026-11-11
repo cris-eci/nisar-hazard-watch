@@ -33,3 +33,6 @@ playwright-report/
 
 # Original downloads from the open collections (optimised copies live in public/landing)
 /assets/
+
+# Agent worktrees
+.claude/worktrees/

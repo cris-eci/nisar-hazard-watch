@@ -20,7 +20,7 @@ type Story = {
 };
 
 // Smooth scroll; the pinned story (clouds dissolve, orbit, the 12-day counter, the turn to the
-// epicentre); the pipeline fill; the events carousel; the mission parallax; one staggered entrance
+// case point); the pipeline fill; the cases carousel; the mission parallax; one staggered entrance
 // per section. Entrances use gsap.from, so if this never runs nothing stays hidden. With reduced
 // motion the page lays the story out as plain sections (landing.css) and only the cloud cover is set.
 export const useLandingMotion = (
@@ -143,13 +143,13 @@ export const useLandingMotion = (
         });
       }
 
-      const track = element.querySelector<HTMLElement>(".l-events__track");
+      const track = element.querySelector<HTMLElement>(".l-cases__track");
       if (track !== null) {
         gsap.to(track, {
           x: () => -Math.max(0, track.scrollWidth - window.innerWidth),
           ease: "none",
           scrollTrigger: {
-            trigger: ".l-events",
+            trigger: ".l-cases",
             start: "top top",
             end: "bottom bottom",
             scrub: 0.6,

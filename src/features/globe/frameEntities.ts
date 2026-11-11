@@ -1,28 +1,100 @@
 import {
+  Cartesian2,
   Cartesian3,
   Color,
+  HorizontalOrigin,
   ImageryLayer,
+  LabelStyle,
+  PolylineDashMaterialProperty,
   Rectangle,
   SingleTileImageryProvider,
+  VerticalOrigin,
   type Entity,
   type Viewer,
 } from "cesium";
 
-import type { GlobeOverlay } from "@/features/analysis/overlay.types";
-import type { BBox, Frame } from "@/features/frames/frame.types";
+import type { BBox, Frame, LonLat } from "@/features/frames/frame.types";
 
 export const HOVER_COLOR = Color.fromCssColorString("#e2e8f0");
-export const SELECTED_COLOR = Color.fromCssColorString("#c9b48b"); // the site's gold
+export const GOLD = Color.fromCssColorString("#c9b48b");
+export const INK = Color.fromCssColorString("#ebe9e4");
+export const SPACE = Color.fromCssColorString("#04070e");
 
-// One entity per ring: antimeridian frames have two.
-// A light fill marks the frame without hiding the analysis layer draped inside it.
-export const addFrameEntities = (viewer: Viewer, frame: Frame, color: Color): Entity[] =>
+// An image the globe drapes over a lon/lat rectangle.
+export type Drape = { url: string; bounds: BBox };
+
+// One entity per ring: antimeridian frames have two. The fill stays faint so it never hides the map.
+export const addFrameEntities = (
+  viewer: Viewer,
+  frame: Frame,
+  color: Color,
+  { width = 1.5, alpha = 0.85, fill = 0.06 } = {},
+): Entity[] =>
   frame.rings.map((ring) => {
     const positions = Cartesian3.fromDegreesArray(ring.flat());
     return viewer.entities.add({
-      polygon: { hierarchy: positions, material: color.withAlpha(0.08) },
-      polyline: { positions, width: 2, material: color },
+      polygon: { hierarchy: positions, material: color.withAlpha(fill) },
+      polyline: { positions, width, material: color.withAlpha(alpha) },
     });
+  });
+
+export type ChipOutline = { box: BBox; label: string; processing: boolean };
+
+// The processed square: solid gold once measured, a gold dash while the radar job runs (SPECS §2.6).
+export const addChipOutline = (
+  viewer: Viewer,
+  { box: [west, south, east, north], label, processing }: ChipOutline,
+): Entity[] => {
+  const positions = Cartesian3.fromDegreesArray([
+    west,
+    south,
+    east,
+    south,
+    east,
+    north,
+    west,
+    north,
+    west,
+    south,
+  ]);
+  return [
+    viewer.entities.add({
+      polyline: {
+        positions,
+        width: processing ? 2.5 : 3,
+        material: processing
+          ? new PolylineDashMaterialProperty({ color: GOLD, dashLength: 12 })
+          : GOLD,
+      },
+    }),
+    viewer.entities.add({
+      position: Cartesian3.fromDegrees(west, north),
+      label: {
+        text: processing ? "PROCESSING RADAR FOR THIS AREA…" : label,
+        font: "500 11px JetBrains Mono, monospace",
+        fillColor: processing ? GOLD : INK,
+        outlineColor: SPACE,
+        outlineWidth: 3,
+        style: LabelStyle.FILL_AND_OUTLINE,
+        pixelOffset: new Cartesian2(0, -10),
+        horizontalOrigin: HorizontalOrigin.LEFT,
+        verticalOrigin: VerticalOrigin.BOTTOM,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+    }),
+  ];
+};
+
+export const addPointEntity = (viewer: Viewer, [lon, lat]: LonLat): Entity =>
+  viewer.entities.add({
+    position: Cartesian3.fromDegrees(lon, lat),
+    point: {
+      pixelSize: 9,
+      color: INK,
+      outlineColor: SPACE,
+      outlineWidth: 2,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY,
+    },
   });
 
 // On unmount the viewer is destroyed before the other effects clean up, and a destroyed viewer has
@@ -32,41 +104,17 @@ export const removeEntities = (viewer: Viewer, entities: Entity[]): void => {
   for (const entity of entities) viewer.entities.remove(entity);
 };
 
-// The cards cover the left (controls, ~372 px) and right (frame panel, ~416 px) of the screen, so
-// the area is centred in the free band between them, with `padding` of its size around it. On narrow
-// screens the panel covers the globe anyway, so the area is simply centred.
-const LEFT_CARD_PX = 372;
-const RIGHT_PANEL_PX = 416;
-const NARROW_PX = 768;
-
-export const framedRectangle = (
-  [west, south, east, north]: BBox,
-  padding: number,
-  viewportWidth: number,
-): Rectangle => {
-  const width = east - west;
-  const padLat = (north - south) * padding;
-  if (viewportWidth < NARROW_PX) {
-    return Rectangle.fromDegrees(
-      west - width * padding,
-      south - padLat,
-      east + width * padding,
-      north + padLat,
-    );
-  }
-  const free = Math.max(0.25, (viewportWidth - LEFT_CARD_PX - RIGHT_PANEL_PX) / viewportWidth);
-  const fill = 1 / (1 + 2 * padding);
-  const span = width / (free * fill);
-  const viewWest = west - span * (LEFT_CARD_PX / viewportWidth + (free * (1 - fill)) / 2);
-  return Rectangle.fromDegrees(viewWest, south - padLat, viewWest + span, north + padLat);
-};
-
-// Analysis rasters go in as an imagery layer, composited with the base map like any map tile. An
-// entity rectangle is shaded by the globe's lighting and left a dark veil over the data.
-export const addOverlayLayer = (viewer: Viewer, { url, bounds }: GlobeOverlay): ImageryLayer => {
+// Rasters go in as an imagery layer, composited with the base map like any map tile. An entity
+// rectangle is shaded by the globe's lighting and left a dark veil over the data.
+export const addDrapeLayer = (
+  viewer: Viewer,
+  { url, bounds }: Drape,
+  alpha: number,
+): ImageryLayer => {
   const layer = ImageryLayer.fromProviderAsync(
     SingleTileImageryProvider.fromUrl(url, { rectangle: Rectangle.fromDegrees(...bounds) }),
   );
+  layer.alpha = alpha;
   viewer.imageryLayers.add(layer);
   return layer;
 };

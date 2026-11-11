@@ -1,110 +1,39 @@
 import "@/pages/site/site.css";
 import "@/pages/method/method.css";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 
-import { ENABLED_HAZARDS } from "@/features/analysis/hazards";
-import { Link } from "@/lib/Link";
-import { whenIdle } from "@/lib/whenIdle";
+import { BandChart } from "@/features/charts/BandChart";
+import type { ChartMode } from "@/features/charts/chartTokens";
+import { MetricsChart } from "@/features/charts/MetricsChart";
+import { MODEL_SCORES } from "@/features/charts/metrics";
+import { LENSES, type Verdict } from "@/features/cases/cases";
+import { demoBandPasses } from "@/features/cases/demoBand";
+import { HazardIcon } from "@/features/cases/HazardIcon";
+import { EvidenceSection } from "@/pages/method/EvidenceSection";
 import {
-  buildFireDemo,
-  buildQuakeDemo,
-  FIRE_PAIR,
-  QUAKE_DATE,
-  QUAKE_EVENT_ID,
-  QUAKE_PAIR,
-  type FireDemo,
-  type QuakeDemo,
-} from "@/pages/method/methodDemo";
+  BAND_SENTENCE,
+  LANDSLIDE_CHECKS,
+  LENS_NOTES,
+  MODELS_REPO,
+  PALETTES,
+  PIPELINE,
+} from "@/pages/method/methodContent";
+import { QadirabadSequence } from "@/pages/method/QadirabadSequence";
 import { SatelliteTeardown } from "@/pages/method/SatelliteTeardown";
-import { StepFigure, type FigureFrame } from "@/pages/method/StepFigure";
 import { useMethodMotion } from "@/pages/method/useMethodMotion";
 import { SiteFooter, type FooterColumn } from "@/pages/site/SiteFooter";
 import { SiteNav } from "@/pages/site/SiteNav";
 
-type MethodHazard = "wildfire" | "earthquake";
-
-const hasDeformation = ENABLED_HAZARDS.some(({ kind }) => kind === "deformation");
-
-const TABS: { id: MethodHazard; label: string }[] = [
-  { id: "wildfire", label: "Wildfire" },
-  ...(hasDeformation ? [{ id: "earthquake" as const, label: "Earthquake" }] : []),
+const MODES: { value: ChartMode; label: string }[] = [
+  { value: "plain", label: "Plain" },
+  { value: "technical", label: "Technical" },
 ];
 
-type Step = { title: string; body: string; formula?: string };
-
-const STEPS: Record<MethodHazard, Step[]> = {
-  wildfire: [
-    {
-      title: "Find the passes",
-      body: "Pick two NISAR L2 GCOV scenes of the same track and frame from ASF, before and after the event. Fires need HH+HV passes.",
-    },
-    {
-      title: "Read only the area of interest",
-      body: "Stream the pixels inside the area straight from the HDF5 files, mask invalid pixels and average 2×2 blocks to reduce speckle.",
-    },
-    {
-      title: "Compare",
-      body: "Compute the log-ratio of HV backscatter, pixel by pixel.",
-      formula: "Δ = 10·log10(after / before)",
-    },
-    {
-      title: "Classify",
-      body: "Pixels at or below −2 dB count as burned; −4 and −6 dB split low, moderate and high severity. Area = pixels × pixel size.",
-      formula: "≤ −2 · −4 · −6 dB",
-    },
-  ],
-  earthquake: [
-    {
-      title: "Find a pair that brackets the event",
-      body: "Pick a NISAR L2 GUNW interferogram whose first date is before the earthquake and second date after it (USGS catalogue for the time and place).",
-    },
-    {
-      title: "Convert phase to motion",
-      body: "Line-of-sight displacement from the unwrapped phase, with λ = 23.84 cm, after the ionospheric correction GUNW provides.",
-      formula: "d = −λ / 4π × φ",
-    },
-    {
-      title: "Mask what is unreliable",
-      body: "Drop low-coherence pixels (water, dense vegetation that changed) so only trustworthy motion is shown.",
-    },
-    {
-      title: "Summarise",
-      body: "Report peak motion toward and away from the satellite and the area that moved more than 2 cm.",
-    },
-  ],
-};
-
-const VALIDATION: { value: string; what: string; metric: string; against: string }[] = [
-  {
-    value: "87 %",
-    what: "Burn scar extent",
-    metric: "Share of FIRMS detections inside the scar",
-    against: "NASA FIRMS ACTIVE-FIRE DETECTIONS (VIIRS)",
-  },
-  {
-    value: "0.71 κ",
-    what: "Burn severity",
-    metric: "Agreement of severity classes",
-    against: "OPTICAL dNBR FROM NASA HLS",
-  },
-  ...(hasDeformation
-    ? [
-        {
-          value: "1.8 cm",
-          what: "Coseismic displacement",
-          metric: "RMS difference, LOS-projected",
-          against: "GNSS STATIONS (NEVADA GEODETIC LAB)",
-        },
-      ]
-    : []),
-];
-
-const LIMITATIONS = [
-  "Steep slopes facing away from the radar are in shadow and cannot be measured.",
-  "Rain or soil moisture also change backscatter; comparing passes close in time limits false alarms.",
-  "Line-of-sight motion is one component: separating vertical and horizontal motion needs ascending and descending pairs.",
-  "NISAR data is still validated as PROVISIONAL by the mission; results inherit that status.",
+const BAND_CARDS: { verdict: Verdict; label: string; height: number }[] = [
+  { verdict: "departure", label: "Changed beyond its range · hover a pass", height: 240 },
+  { verdict: "within", label: "Within its range", height: 150 },
+  { verdict: "insufficient", label: "Not enough radar yet", height: 150 },
 ];
 
 const FOOTER_COLUMNS: FooterColumn[] = [
@@ -119,147 +48,61 @@ const FOOTER_COLUMNS: FooterColumn[] = [
     ],
   },
   {
-    title: "VALIDATION",
+    title: "EVIDENCE",
     items: [
+      { label: "NISAR-Modeling reports", href: "https://github.com/Ch0comilo/NISAR-Modeling" },
+      { label: "NISAR-Models model cards", href: MODELS_REPO },
       {
-        label: "USGS earthquake catalogue",
-        href: "https://earthquake.usgs.gov/earthquakes/search/",
+        label: "OPERA DSWx-HLS · PO.DAAC",
+        href: "https://podaac.jpl.nasa.gov/dataset/OPERA_L3_DSWX-HLS_V1",
       },
-      { label: "NASA FIRMS", href: "https://firms.modaps.eosdis.nasa.gov/" },
-      { label: "NASA HLS", href: "https://hls.gsfc.nasa.gov/" },
     ],
   },
 ];
 
-const formatNumber = (value: number): string => value.toLocaleString("en-US");
+// The reading level lives on this page only; the shared nav stays untouched.
+const ModeSwitch = ({ mode, onChange }: { mode: ChartMode; onChange: (m: ChartMode) => void }) => (
+  <div className="m-mode" role="group" aria-label="Reading level">
+    {MODES.map(({ value, label }) => (
+      <button
+        key={value}
+        type="button"
+        className="m-mode__option"
+        aria-pressed={mode === value}
+        onClick={() => onChange(value)}
+        data-testid={`method-mode-${value}`}
+      >
+        {label}
+      </button>
+    ))}
+  </div>
+);
 
-const fireFigure = (demo: FireDemo | undefined): { frames: FigureFrame[]; captions: string[] } => ({
-  frames: [
-    {
-      kind: "timeline",
-      marks: [
-        { at: 12, date: FIRE_PAIR[0], label: "Before", tone: "before" },
-        { at: 88, date: FIRE_PAIR[1], label: "After", tone: "after" },
-      ],
-      note: "TRACK 47 A · FRAME 3 · HH+HV · 12 DAYS APART",
-    },
-    {
-      kind: "images",
-      images: demo && [
-        { src: demo.beforeUrl, alt: "HV backscatter before", place: "left" },
-        { src: demo.afterUrl, alt: "HV backscatter after", place: "right" },
-      ],
-    },
-    {
-      kind: "images",
-      images: demo && [{ src: demo.changeUrl, alt: "Log-ratio of HV backscatter", place: "full" }],
-    },
-    {
-      kind: "images",
-      images: demo && [
-        { src: demo.afterUrl, alt: "HV backscatter after", place: "full" },
-        { src: demo.severityUrl, alt: "Burn severity classes", place: "full" },
-      ],
-    },
-  ],
-  captions: [
-    "OBSERVATION PLAN",
-    "HV BEFORE · AFTER",
-    "LOG-RATIO, −10 → +2 dB",
-    demo === undefined ? "BURN SEVERITY" : `${formatNumber(demo.affectedAreaHa)} HA BURNED`,
-  ],
-});
-
-const quakeFigure = (
-  demo: QuakeDemo | undefined,
-): { frames: FigureFrame[]; captions: string[] } => ({
-  frames: [
-    {
-      kind: "timeline",
-      marks: [
-        { at: 10, date: QUAKE_PAIR[0], label: "Before", tone: "before" },
-        { at: 78, date: QUAKE_DATE, label: "M7.5", tone: "event" },
-        { at: 90, date: QUAKE_PAIR[1], label: "After", tone: "after" },
-      ],
-      note: "TRACK 162 A · FRAME 7 · GUNW PAIR",
-    },
-    {
-      kind: "images",
-      images: demo && [
-        { src: demo.fringesUrl, alt: "Interferogram fringes", place: "left" },
-        { src: demo.displacementUrl, alt: "Line-of-sight displacement", place: "right" },
-      ],
-    },
-    {
-      kind: "images",
-      images: demo && [
-        {
-          src: demo.displacementUrl,
-          alt: "Displacement with unreliable pixels removed",
-          place: "full",
-        },
-      ],
-    },
-    {
-      kind: "summary",
-      figures: demo && [
-        {
-          value: `${demo.maxTowardCm} cm`,
-          label: "peak motion toward the satellite",
-          tone: "toward",
-        },
-        { value: `${demo.maxAwayCm} cm`, label: "peak motion away from it", tone: "away" },
-        {
-          value: `${formatNumber(demo.deformedAreaKm2)} km²`,
-          label: "moved more than 2 cm",
-          tone: "neutral",
-        },
-      ],
-    },
-  ],
-  captions: [
-    "USGS + OBSERVATION PLAN",
-    "FRINGES → DISPLACEMENT",
-    "COHERENT PIXELS ONLY",
-    "SUMMARY",
-  ],
-});
-
-// The demo rasters take a moment; they wait until the browser is idle after the first paint.
-const useDemos = (): { fire?: FireDemo; quake?: QuakeDemo } => {
-  const [demos, setDemos] = useState<{ fire?: FireDemo; quake?: QuakeDemo }>({});
-  useEffect(
-    () =>
-      whenIdle(() =>
-        setDemos({ fire: buildFireDemo(), ...(hasDeformation ? { quake: buildQuakeDemo() } : {}) }),
-      ),
-    [],
-  );
-  return demos;
-};
-
-const initialHazard = (): MethodHazard =>
-  hasDeformation && new URLSearchParams(window.location.search).get("hazard") === "earthquake"
-    ? "earthquake"
-    : "wildfire";
+const SectionHead = ({
+  id,
+  kicker,
+  title,
+  children,
+}: {
+  id: string;
+  kicker: string;
+  title: string;
+  children?: ReactNode;
+}) => (
+  <div className="m-section__head" data-reveal>
+    <p className="m-kicker">{kicker}</p>
+    <h2 id={id} className="m-h2">
+      {title}
+    </h2>
+    {children}
+  </div>
+);
 
 export const MethodPage = () => {
   const root = useRef<HTMLDivElement>(null);
-  const [hazard, setHazard] = useState<MethodHazard>(initialHazard);
-  const [step, setStep] = useState(0);
-  const { fire, quake } = useDemos();
-  useMethodMotion(root, setStep, hazard);
-
-  const pickHazard = (id: MethodHazard) => {
-    setHazard(id);
-    // Shareable, like the explorer's ?hazard=; replace so the back button leaves the page.
-    const url = new URL(window.location.href);
-    url.searchParams.set("hazard", id);
-    window.history.replaceState(null, "", url);
-  };
-
-  const steps = STEPS[hazard];
-  const { frames, captions } = hazard === "wildfire" ? fireFigure(fire) : quakeFigure(quake);
+  const [mode, setMode] = useState<ChartMode>("plain");
+  const tech = mode === "technical";
+  useMethodMotion(root, mode);
 
   return (
     <div ref={root} className="site method">
@@ -267,142 +110,208 @@ export const MethodPage = () => {
         Skip to content
       </a>
       <SiteNav page="method" />
+      <ModeSwitch mode={mode} onChange={setMode} />
 
       <main id="main">
-        <header className="m-intro">
-          <p className="s-mono-label" data-intro>
-            METHOD &amp; VALIDATION
+        <header className="m-hero">
+          <p className="m-hero__kicker" data-intro>
+            Method · What we measure and what we don&apos;t
           </p>
-          <h1 className="m-intro__title" data-intro>
-            How two radar passes become a map.
+          <h1 className="m-hero__title" data-intro>
+            One honest question, asked of real radar.
           </h1>
-          <p className="m-intro__lead" data-intro>
-            And how we check that the map is right.
+          <p className="m-hero__lead" data-intro>
+            Did the radar echo at this place change beyond its own normal range, and what else
+            agrees? We don&apos;t classify events, forecast or give probabilities. We measure,
+            compare, and say where the measurement runs out.
           </p>
         </header>
 
         <SatelliteTeardown />
 
-        {TABS.length > 1 && (
-          <div className="m-switch">
-            <p className="m-switch__label">FROM ECHOES TO A MAP · PICK A HAZARD</p>
-            <div className="m-tabs" role="group" aria-label="Hazard">
-              {TABS.map(({ id, label }) => (
-                <button
-                  key={id}
-                  type="button"
-                  className="m-tabs__tab"
-                  aria-pressed={hazard === id}
-                  onClick={() => pickHazard(id)}
-                  data-testid={`method-tab-${id}`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        <QadirabadSequence mode={mode} />
 
-        <section
-          className="m-steps"
-          aria-label={`${hazard === "wildfire" ? "Wildfire" : "Earthquake"} method`}
-        >
-          <div className="m-steps__grid">
-            <ol className="m-steps__list">
-              {steps.map(({ title, body, formula }, i) => (
-                <li
-                  key={i}
-                  className="m-step"
-                  data-step={i}
-                  aria-current={i === step ? "step" : undefined}
-                >
-                  <p className="m-step__num">
-                    STEP {i + 1} / {steps.length}
-                  </p>
-                  <h2 className="m-step__title">{title}</h2>
-                  <p className="m-step__body">{body}</p>
-                  {formula !== undefined && <p className="m-step__formula">{formula}</p>}
-                </li>
-              ))}
-            </ol>
-            <StepFigure
-              frames={frames}
-              step={step}
-              caption={captions[step] ?? ""}
-              ready={(hazard === "wildfire" ? fire : quake) !== undefined}
+        <div className="m-wrap">
+          <section className="m-section" data-pipe data-testid="method-pipeline">
+            <SectionHead
+              id="pipeline-heading"
+              kicker="01 · From a click to an answer"
+              title="Six steps, every time."
             />
-          </div>
-        </section>
-
-        <section className="s-section--wide" data-section aria-labelledby="validation-heading">
-          <div className="s-container">
-            <div className="m-validation__head">
-              <h2 id="validation-heading" className="s-head" data-reveal>
-                Checked against
-                <br />
-                independent data.
-              </h2>
-              <p className="m-validation__note" data-reveal>
-                <span className="m-demo-chip">DEMO VALUES</span>
-                Placeholders until the pipeline runs on the featured events; the comparison method
-                is final.
-              </p>
+            <div className="m-pipe">
+              <div className="m-pipe__rail" aria-hidden="true" />
+              <div className="m-pipe__bar" data-bar aria-hidden="true" />
+              <ol className="m-pipe__steps">
+                {PIPELINE.map((step) => (
+                  <li key={step.n} className="m-pipe__step" data-step>
+                    <span className="m-pipe__node" aria-hidden="true" />
+                    <span className="m-pipe__n">{step.n}</span>
+                    <p className="m-pipe__title">{step.title}</p>
+                    <p className="m-pipe__body">{step.body}</p>
+                    {tech && <p className="m-pipe__tech">{step.tech}</p>}
+                  </li>
+                ))}
+              </ol>
             </div>
-            <div className="m-validation__grid">
-              {VALIDATION.map(({ value, what, metric, against }) => (
-                <div key={what} className="m-validation__cell" data-reveal>
-                  <p className="m-validation__value">{value}</p>
-                  <h3 className="m-validation__what">{what}</h3>
-                  <p className="m-validation__metric">{metric}</p>
-                  <p className="m-validation__against">VS. {against}</p>
+            <p className="m-note" data-reveal>
+              A live question will read real radar in about a minute once the backend API is
+              connected; until then its answer is a demo, labelled as such. Measured cases are
+              precomputed and open instantly. Answers can be partial or insufficient: no usable
+              pixels, a thin history, a masked point. Those are normal outcomes, and the explorer
+              explains each one.
+            </p>
+          </section>
+
+          <section className="m-section" data-section aria-labelledby="band-heading">
+            <SectionHead
+              id="band-heading"
+              kicker="02 · Reading the band chart"
+              title="A place's normal range, and the pass that left it."
+            >
+              <p className="m-lead">
+                The solid line is HH, the dashed line HV; circles and squares tell them apart
+                without colour. Shaded bands are each channel&apos;s normal range from earlier
+                passes. A white ring marks a pass outside its band. A break in a line means no pass
+                was used that day. Hover to read any pass.
+              </p>
+            </SectionHead>
+            <div className="m-band" data-testid="method-band-charts">
+              {BAND_CARDS.map(({ verdict, label, height }) => (
+                <div key={verdict} className={`m-panel m-band__${verdict}`} data-reveal>
+                  <p className="m-panel__label">
+                    {tech ? "Technical" : "Plain"} · {label}
+                  </p>
+                  <div data-draw>
+                    <BandChart
+                      passes={demoBandPasses(verdict)}
+                      mode={mode}
+                      height={height}
+                      sentence={BAND_SENTENCE[verdict]}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="s-section--wide" data-section aria-labelledby="limits-heading">
-          <div className="s-container m-limits">
-            <h2 id="limits-heading" className="s-head" data-reveal>
-              What radar can&apos;t tell you.
-            </h2>
-            <ul className="m-limits__list">
-              {LIMITATIONS.map((text, i) => (
-                <li key={text} className="m-limits__item" data-reveal>
-                  <span className="m-limits__num">0{i + 1}</span>
-                  <p>{text}</p>
+          <section className="m-section" data-section aria-labelledby="lenses-heading">
+            <SectionHead
+              id="lenses-heading"
+              kicker="03 · Lenses are questions"
+              title="The same radar, asked five different things."
+            />
+            <ul className="m-lenses" data-testid="method-lenses">
+              {LENSES.map((lens) => (
+                <li key={lens.id} className="m-lens" data-reveal data-testid="method-lens">
+                  <div className="m-lens__who">
+                    <span
+                      className={
+                        lens.id === "insar" ? "m-lens__icon m-lens__icon--dashed" : "m-lens__icon"
+                      }
+                    >
+                      <HazardIcon id={lens.icon} size={18} />
+                    </span>
+                    <span className="m-lens__name">
+                      <span className="m-lens__chip">{lens.chip}</span>
+                      <span className="m-lens__tag">{LENS_NOTES[lens.id].tag}</span>
+                    </span>
+                  </div>
+                  <p className="m-lens__compares">{lens.compares}</p>
+                  <p className="m-lens__limit">{LENS_NOTES[lens.id].limit}</p>
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
+          </section>
 
-        <section className="s-section--wide m-close" data-section aria-labelledby="close-heading">
-          <h2 id="close-heading" className="m-close__heading" data-reveal>
-            See it on a real event.
-          </h2>
-          <div className="m-close__actions" data-reveal>
-            {hasDeformation ? (
-              <Link
-                to={`/explore?event=${QUAKE_EVENT_ID}`}
-                className="s-button s-button--large"
-                testId="method-cta"
-              >
-                Open Venezuela, M7.5
-              </Link>
-            ) : (
-              <Link to="/explore" className="s-button s-button--large" testId="method-cta">
-                Open the globe
-              </Link>
-            )}
-            <a
-              href="https://github.com/cris-eci/nisar-hazard-watch/blob/main/docs/analysis-api.md"
-              className="m-close__link"
+          <EvidenceSection mode={mode} />
+
+          <section className="m-section" data-section aria-labelledby="models-heading">
+            <SectionHead
+              id="models-heading"
+              kicker="05 · Experimental models"
+              title="Three classifiers we're still testing."
             >
-              Read the API contract →
+              <p className="m-lead">
+                Our data scientist also trains water, tree-cover and tree-cover-disturbance models
+                on NISAR. They run, but they&apos;re marked not ready for general use, and the
+                explorer never mixes them into a verdict.
+              </p>
+            </SectionHead>
+            <div className="m-panel m-panel--wide" data-reveal>
+              <div data-draw>
+                <MetricsChart models={MODEL_SCORES} mode={mode} />
+              </div>
+            </div>
+            <a
+              className="m-models__link"
+              href={MODELS_REPO}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-reveal
+            >
+              NISAR-Models on GitHub · try each model in Colab →
             </a>
-          </div>
-        </section>
+          </section>
+
+          <section className="m-section m-slides" data-section aria-labelledby="landslides-heading">
+            <SectionHead
+              id="landslides-heading"
+              kicker="06 · Landslides"
+              title="The fifth hazard starts with two checks."
+            >
+              <p className="m-lead">
+                Do real passes bracket the event? Can the radar see the slope at all, or is it in
+                shadow or layover? Only then do we look for local changes in the echo or in
+                coherence.
+              </p>
+              <p className="m-note">
+                Intensity is not displacement. Movement needs terrain visibility plus geodetic or
+                offset evidence. The backend&apos;s Niscemi example only has passes after the slide,
+                so it can&apos;t show the change.
+              </p>
+            </SectionHead>
+            <div className="m-slides__card" data-reveal data-testid="method-landslides">
+              <div className="m-slides__who">
+                <span className="m-slides__icon">
+                  <HazardIcon id="landslide" size={26} />
+                </span>
+                <span className="m-lens__name">
+                  <span className="m-slides__name">Landslides</span>
+                  <span className="m-lens__tag m-slides__tag">No measured case yet</span>
+                </span>
+              </div>
+              <ol className="m-slides__checks">
+                {LANDSLIDE_CHECKS.map((check, i) => (
+                  <li key={check}>
+                    <span className="m-slides__n">0{i + 1}</span>
+                    {check}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </section>
+
+          <section className="m-section" data-section aria-labelledby="colours-heading">
+            <SectionHead
+              id="colours-heading"
+              kicker="07 · Colours belong to the data"
+              title="How to read every map."
+            />
+            <div className="m-palettes" data-testid="method-palettes">
+              {PALETTES.map((palette) => (
+                <div key={palette.title} className="m-palette" data-reveal>
+                  <p className="m-palette__title">{palette.title}</p>
+                  <div className="m-palette__bar" style={{ background: palette.bar }} />
+                  <p className="m-palette__ends">
+                    <span>{palette.left}</span>
+                    <span>{palette.right}</span>
+                  </p>
+                  <p className="m-palette__note">{palette.note}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
       </main>
 
       <SiteFooter

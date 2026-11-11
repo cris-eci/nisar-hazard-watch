@@ -1,9 +1,9 @@
 @import url("https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap");
 
 /*
- * The site's shared system (landing and method): tokens, type, pills, chips, nav and footer. Deep
- * space blacks and blues with starlight ink; gold is the only accent. Page layouts live next to
- * each page (landing/landing.css, method/method.css).
+ * The site's shared system (landing, cases, method and about): tokens, type, pills, chips, nav
+ * and footer. Deep space blacks and blues with starlight ink; gold is the only accent. Page
+ * layouts live next to each page (landing/landing.css, cases/cases.css, method/method.css).
  */
 
 .site {
@@ -220,6 +220,10 @@
   backdrop-filter: blur(12px);
   white-space: nowrap;
   transition: background-color 160ms var(--ease-out);
+}
+
+.s-nav__pill-short {
+  display: none;
 }
 
 .site .s-nav__pill:hover {
@@ -578,6 +582,20 @@
   color: var(--muted);
 }
 
+.s-foot__credit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.s-foot__version {
+  font-family: var(--mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.05em;
+  color: #8d8a83;
+}
+
 .s-foot__disclaimer {
   max-width: 52ch;
   text-wrap: pretty;
@@ -599,7 +617,7 @@
   }
 }
 
-/* Phones: the wordmark stays on one line; the in-page Events link gives way. */
+/* Phones: the wordmark stays on one line; the explorer pill takes its short label. */
 @media (max-width: 30rem) {
   .s-nav {
     gap: 0.5rem;
@@ -619,8 +637,12 @@
     padding: 0.45em 0.7em;
   }
 
-  .s-nav__link--events {
+  .s-nav__pill-long {
     display: none;
+  }
+
+  .s-nav__pill-short {
+    display: inline;
   }
 }
 

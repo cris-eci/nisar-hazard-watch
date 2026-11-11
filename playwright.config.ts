@@ -2,7 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 
 const isCI = Boolean(process.env.CI) && process.env.CI !== "false";
 // Own port and env, so tests never depend on a developer's running server or .env.local.
-const PORT = 5174;
+// E2E_PORT lets parallel worktrees run their own server.
+const PORT = Number(process.env.E2E_PORT ?? 5174);
 const BASE_URL = `http://localhost:${PORT}`;
 
 export default defineConfig({
@@ -37,11 +38,6 @@ export default defineConfig({
     // The production build, as deployed: no dev-server reloads mid-test.
     command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
     url: BASE_URL,
-    // Process env beats .env files in Vite: pin the deployed config (all four hazards, demo data).
-    env: {
-      VITE_ENABLED_HAZARDS: "wildfire,earthquake,flood,deforestation",
-      VITE_ANALYSIS_API_URL: "",
-    },
     reuseExistingServer: !isCI,
     timeout: 120_000,
   },

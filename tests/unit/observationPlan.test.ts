@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import { pickComparisonPair } from "@/features/analysis/comparisonPair";
 import { parseAcquisitions } from "@/features/frames/observationPlanApi";
 import { hasCrossPol } from "@/features/frames/radarMode";
 
@@ -37,28 +36,5 @@ describe("parseAcquisitions", () => {
         "L:SCI:SH:20M+05N:FS:B4:D09, L:SCI:SH:20M+05N:FS:B4:D09, L:SCI:DH:40M+05N:FS:B4:D02",
     });
     expect(acquisition).toEqual({ date: "2026-01-12", hasCrossPol: true });
-  });
-});
-
-describe("pickComparisonPair", () => {
-  const passes = [
-    { date: "2026-09-01", hasCrossPol: true },
-    { date: "2026-09-13", hasCrossPol: false },
-    { date: "2026-09-25", hasCrossPol: true },
-    { date: "2026-10-07", hasCrossPol: true },
-  ];
-
-  it("picks the two latest cross-pol passes up to today, skipping HH-only ones", () => {
-    const pair = pickComparisonPair(passes, "2026-10-01", true);
-    expect(pair?.map((a) => a.date)).toEqual(["2026-09-01", "2026-09-25"]);
-  });
-
-  it("returns undefined with fewer than two usable passes", () => {
-    expect(pickComparisonPair(passes, "2026-09-10", true)).toBeUndefined();
-  });
-
-  it("uses HH-only passes too when the hazard does not need HV", () => {
-    const pair = pickComparisonPair(passes, "2026-10-01", false);
-    expect(pair?.map((a) => a.date)).toEqual(["2026-09-13", "2026-09-25"]);
   });
 });
