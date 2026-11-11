@@ -9,6 +9,7 @@ import type { ChartMode } from "@/features/charts/chartTokens";
 import { ContrastBars } from "@/features/charts/ContrastBars";
 import { MatchedWhisker } from "@/features/charts/MatchedWhisker";
 import { jobSteps } from "@/features/live/liveQuestion";
+import { NovaGlyph } from "@/features/nova/NovaGlyph";
 import { CompareSplit } from "@/features/sheet/CompareSplit";
 import { formatDay } from "@/features/timeline/timelineLayout";
 
@@ -29,10 +30,11 @@ type SheetProps = {
   mode: ChartMode;
   onMode: (mode: ChartMode) => void;
   onClose: () => void;
+  onAskNova?: () => void;
 };
 
 // "More information": the five beats in full, with how it was computed, quality and sources.
-export const MoreInfoSheet = ({ subject, mode, onMode, onClose }: SheetProps) => {
+export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: SheetProps) => {
   const lens = findLens(subject.lens);
   const tech = mode === "technical";
   const [lon, lat] = subject.focus;
@@ -340,6 +342,12 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose }: SheetProps) =>
               ))}
             </ul>
           </div>
+          {onAskNova !== undefined && (
+            <button type="button" className="x-ask-nova" onClick={onAskNova} data-testid="ask-nova">
+              <NovaGlyph size={32} />
+              Ask Nova about this result
+            </button>
+          )}
         </aside>
       </div>
     </div>

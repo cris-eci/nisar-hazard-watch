@@ -10,12 +10,13 @@ type StartCardProps = {
   frames: AsyncState<Frame[]> | undefined;
   onOpen: (item: Case) => void;
   onRetryFrames: () => void;
+  onStory: () => void;
 };
 
 const country = (item: Case): string => item.place.split(",").at(-1)?.trim() ?? item.place;
 
 // Nothing selected yet: the measured cases, and the way into a live question.
-export const StartCard = ({ frames, onOpen, onRetryFrames }: StartCardProps) => (
+export const StartCard = ({ frames, onOpen, onRetryFrames, onStory }: StartCardProps) => (
   <section className="x-start x-glass" aria-label="Start" data-testid="start-card">
     <p className="x-kicker">Measured cases · real NISAR passes</p>
     <h1 className="x-start__title">What did the radar see?</h1>
@@ -48,6 +49,9 @@ export const StartCard = ({ frames, onOpen, onRetryFrames }: StartCardProps) => 
         </li>
       ))}
     </ul>
+    <button type="button" className="x-story-start" onClick={onStory} data-testid="story-start">
+      Watch the 1-minute story · Chenab flood
+    </button>
     <FramesStatus state={frames} onRetry={onRetryFrames} />
     <p className="x-start__foot">
       <Link to="/about" testId="intro-team" className="x-start__team">

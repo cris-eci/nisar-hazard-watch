@@ -8,12 +8,27 @@ import { VERSION } from "@/pages/explorer/StartCard";
 
 export type ContextChip = { icon: IconId; name: string; when: string };
 
+export type DownloadItem = {
+  id: "png" | "json" | "csv" | "pdf";
+  label: string;
+  sub: string;
+  // Why the item can't be used right now; undefined when it can.
+  disabledWhy: string | undefined;
+  onPick: () => void;
+};
+
 type TopBarProps = {
   context: ContextChip | undefined;
   helpOpen: boolean;
+  downloadOpen: boolean;
+  downloads: DownloadItem[];
+  story: boolean;
   showReal: boolean;
   reduceMotion: boolean;
   onHelp: (open: boolean) => void;
+  onDownload: (open: boolean) => void;
+  onStory: (on: boolean) => void;
+  onReplayTour: () => void;
   onShowReal: (on: boolean) => void;
   onReduceMotion: (on: boolean) => void;
   onWholeGlobe: () => void;
@@ -27,31 +42,40 @@ const toggleFullScreen = () => {
 export const TopBar = ({
   context,
   helpOpen,
+  downloadOpen,
+  downloads,
+  story,
   showReal,
   reduceMotion,
   onHelp,
+  onDownload,
+  onStory,
+  onReplayTour,
   onShowReal,
   onReduceMotion,
   onWholeGlobe,
 }: TopBarProps) => {
   const helpRef = useRef<HTMLDivElement>(null);
+  const downloadRef = useRef<HTMLDivElement>(null);
 
-  // A click anywhere outside the menu closes it, like any popover.
+  // A click anywhere outside a menu closes it, like any popover.
   useEffect(() => {
-    if (!helpOpen) return;
+    if (!helpOpen && !downloadOpen) return;
     const close = (event: PointerEvent) => {
-      if (!helpRef.current?.contains(event.target as Node)) onHelp(false);
+      const target = event.target as Node;
+      if (helpOpen && !helpRef.current?.contains(target)) onHelp(false);
+      if (downloadOpen && !downloadRef.current?.contains(target)) onDownload(false);
     };
     window.addEventListener("pointerdown", close);
     return () => window.removeEventListener("pointerdown", close);
-  }, [helpOpen, onHelp]);
+  }, [helpOpen, downloadOpen, onHelp, onDownload]);
 
   return (
     <header className="x-top">
       <Link to="/" className="x-pill x-pill--mark">
         NISAR Hazard Watch
       </Link>
-      {context !== undefined && (
+      {context !== undefined && !story && (
         <span className="x-pill x-context" data-testid="context-chip">
           <span className="x-context__icon">
             <HazardIcon id={context.icon} size={14} />
@@ -64,14 +88,18 @@ export const TopBar = ({
       <div role="group" aria-label="Mode" className="x-mode">
         <button
           type="button"
-          aria-pressed="false"
-          disabled
-          title="Coming next"
+          aria-pressed={story}
+          onClick={() => onStory(true)}
           data-testid="mode-tour"
         >
           Guided tour
         </button>
-        <button type="button" aria-pressed="true" data-testid="mode-explore">
+        <button
+          type="button"
+          aria-pressed={!story}
+          onClick={() => onStory(false)}
+          data-testid="mode-explore"
+        >
           Explore
         </button>
       </div>
@@ -106,6 +134,25 @@ export const TopBar = ({
         </button>
         {helpOpen && (
           <div className="x-menu" role="menu" aria-label="Help" data-testid="help-menu">
+            <button
+              type="button"
+              role="menuitem"
+              className="x-menu__item"
+              onClick={onReplayTour}
+              data-testid="replay-tour"
+            >
+              Replay the quick tour
+              <span>Four steps: cases, panel, layers, timeline</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="x-menu__item x-menu__story"
+              onClick={() => onStory(true)}
+            >
+              Watch the 1-minute story
+              <span>Chenab flood, Pakistan · six chapters</span>
+            </button>
             <nav className="x-menu__nav" aria-label="Pages">
               <Link to="/cases">Cases</Link>
               <Link to="/method">Method</Link>
@@ -123,7 +170,8 @@ export const TopBar = ({
               testId="toggle-motion"
             />
             <p className="x-menu__keys">
-              <kbd>Esc</kbd> closes · <kbd>Tab</kbd> moves through the panel
+              <kbd>Esc</kbd> closes · <kbd>Tab</kbd> moves through the panel · <kbd>← →</kbd>{" "}
+              chapters in the story
             </p>
             <p className="x-menu__foot">
               <span>Nova Frontier</span>
@@ -132,9 +180,58 @@ export const TopBar = ({
           </div>
         )}
       </div>
+      <div className="x-help" ref={downloadRef}>
+        <button
+          type="button"
+          className="x-icon-button"
+          onClick={() => onDownload(!downloadOpen)}
+          aria-label="Download"
+          title="Download"
+          aria-expanded={downloadOpen}
+          data-testid="download-button"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.75}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+          </svg>
+        </button>
+        {downloadOpen && (
+          <div
+            className="x-menu x-menu--download"
+            role="menu"
+            aria-label="Download"
+            data-testid="download-menu"
+          >
+            <p className="x-kicker">Download</p>
+            {downloads.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="menuitem"
+                className="x-menu__item"
+                aria-disabled={item.disabledWhy !== undefined}
+                onClick={() => item.disabledWhy === undefined && item.onPick()}
+                data-testid={`download-${item.id}`}
+              >
+                {item.label}
+                <span>{item.disabledWhy ?? item.sub}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <button
         type="button"
-        className="x-icon-button"
+        className="x-icon-button x-top__fullscreen"
         onClick={toggleFullScreen}
         aria-label="Full screen"
         title="Full screen"

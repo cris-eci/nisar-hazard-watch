@@ -113,7 +113,8 @@ test.describe("Explorer: measured cases", () => {
     await page.getByTestId("toggle-real").click();
     await expect(globe.panel.getByTestId("prov-real")).toHaveCount(0);
     await expect(globe.panel.getByTestId("prov-demo").first()).toBeVisible();
-    await expect(page.getByTestId("mode-tour")).toBeDisabled();
+    // The guided tour is live now: the switch stays on Explore while a case is open.
+    await expect(page.getByTestId("mode-tour")).toHaveAttribute("aria-pressed", "false");
   });
 
   test("the whole-globe button closes the case and clears the link", async ({ page }) => {

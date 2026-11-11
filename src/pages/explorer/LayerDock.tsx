@@ -1,20 +1,6 @@
 import { Prov } from "@/features/case-panel/Prov";
 import { SOURCE } from "@/features/case-panel/verdicts";
-
-export type DrapeKind = "change" | "baseline";
-
-const LEGEND: Record<DrapeKind, { ramp: string; scale: [string, string, string]; text: string }> = {
-  change: {
-    ramp: "linear-gradient(90deg,#2f6db5,#f2f0eb,#c2473a)",
-    scale: ["−8 dB darker", "0", "+8 dB brighter"],
-    text: "Signed change in HH, the first assessment minus the median of earlier passes.",
-  },
-  baseline: {
-    ramp: "linear-gradient(90deg,#440154,#3b528b,#21918c,#5ec962,#fde725)",
-    scale: ["−30 dB", "", "0 dB"],
-    text: "Baseline median HH, from the backend report. Dark purple is calm water or smooth ground.",
-  },
-};
+import { LEGEND, type DrapeKind } from "@/pages/explorer/drapeLegend";
 
 const API_SOON = "Served by the backend API soon";
 

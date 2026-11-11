@@ -40,7 +40,8 @@ const HOME_SECONDS = 1.6;
 const SPIN_RADIANS_PER_TICK = -0.0005;
 
 // Where the camera should look; `key` changes when the subject changes, not on every render.
-export type CameraTarget = { key: string; box: BBox; zoom: number };
+// `seconds` overrides the flight time (the story's region view flies a little slower).
+export type CameraTarget = { key: string; box: BBox; zoom: number; seconds?: number };
 
 export type GlobeScene = {
   target: CameraTarget | undefined;
@@ -63,6 +64,8 @@ type GlobeViewProps = {
   onOpenCase: (item: Case) => void;
   onAsk: (frame: Frame, point: LonLat) => void;
   onUnavailable: () => void;
+  // Hands the viewer out for the PNG download; undefined once it is destroyed.
+  onViewer?: (viewer: Viewer | undefined) => void;
 };
 
 type Hover = { content: TooltipContent; x: number; y: number; frame?: Frame };
@@ -81,6 +84,7 @@ export const GlobeView = ({
   onOpenCase,
   onAsk,
   onUnavailable,
+  onViewer,
 }: GlobeViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [viewer, setViewer] = useState<Viewer>();
@@ -115,11 +119,13 @@ export const GlobeView = ({
       });
     }
     setViewer(instance);
+    onViewer?.(instance);
     return () => {
+      onViewer?.(undefined);
       lost();
       instance.destroy();
     };
-    // onUnavailable only flips a flag; the viewer must be created once.
+    // onUnavailable and onViewer only store a flag or a ref; the viewer must be created once.
     // oxlint-disable-next-line react/exhaustive-deps
   }, []);
 
@@ -248,7 +254,7 @@ export const GlobeView = ({
   const targetKey = target && `${target.key}|${view}`;
   useEffect(() => {
     if (viewer === undefined) return;
-    const duration = reduceMotion ? 0 : FLY_SECONDS;
+    const duration = reduceMotion ? 0 : (target?.seconds ?? FLY_SECONDS);
     // Closing the selection flies back out, so nobody is stranded close to the ground.
     if (target === undefined) {
       if (hadTarget.current)
