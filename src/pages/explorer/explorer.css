@@ -725,9 +725,10 @@
   text-wrap: pretty;
 }
 
+/* min-content floor: a long key ("Displacement") widens its cell instead of being clipped. */
 .x-quality {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(min-content, 1fr));
   gap: 6px;
 }
 
@@ -750,11 +751,9 @@
   color: var(--faint);
 }
 
+/* Values wrap on narrow panels ("21 Jul → 14 Aug" at 360 px) instead of hiding behind an ellipsis. */
 .x-quality__v {
   font-size: 12.5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .x-panel__prov {
