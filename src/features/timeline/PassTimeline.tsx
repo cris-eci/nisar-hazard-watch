@@ -6,6 +6,7 @@ import type { TimelineData } from "@/features/cases/cases";
 import {
   layoutTimeline,
   passAria,
+  formatDay,
   passCount,
   readoutOf,
   type LaidPass,
@@ -26,7 +27,7 @@ const passClass = (item: LaidPass, comparing: boolean, selected: boolean): strin
         : comparing && item.kind === "base"
           ? "base"
           : "meas";
-  return `x-tl__dot x-tl__dot--${kind}${selected ? " x-tl__dot--on" : ""}`;
+  return `x-tl__dot x-tl__dot--${kind}${item.next ? " x-tl__dot--next" : ""}${selected ? " x-tl__dot--on" : ""}`;
 };
 
 // SPECS §2.4: measured, compared (baseline bracket + target) and planned passes, with the optical lane.
@@ -144,9 +145,13 @@ export const PassTimeline = ({ data }: PassTimelineProps) => {
             </span>
           </>
         )}
-        {layout.planLeft !== undefined && (
-          <span className="x-tl__planned-label" style={{ left: `${layout.planLeft}%` }}>
-            Planned
+        {layout.next !== undefined && (
+          <span
+            className="x-tl__planned-label"
+            style={{ left: `${layout.next.left}%` }}
+            data-testid="timeline-next"
+          >
+            Next · {formatDay(layout.next.date, false)}
           </span>
         )}
         {layout.passes.map((item) => {
@@ -177,6 +182,7 @@ export const PassTimeline = ({ data }: PassTimelineProps) => {
                 onClick={() => pick(item)}
                 data-testid={`timeline-pass-${item.index}`}
                 data-kind={item.kind}
+                data-next={item.next || undefined}
               >
                 <span className={passClass(item, isComparing, selected)} />
               </button>

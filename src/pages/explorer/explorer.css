@@ -1009,6 +1009,10 @@
   color: var(--muted);
 }
 
+.x-plan li[data-next="true"] {
+  color: var(--ink);
+}
+
 .x-plan__meta {
   font-family: var(--mono);
   font-size: 11px;
@@ -1359,7 +1363,7 @@
 .x-tl__planned-label {
   top: 49px;
   transform: translateX(-30%);
-  color: var(--muted);
+  color: var(--ink-2);
 }
 
 .x-tl__target-label {
@@ -1438,6 +1442,11 @@
   width: 11px;
   height: 11px;
   border: 1.5px dashed var(--muted);
+}
+
+/* Still dashed (a promise, not data), just brighter so the next pass stands out. */
+.x-tl__dot--next {
+  border-color: var(--ink);
 }
 
 .x-tl__dot--on {

@@ -3,6 +3,7 @@ import { Prov } from "@/features/case-panel/Prov";
 import { SOURCE } from "@/features/case-panel/verdicts";
 import type { LensId } from "@/features/cases/cases";
 import type { Acquisition } from "@/features/frames/frame.types";
+import { nextPlannedPass } from "@/features/frames/nextPlannedPass";
 import { archiveError, jobSteps, JOB_STEP_COUNT, splitPlan } from "@/features/live/liveQuestion";
 import type { LiveJob } from "@/features/live/useLiveJob";
 import { formatDay } from "@/features/timeline/timelineLayout";
@@ -79,7 +80,10 @@ type PassListProps = { passes: Acquisition[]; today: string };
 
 // The frame's real schedule, so the demo answer above always sits next to something checkable.
 export const PlanPasses = ({ passes, today }: PassListProps) => {
-  const { past, upcoming } = splitPlan(passes, today);
+  // The plan promises no order: sort so "last few, then next few" reads right.
+  const sorted = passes.toSorted((a, b) => a.date.localeCompare(b.date));
+  const { past, upcoming } = splitPlan(sorted, today);
+  const next = nextPlannedPass(passes, today);
   const rows = [
     ...past.slice(-SHOWN_PAST).map((item) => ({ ...item, planned: false })),
     ...upcoming.slice(0, SHOWN_UPCOMING).map((item) => ({ ...item, planned: true })),
@@ -95,10 +99,15 @@ export const PlanPasses = ({ passes, today }: PassListProps) => {
       </p>
       <ul className="x-plan">
         {rows.map((item) => (
-          <li key={item.date} data-planned={item.planned}>
+          <li
+            key={item.date}
+            data-planned={item.planned}
+            data-next={item.date === next?.date || undefined}
+          >
             <span>{formatDay(item.date)}</span>
             <span className="x-plan__meta">
-              {item.hasCrossPol ? "HH+HV" : "HH only"} · {item.planned ? "planned" : "in the plan"}
+              {item.hasCrossPol ? "HH+HV" : "HH only"} ·{" "}
+              {item.date === next?.date ? "next pass" : item.planned ? "planned" : "in the plan"}
             </span>
           </li>
         ))}
