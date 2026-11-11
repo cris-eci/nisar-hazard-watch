@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { NovaGlyph } from "@/features/nova/NovaGlyph";
 import { ONBOARDING_STEPS, type OnboardingTarget } from "@/features/onboarding/onboarding";
@@ -20,9 +20,10 @@ const NARROW_PX = 760;
 const MEASURE_MS = 200;
 
 type Box = { left: number; top: number; width: number; height: number };
-type Placement = { spot: Box | undefined; card: { left: number; top: number } };
+type CardPosition = { left: number; top: number } | { left: number; bottom: number };
+type Placement = { spot: Box | undefined; card: CardPosition };
 
-const measure = (target: OnboardingTarget): Placement => {
+const measure = (target: OnboardingTarget, cardH: number): Placement => {
   const width = window.innerWidth;
   const height = window.innerHeight;
   const element = document.querySelector(`[data-testid="${TEST_ID[target]}"]`);
@@ -37,21 +38,26 @@ const measure = (target: OnboardingTarget): Placement => {
       }
     : undefined;
   const cardW = Math.min(CARD_W, width - GAP * 2);
-  // Phones: the panels sit at the bottom, so the card goes under the top bar.
-  if (width < NARROW_PX || spot === undefined)
+  const centred = (width - cardW) / 2;
+  if (spot === undefined)
+    return { spot, card: { left: centred, top: Math.max(TOP, (height - cardH) / 2) } };
+  // Phones: the panels sit at the bottom. The card goes under the top bar when it fits above the
+  // target; otherwise (the start card fills most of the screen) it docks to the bottom, so the
+  // target's heading stays visible.
+  if (width < NARROW_PX)
     return {
       spot,
-      card: {
-        left: (width - cardW) / 2,
-        top: spot === undefined ? Math.max(TOP, (height - CARD_H) / 2) : TOP,
-      },
+      card:
+        spot.top - TOP >= cardH + GAP
+          ? { left: centred, top: TOP }
+          : { left: centred, bottom: GAP },
     };
   let left =
     target === "timeline" ? spot.left + spot.width / 2 - cardW / 2 : spot.left + spot.width + GAP;
-  let top = target === "timeline" ? spot.top - CARD_H - GAP : spot.top + 40;
+  let top = target === "timeline" ? spot.top - cardH - GAP : spot.top + 40;
   if (target === "dock") left = spot.left - cardW - GAP;
   left = Math.max(GAP, Math.min(width - cardW - GAP, left));
-  top = Math.max(TOP, Math.min(height - CARD_H - GAP, top));
+  top = Math.max(TOP, Math.min(height - cardH - GAP, top));
   return { spot, card: { left, top } };
 };
 
@@ -64,6 +70,12 @@ const sameBox = (a: Box | undefined, b: Box | undefined): boolean =>
     Math.round(a.width) === Math.round(b.width) &&
     Math.round(a.height) === Math.round(b.height));
 
+const sameCard = (a: CardPosition, b: CardPosition): boolean =>
+  Math.round(a.left) === Math.round(b.left) &&
+  ("top" in a
+    ? "top" in b && Math.round(a.top) === Math.round(b.top)
+    : "bottom" in b && Math.round(a.bottom) === Math.round(b.bottom));
+
 type OnboardingProps = {
   step: number;
   onNext: () => void;
@@ -74,16 +86,17 @@ type OnboardingProps = {
 export const Onboarding = ({ step, onNext, onSkip }: OnboardingProps) => {
   const current = ONBOARDING_STEPS[step];
   const [placement, setPlacement] = useState<Placement>();
+  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (current === undefined) return;
     const update = () => {
-      const next = measure(current.target);
+      // The card's real height depends on the step's text; before the first paint use the estimate.
+      const next = measure(current.target, cardRef.current?.offsetHeight || CARD_H);
       setPlacement((previous) =>
         previous !== undefined &&
         sameBox(previous.spot, next.spot) &&
-        Math.round(previous.card.left) === Math.round(next.card.left) &&
-        Math.round(previous.card.top) === Math.round(next.card.top)
+        sameCard(previous.card, next.card)
           ? previous
           : next,
       );
@@ -113,6 +126,7 @@ export const Onboarding = ({ step, onNext, onSkip }: OnboardingProps) => {
         }
       />
       <div
+        ref={cardRef}
         className="x-onboard__card"
         role="dialog"
         aria-label="Quick tour"

@@ -795,6 +795,20 @@
 
 /* Phones (SPECS §4 next round): Nova full screen, the story card stacks above the caption bar. */
 @media (max-width: 760px) {
+  /* A tighter tour card, so more of the highlighted panel stays visible around it. */
+  .x-onboard__card {
+    padding: 14px 16px;
+    gap: 8px;
+  }
+
+  .x-onboard__title {
+    font-size: 18px;
+  }
+
+  .x-onboard__text {
+    font-size: 14px;
+  }
+
   .x-top__fullscreen {
     display: none;
   }
