@@ -86,6 +86,12 @@ test.describe("Explorer: measured cases", () => {
     await expect(globe.timelinePasses("plan")).toHaveCount(2);
     for (const planned of await globe.timelinePasses("plan").all())
       await expect(planned).toBeDisabled();
+    await expect(globe.timelinePasses("plan").first()).toHaveAttribute("data-next", "true");
+    await expect(globe.timelinePasses("plan").last()).not.toHaveAttribute("data-next");
+    await expect(globe.timeline.getByTestId("timeline-next")).toHaveText("Next");
+    await expect(globe.timeline.getByTestId("timeline-planned-legend")).toContainText(
+      "next 16 Nov",
+    );
 
     await expect(globe.timelineCompare).toHaveAttribute("aria-pressed", "true");
     await expect(globe.timelineReadout).toHaveText(
@@ -152,6 +158,17 @@ test.describe("Explorer: live questions", () => {
     await expect(globe.verdict.getByTestId("prov-demo")).toBeVisible();
     await expect(globe.jobChecklist).toBeHidden();
     await expect(page).toHaveURL(new RegExp(`frame=${LIVE_FRAME.id}`));
+  });
+
+  test("the frame's next planned pass is the earliest one after today", async ({ page }) => {
+    await page.clock.setFixedTime(new Date("2026-11-10T12:00:00Z"));
+    const globe = new GlobePage(page);
+    await globe.mockObservationPlan();
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+    const next = globe.planPasses.locator('li[data-next="true"]');
+    await expect(next).toHaveCount(1);
+    await expect(next).toContainText("20 Nov 2026");
+    await expect(next).toContainText("next pass");
   });
 
   test("an archive failure says so and retries", async ({ page }) => {

@@ -88,7 +88,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   {
     title: "BUILD",
     items: [
-      { label: "Source code", href: "https://github.com/cris-eci/nisar-hazard-watch" },
+      { label: "Source code", href: "https://github.com/nisar-hazard-watch/nisar-hazard-watch" },
       {
         label: "API contract",
         href: "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
