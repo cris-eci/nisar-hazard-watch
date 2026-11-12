@@ -18,6 +18,7 @@ export const TEAM: TeamMember[] = [
     handle: "@jesus_pinzon",
     degree: "Systems Engineering",
     owner: true,
+    photo: "/team/jesus-pinzon.jpg",
     role: "Architect · team lead",
     built: "Backend API and system design",
     github: "https://github.com/JAPV-X2612",
