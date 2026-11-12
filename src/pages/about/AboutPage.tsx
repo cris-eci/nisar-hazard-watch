@@ -79,11 +79,20 @@ const Detail = ({ label, value, placeholder }: DetailProps) => (
   </div>
 );
 
-const ProfileLink = ({ label, href }: { label: string; href: string | undefined }) =>
+type ProfileLinkProps = { label: string; href: string | undefined; person: string };
+
+// Six cards carry the same two labels, so the accessible name says whose profile it opens.
+const ProfileLink = ({ label, href, person }: ProfileLinkProps) =>
   href === undefined ? (
     <span className="a-card__link a-card__link--todo">{label}</span>
   ) : (
-    <a className="a-card__link" href={href}>
+    <a
+      className="a-card__link"
+      href={href}
+      target="_blank"
+      rel="noopener"
+      aria-label={`${label} profile of ${person} (opens in a new tab)`}
+    >
       {label}
     </a>
   );
@@ -118,8 +127,8 @@ const MemberCard = ({ member, index }: { member: TeamMember; index: number }) =>
       <Detail label="Built" value={member.built} placeholder="What they built to fill" />
     </div>
     <div className="a-card__links" data-dim>
-      <ProfileLink label="GitHub" href={member.github} />
-      <ProfileLink label="LinkedIn" href={member.linkedin} />
+      <ProfileLink label="GitHub" href={member.github} person={firstName(member.name)} />
+      <ProfileLink label="LinkedIn" href={member.linkedin} person={firstName(member.name)} />
     </div>
   </article>
 );

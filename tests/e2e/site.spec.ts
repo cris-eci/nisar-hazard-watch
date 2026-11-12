@@ -86,4 +86,21 @@ test.describe("Landing and about pages", () => {
     await page.getByTestId("intro-team").click();
     await expect(page).toHaveURL(/\/about$/);
   });
+
+  test("every team card opens a GitHub and a LinkedIn profile in a new tab", async ({ page }) => {
+    await page.goto("/about");
+    const cards = page.locator("[data-testid^=member-]");
+    await expect(cards).toHaveCount(6);
+    for (const card of await cards.all()) {
+      const github = card.getByRole("link", { name: /^GitHub profile of / });
+      const linkedin = card.getByRole("link", { name: /^LinkedIn profile of / });
+      await expect(github).toHaveAttribute("href", /^https:\/\/github\.com\/[\w-]+$/);
+      await expect(linkedin).toHaveAttribute(
+        "href",
+        /^https:\/\/www\.linkedin\.com\/in\/[\w%-]+\/?$/,
+      );
+      await expect(github).toHaveAttribute("target", "_blank");
+      await expect(linkedin).toHaveAttribute("target", "_blank");
+    }
+  });
 });
