@@ -12,6 +12,9 @@ const PATHS = {
   play: "M8 5.5v13l10.5-6.5z",
   pause: "M7 5h3.5v14H7zM13.5 5H17v14h-3.5z",
   split: "M9 6l-6 6 6 6M15 6l6 6-6 6",
+  pin: "M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7zM12 3v3M12 18v3M3 12h3M18 12h3",
+  rectangle: "M5 7h14v10H5z",
+  polygon: "M12 4l7.5 5.5-3 9h-9l-3-9z",
 } as const;
 
 export type IconName = keyof typeof PATHS;

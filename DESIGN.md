@@ -185,7 +185,7 @@ FRONTIER wordmark and the non-affiliation notice. Each page picks its own place.
 - Put a Demo chip on every simulated value; keep Demo and To fill chips visible.
 - Draw "no measurement" in grey, keep gaps as gaps, use a fixed 0–100% axis for shares.
 - Design every async view's states: loading, error with retry, empty, success.
-- Put shareable state in the URL (`?case=`, `?frame=`, `?lens=`).
+- Put shareable state in the URL (`?case=`, `?frame=`, `?bbox=`, `?geo=`, `?lens=`).
 
 ### Don't
 

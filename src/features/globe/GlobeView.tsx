@@ -14,8 +14,17 @@ import { useEffect, useRef, useState } from "react";
 import { findLens, type Case } from "@/features/cases/cases";
 import type { BBox, Frame, LonLat } from "@/features/frames/frame.types";
 import { findFrameAt } from "@/features/frames/frames";
+import type { DrawEvent, Pointer } from "@/features/geo/drawMachine";
+import type { DrawTool } from "@/features/geo/geo.types";
+import { wrapBox } from "@/features/geo/longitude";
 import { addCaseMarker, MARKER_PREFIX } from "@/features/globe/caseMarkers";
 import { createViewer, pickLonLat } from "@/features/globe/cesium";
+import {
+  addDraftEntities,
+  pointerAt,
+  setCameraFollowsDrag,
+  type DraftView,
+} from "@/features/globe/drawTools";
 import {
   addChipOutline,
   addDrapeLayer,
@@ -63,6 +72,10 @@ type GlobeViewProps = {
   homeRequest: number;
   onOpenCase: (item: Case) => void;
   onAsk: (frame: Frame, point: LonLat) => void;
+  // While a tool is on, the globe draws instead of asking; undefined hands the clicks back.
+  drawTool: DrawTool | undefined;
+  draft: DraftView | undefined;
+  onDraw: (event: DrawEvent) => void;
   onUnavailable: () => void;
   // Hands the viewer out for the PNG download; undefined once it is destroyed.
   onViewer?: (viewer: Viewer | undefined) => void;
@@ -83,6 +96,9 @@ export const GlobeView = ({
   homeRequest,
   onOpenCase,
   onAsk,
+  drawTool,
+  draft,
+  onDraw,
   onUnavailable,
   onViewer,
 }: GlobeViewProps) => {
@@ -93,9 +109,9 @@ export const GlobeView = ({
   const hadTarget = useRef(false);
 
   // Cesium handlers are registered once, so they read the latest props through a ref.
-  const latest = useRef({ frames, cases, onOpenCase, onAsk, reduceMotion });
+  const latest = useRef({ frames, cases, onOpenCase, onAsk, reduceMotion, drawTool, onDraw });
   useEffect(() => {
-    latest.current = { frames, cases, onOpenCase, onAsk, reduceMotion };
+    latest.current = { frames, cases, onOpenCase, onAsk, reduceMotion, drawTool, onDraw };
   });
 
   useEffect(() => {
@@ -138,8 +154,35 @@ export const GlobeView = ({
       return latest.current.cases.find((item) => `${MARKER_PREFIX}${item.id}` === id);
     };
 
+    // With a tool on, the pointer draws: nothing below (hover, cases, asking) fires. Moves are
+    // sent once per frame, because every one re-renders the explorer; the rest go straight through.
+    let moveFrame = 0;
+    let lastMove: Pointer | undefined;
+    const draw = (type: "move" | "down" | "up" | "click", position: Cartesian2): void => {
+      const pointer = pointerAt(viewer, position);
+      if (type === "move") {
+        lastMove = pointer;
+        if (moveFrame === 0)
+          moveFrame = requestAnimationFrame(() => {
+            moveFrame = 0;
+            if (lastMove !== undefined) latest.current.onDraw({ type: "move", pointer: lastMove });
+          });
+        return;
+      }
+      cancelAnimationFrame(moveFrame);
+      moveFrame = 0;
+      if (pointer !== undefined) latest.current.onDraw({ type, pointer });
+      // A release off the planet would leave a drag hanging.
+      else if (type === "up") latest.current.onDraw({ type: "cancel" });
+    };
+
     const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
     handler.setInputAction(({ endPosition }: ScreenSpaceEventHandler.MotionEvent) => {
+      if (latest.current.drawTool !== undefined) {
+        setHover(undefined);
+        draw("move", endPosition);
+        return;
+      }
       const { x, y } = endPosition;
       const item = caseAt(endPosition);
       if (item !== undefined) {
@@ -167,6 +210,10 @@ export const GlobeView = ({
       });
     }, ScreenSpaceEventType.MOUSE_MOVE);
     handler.setInputAction(({ position }: ScreenSpaceEventHandler.PositionedEvent) => {
+      if (latest.current.drawTool !== undefined) {
+        draw("click", position);
+        return;
+      }
       const item = caseAt(position);
       if (item !== undefined) {
         latest.current.onOpenCase(item);
@@ -176,11 +223,44 @@ export const GlobeView = ({
       const frame = point && frameUnder(latest.current.frames, point);
       if (point !== undefined && frame !== undefined) latest.current.onAsk(frame, point);
     }, ScreenSpaceEventType.LEFT_CLICK);
+    handler.setInputAction(
+      () => latest.current.drawTool !== undefined && latest.current.onDraw({ type: "finish" }),
+      ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
+    );
+    handler.setInputAction(({ position }: ScreenSpaceEventHandler.PositionedEvent) => {
+      if (latest.current.drawTool !== undefined) draw("up", position);
+    }, ScreenSpaceEventType.LEFT_UP);
     // Any manual navigation stops the idle spin for good.
-    handler.setInputAction(() => setIsSpinning(false), ScreenSpaceEventType.LEFT_DOWN);
+    handler.setInputAction(({ position }: ScreenSpaceEventHandler.PositionedEvent) => {
+      if (latest.current.drawTool !== undefined) draw("down", position);
+      else setIsSpinning(false);
+    }, ScreenSpaceEventType.LEFT_DOWN);
     handler.setInputAction(() => setIsSpinning(false), ScreenSpaceEventType.WHEEL);
-    return () => handler.destroy();
+    return () => {
+      cancelAnimationFrame(moveFrame);
+      handler.destroy();
+    };
   }, [viewer]);
+
+  const drawing = drawTool !== undefined;
+  useEffect(() => {
+    if (viewer === undefined) return;
+    // A tool needs a still globe under the hand.
+    if (drawing) setIsSpinning(false);
+    setCameraFollowsDrag(viewer, !drawing);
+    return () => {
+      if (!viewer.isDestroyed()) setCameraFollowsDrag(viewer, true);
+    };
+  }, [viewer, drawing]);
+
+  const draftKey = draft && `${draft.tool}|${draft.closed}|${draft.level}|${draft.ring.join(";")}`;
+  useEffect(() => {
+    if (viewer === undefined || draft === undefined) return;
+    const entities = addDraftEntities(viewer, draft);
+    return () => removeEntities(viewer, entities);
+    // draftKey stands in for the draft object, which is rebuilt on every render.
+    // oxlint-disable-next-line react/exhaustive-deps
+  }, [viewer, draftKey]);
 
   const hasTarget = scene.target !== undefined;
   useEffect(() => {
@@ -212,7 +292,7 @@ export const GlobeView = ({
     return () => removeEntities(viewer, entities);
   }, [viewer, frame]);
 
-  const outlineKey = outline && `${outline.box.join(",")}|${outline.label}|${outline.processing}`;
+  const outlineKey = outline && `${outline.ring.join(";")}|${outline.label}|${outline.processing}`;
   useEffect(() => {
     if (viewer === undefined || outline === undefined) return;
     const entities = addChipOutline(viewer, outline);
@@ -266,7 +346,7 @@ export const GlobeView = ({
     const { clientWidth: width, clientHeight: height } = viewer.canvas;
     const box = framedBox(target.box, viewInsets(view, width, height), width, height, target.zoom);
     viewer.camera.flyTo({
-      destination: Rectangle.fromDegrees(...box),
+      destination: Rectangle.fromDegrees(...wrapBox(box)),
       duration,
       easingFunction: EasingFunction.QUADRATIC_IN_OUT,
     });

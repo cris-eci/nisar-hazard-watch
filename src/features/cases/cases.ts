@@ -1,4 +1,4 @@
-import type { BBox, LonLat } from "@/features/frames/frame.types";
+import type { LonLat } from "@/features/frames/frame.types";
 
 /*
  * Measured cases from the science backend (github.com/Ch0comilo/NISAR-Modeling). Every number here
@@ -466,15 +466,6 @@ export const CASES: Case[] = [
 
 export const findCase = (id: string | null): Case | undefined =>
   CASES.find((item) => item.id === id);
-
-const KM_PER_DEGREE = 111.32;
-
-// The processed square, centred on the case point. Longitude degrees shrink with latitude.
-export const chipBounds = ([lon, lat]: LonLat, chipKm: number): BBox => {
-  const halfLat = chipKm / 2 / KM_PER_DEGREE;
-  const halfLon = chipKm / 2 / (KM_PER_DEGREE * Math.cos((lat * Math.PI) / 180));
-  return [lon - halfLon, lat - halfLat, lon + halfLon, lat + halfLat];
-};
 
 export const percent = (k: number, n: number): number => (n === 0 ? 0 : (k / n) * 100);
 

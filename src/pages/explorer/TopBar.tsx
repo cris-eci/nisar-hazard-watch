@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { Icon } from "@/features/case-panel/icons";
 import { HazardIcon } from "@/features/cases/HazardIcon";
@@ -20,6 +20,8 @@ export type DownloadItem = {
 
 type TopBarProps = {
   context: ContextChip | undefined;
+  // The area tools sit between the mode switch and the page links.
+  tools: ReactNode;
   helpOpen: boolean;
   downloadOpen: boolean;
   downloads: DownloadItem[];
@@ -42,6 +44,7 @@ const toggleFullScreen = () => {
 
 export const TopBar = ({
   context,
+  tools,
   helpOpen,
   downloadOpen,
   downloads,
@@ -106,6 +109,7 @@ export const TopBar = ({
         </button>
       </div>
       <span className="x-top__fill" />
+      {tools}
       <Link to="/cases" className="x-pill x-top__nav" testId="nav-cases">
         Cases
       </Link>
