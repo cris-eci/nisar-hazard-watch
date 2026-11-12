@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CASES, chipBounds, formatPercent, percent } from "@/features/cases/cases";
+import { CASES, formatPercent, percent } from "@/features/cases/cases";
 import { bandOf, demoBandPasses, isOutside, verdictOf } from "@/features/cases/demoBand";
 
 // Every file under public/cases, as Vite sees it ("/public/cases/x.png").
@@ -42,15 +42,6 @@ describe("measured cases", () => {
       if (firstPlanned >= 0)
         expect(kinds.slice(firstPlanned).every((k) => k === "plan")).toBe(true);
     }
-  });
-});
-
-describe("chipBounds", () => {
-  it("spans the chip size in km in both directions", () => {
-    const [west, south, east, north] = chipBounds([73.713, 32.329], 5.12);
-    expect((north - south) * 111.32).toBeCloseTo(5.12, 2);
-    // Longitude degrees shrink with latitude, so the east-west span in degrees is wider.
-    expect(east - west).toBeGreaterThan(north - south);
   });
 });
 

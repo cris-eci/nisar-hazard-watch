@@ -19,6 +19,8 @@ const FREE_CENTRE = { x: 392 + (1440 - 392 - 288) / 2, y: 72 + (900 - 72 - 200) 
 // Far enough from the centre to miss the point and marker, still inside the same NISAR frame.
 const OFF_CENTRE_PX = 90;
 
+type Offset = { dx: number; dy: number };
+
 export class GlobePage {
   private readonly page: Page;
   readonly startCard: Locator;
@@ -43,6 +45,11 @@ export class GlobePage {
   readonly planPasses: Locator;
   readonly wholeGlobe: Locator;
   readonly helpButton: Locator;
+  readonly areaTools: Locator;
+  readonly areaGuide: Locator;
+  readonly areaSize: Locator;
+  readonly areaNotice: Locator;
+  readonly useSquare: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -68,6 +75,15 @@ export class GlobePage {
     this.planPasses = page.getByTestId("plan-passes");
     this.wholeGlobe = page.getByTestId("whole-globe");
     this.helpButton = page.getByTestId("help-button");
+    this.areaTools = page.getByTestId("area-tools");
+    this.areaGuide = page.getByTestId("area-guide");
+    this.areaSize = page.getByTestId("area-size");
+    this.areaNotice = page.getByTestId("area-notice");
+    this.useSquare = page.getByTestId("area-use-square");
+  }
+
+  tool(id: "point" | "rectangle" | "polygon"): Locator {
+    return this.page.getByTestId(`tool-${id}`);
   }
 
   caseRow(id: string): Locator {
@@ -113,5 +129,26 @@ export class GlobePage {
 
   async clickLand(): Promise<void> {
     await this.page.mouse.click(FREE_CENTRE.x + OFF_CENTRE_PX, FREE_CENTRE.y);
+  }
+
+  // Drawing offsets are in pixels from the free-screen centre, where a close-up chip sits.
+  async dragFromCentre(from: Offset, to: Offset): Promise<void> {
+    const { mouse } = this.page;
+    await mouse.move(FREE_CENTRE.x + from.dx, FREE_CENTRE.y + from.dy);
+    await mouse.down();
+    await mouse.move(FREE_CENTRE.x + to.dx, FREE_CENTRE.y + to.dy, { steps: 6 });
+    await mouse.up();
+  }
+
+  async press(key: string): Promise<void> {
+    await this.page.keyboard.press(key);
+  }
+
+  async clickFromCentre({ dx, dy }: Offset): Promise<void> {
+    await this.page.mouse.click(FREE_CENTRE.x + dx, FREE_CENTRE.y + dy);
+  }
+
+  async doubleClickFromCentre({ dx, dy }: Offset): Promise<void> {
+    await this.page.mouse.dblclick(FREE_CENTRE.x + dx, FREE_CENTRE.y + dy);
   }
 }

@@ -10,8 +10,10 @@ Pages (`src/App.tsx` switches on the pathname; no router dependency):
 - `/` landing (`src/pages/landing/`), `/cases` (`src/pages/cases/`), `/method`
   (`src/pages/method/`), `/about` (`src/pages/about/`, team data in `src/content/team.ts`).
 - `/explore` the CesiumJS explorer (`src/pages/explorer/`). Deep links: `?case=<id>` opens a
-  measured case; `?frame=<track-frame>[&lens=<id>]` asks a live question; `?story=1` starts the
-  guided story. Legacy `/?frame=` links also open the explorer.
+  measured case; `?frame=<track-frame>[&lens=<id>]` asks a live question on a point;
+  `?bbox=<west,south,east,north>` (east below west crosses ±180°) or `?geo=<lon,lat_lon,lat_…>`
+  asks it on a drawn rectangle or polygon; `?story=1` starts the guided story. Legacy `/?frame=`
+  links also open the explorer.
 - `/report?case=<id>` a printable one-page report for a measured case (`src/pages/report/`).
 
 Design source of truth: `design_handoff_v7/` next to this repo (outside git) (`SPECS.md`, `DATA_PROVENANCE.md`). Visual system:
@@ -40,6 +42,19 @@ pnpm frames:fetch   # refresh public/data/frames.json from the Observation Plan
 
 Before reporting work: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build`
 plus the E2E spec(s) you touched.
+
+## Choosing an area
+
+`src/features/geo/` is pure (no Cesium types): longitudes and the antimeridian (`longitude.ts`,
+`antimeridian.ts`), the backend's size limits (`limits.ts`, the same numbers as its
+`constants/sar.py`), spherical measures (`measure.ts`), the point's contract square (`square.ts`),
+GeoJSON/WKT (`serialize.ts`), shared links (`areaLink.ts`) and the drawing tools as a state machine
+(`drawMachine.ts`: point, rectangle, polygon; with no tool nothing fires, which is how the guided
+tour keeps the globe still). Rings stay continuous (longitudes may pass ±180°) in the app and are
+split into a `MultiPolygon` only in `toGeoJson`. `src/features/globe/drawTools.ts` and `GlobeView`
+turn pointer events into machine events; `ExplorerPage` owns the state. Sizes: 10 × 10 km ideal
+(110 km²), up to 400 km² accepted, above that the UI explains the limit and offers the centred
+square. Cesium's own double-click is removed in `createViewer` so it never fights the polygon tool.
 
 ## Data
 
@@ -92,7 +107,7 @@ Mirrors the conventions used at work (consoles-ui-monorepo), kept as simple as t
 - **Arrow-function components**, props as a `type` above the component.
 - **`@/` imports** inside `src/` and tests, never `../`.
 - **Feature folders:** `src/features/<feature>/` (cases, case-panel, charts, downloads, frames,
-  globe, live, nova, onboarding, sheet, story, timeline); shared helpers in `src/lib/`; page code in `src/pages/<page>/`.
+  geo, globe, live, nova, onboarding, sheet, story, timeline); shared helpers in `src/lib/`; page code in `src/pages/<page>/`.
 - **CSS per page with its prefix:** `s-` shared site (`src/pages/site/site.css`, tokens), `l-`
   landing, `k-` cases, `m-` method, `a-` about, `x-` explorer, `c-` charts and chips
   (`src/features/charts/charts.css`).

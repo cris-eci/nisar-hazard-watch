@@ -11,20 +11,26 @@ import { PendingSummary, ResultSummary } from "@/features/case-panel/CaseSummary
 import { ShowRealContext } from "@/features/case-panel/showReal";
 import { caseSubject, liveSubject, type Subject } from "@/features/case-panel/subject";
 import { VERDICT } from "@/features/case-panel/verdicts";
-import {
-  CASES,
-  chipBounds,
-  findCase,
-  findLens,
-  LENSES,
-  type Case,
-  type LensId,
-} from "@/features/cases/cases";
+import { CASES, findCase, findLens, LENSES, type Case, type LensId } from "@/features/cases/cases";
 import type { ChartMode } from "@/features/charts/chartTokens";
 import { captureGlobe, type GlobeStrip } from "@/features/downloads/globeImage";
 import { saveBlob, timelineCsv, timelineJson } from "@/features/downloads/timelineExport";
 import type { Frame, LonLat } from "@/features/frames/frame.types";
 import { findFrameAt, loadFrames } from "@/features/frames/frames";
+import { areaFromParams, areaToParams } from "@/features/geo/areaLink";
+import {
+  draftOf,
+  isDrawing,
+  reduceDraw,
+  startTool,
+  type DrawEvent,
+  type DrawState,
+} from "@/features/geo/drawMachine";
+import type { Area, DrawTool } from "@/features/geo/geo.types";
+import { formatKm2, levelOf } from "@/features/geo/limits";
+import { boundsOf } from "@/features/geo/longitude";
+import { areaKm2Of, centreOf, ringAreaKm2, ringOf } from "@/features/geo/measure";
+import { ringOfBox, squareBounds } from "@/features/geo/square";
 import { GlobeView, type GlobeScene } from "@/features/globe/GlobeView";
 import { formatLonLat, gridMetres, LIVE_CHIP_KM, liveAnswer } from "@/features/live/liveQuestion";
 import { JobChecklist, JobProblem, PlanPasses } from "@/features/live/LiveSummary";
@@ -49,6 +55,8 @@ import { StoryMode } from "@/features/story/StoryMode";
 import { PassTimeline } from "@/features/timeline/PassTimeline";
 import { formatDay } from "@/features/timeline/timelineLayout";
 import { useAsync } from "@/lib/useAsync";
+import { AreaGuide, type AreaIssue } from "@/pages/explorer/AreaGuide";
+import { AreaTools } from "@/pages/explorer/AreaTools";
 import { LEGEND, type DrapeKind } from "@/pages/explorer/drapeLegend";
 import { LayerDock } from "@/pages/explorer/LayerDock";
 import { HintPill, StartCard } from "@/pages/explorer/StartCard";
@@ -59,7 +67,9 @@ type Selection =
   | {
       kind: "live";
       frame: Frame;
+      // Where the question is asked: the clicked point, or the centre of a drawn area.
       point: LonLat;
+      area: Area;
       lens: LensId;
       // A live question started from a case's lens chips can go back to that case.
       fromCase: Case | undefined;
@@ -81,13 +91,15 @@ const today = new Date().toISOString().slice(0, 10);
 
 const isLens = (value: string | null): value is LensId => LENSES.some((lens) => lens.id === value);
 
-// Shared links: ?case=<id>, ?frame=<track-frame>[&lens=<id>] for a live question, ?story=1.
+// Shared links: ?case=<id>, ?frame=<track-frame>[&lens=<id>] for a live question on a point,
+// ?bbox= or ?geo= (plus &lens=) for a drawn area, ?story=1.
 const readParams = () => {
   const params = new URLSearchParams(window.location.search);
   const lens = params.get("lens");
   return {
     item: findCase(params.get("case")),
     frameId: params.get("frame"),
+    area: areaFromParams(params),
     lens: isLens(lens) ? lens : DEFAULT_LENS,
     story: params.get("story") === "1",
   };
@@ -97,10 +109,13 @@ const paramsOf = (selection: Selection | undefined, story: boolean): string => {
   if (story) return "story=1";
   if (selection === undefined) return "";
   if (selection.kind === "case") return new URLSearchParams({ case: selection.item.id }).toString();
-  return new URLSearchParams({
-    frame: selection.frame.id,
-    ...(selection.lens !== DEFAULT_LENS && { lens: selection.lens }),
-  }).toString();
+  const lens = selection.lens !== DEFAULT_LENS && { lens: selection.lens };
+  const params = new URLSearchParams({
+    ...(areaToParams(selection.area) ?? { frame: selection.frame.id }),
+    ...lens,
+  });
+  // Commas are legal in a query and keep a shared area readable.
+  return params.toString().replaceAll("%2C", ",");
 };
 
 const frameUnder = (frames: Frame[], point: LonLat): Frame | undefined =>
@@ -112,6 +127,14 @@ const bboxCentre = ({ bbox: [west, south, east, north] }: Frame): LonLat => [
 ];
 
 const country = (item: Case): string => item.place.split(",").at(-1)?.trim() ?? item.place;
+
+const AREA_NAME = { point: "Point", rectangle: "Rectangle", polygon: "Polygon" } as const;
+
+// A drawn area is named by its shape and size; a point by where it is.
+const liveName = ({ area, point }: { area: Area; point: LonLat }): string =>
+  area.kind === "point"
+    ? formatLonLat(point)
+    : `${AREA_NAME[area.kind]} · ${formatKm2(areaKm2Of(area))}`;
 
 const prefersReducedMotion = (): boolean =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -144,18 +167,27 @@ export const ExplorerPage = () => {
   const [voice, setVoice] = useState(false);
   // First visit with nothing open: the four-step tour. Links to a case or the story skip it.
   const [onboarding, setOnboarding] = useState<number | undefined>(() =>
-    !initial.story && initial.item === undefined && initial.frameId === null && !hasSeenOnboarding()
+    !initial.story &&
+    initial.item === undefined &&
+    initial.frameId === null &&
+    initial.area === undefined &&
+    !hasSeenOnboarding()
       ? 0
       : undefined,
   );
   const [novaOpen, setNovaOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
   const viewerRef = useRef<Viewer | undefined>(undefined);
-  // A shared ?frame= link can only open once the frames snapshot is in.
-  const linkRef = useRef(initial.item === undefined && !initial.story ? initial.frameId : null);
+  // A shared ?frame=, ?bbox= or ?geo= link can only open once the frames snapshot is in.
+  const opensLink = initial.item === undefined && !initial.story;
+  const linkRef = useRef(opensLink ? initial.frameId : null);
+  const areaLinkRef = useRef(opensLink ? initial.area : undefined);
   const [linkPending, setLinkPending] = useState(
-    initial.item === undefined && !initial.story && initial.frameId !== null,
+    opensLink && (initial.frameId !== null || initial.area !== undefined),
   );
+  const [draw, setDraw] = useState<DrawState>(() => startTool(undefined));
+  const drawRef = useRef(draw);
+  const [areaIssue, setAreaIssue] = useState<AreaIssue>();
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [mode, setMode] = useState<ChartMode>("plain");
@@ -168,15 +200,17 @@ export const ExplorerPage = () => {
   const [unavailable, setUnavailable] = useState(false);
 
   const ask = useCallback(
-    (frame: Frame, point: LonLat, lens: LensId = DEFAULT_LENS, fromCase?: Case) => {
+    (frame: Frame, point: LonLat, lens: LensId = DEFAULT_LENS, fromCase?: Case, area?: Area) => {
       setSelection((previous) => ({
         kind: "live",
         frame,
         point,
+        area: area ?? { kind: "point", point },
         lens,
         fromCase,
         run: previous?.kind === "live" ? previous.run + 1 : 0,
       }));
+      setAreaIssue(undefined);
       setCollapsed(false);
       setSheetOpen(false);
       setHelpOpen(false);
@@ -189,7 +223,15 @@ export const ExplorerPage = () => {
     async (signal: AbortSignal) => {
       const loaded = await loadFrames(signal);
       const linked = linkRef.current;
-      if (linked !== null) {
+      const linkedArea = areaLinkRef.current;
+      if (linkedArea !== undefined) {
+        areaLinkRef.current = undefined;
+        const centre = centreOf(linkedArea);
+        const frame = frameUnder(loaded, centre);
+        if (frame !== undefined) ask(frame, centre, initial.lens, undefined, linkedArea);
+        else setAreaIssue({ kind: "noFrame" });
+        setLinkPending(false);
+      } else if (linked !== null) {
         linkRef.current = null;
         const frame = loaded.find((entry) => entry.id === linked);
         if (frame !== undefined) ask(frame, bboxCentre(frame), initial.lens);
@@ -204,6 +246,21 @@ export const ExplorerPage = () => {
     () => (framesState?.status === "success" ? framesState.data : []),
     [framesState],
   );
+  const framesRef = useRef(frames);
+  useEffect(() => {
+    framesRef.current = frames;
+  }, [frames]);
+
+  // A drawn area is asked at its centre, on the frame that covers it.
+  const askArea = useCallback(
+    (area: Area) => {
+      const centre = centreOf(area);
+      const frame = frameUnder(framesRef.current, centre);
+      if (frame === undefined) setAreaIssue({ kind: "noFrame" });
+      else ask(frame, centre, DEFAULT_LENS, undefined, area);
+    },
+    [ask],
+  );
 
   const live = selection?.kind === "live" ? selection : undefined;
   const runKey = live === undefined ? "" : `${live.point.join(",")}|${live.lens}|${live.run}`;
@@ -216,6 +273,7 @@ export const ExplorerPage = () => {
 
   const openCase = useCallback((item: Case) => {
     setSelection({ kind: "case", item });
+    setAreaIssue(undefined);
     setCollapsed(false);
     setSheetOpen(false);
     setHelpOpen(false);
@@ -241,6 +299,41 @@ export const ExplorerPage = () => {
     [ask],
   );
 
+  const chooseTool = useCallback((tool: DrawTool | undefined) => {
+    const next = startTool(tool);
+    drawRef.current = next;
+    setDraw(next);
+    setAreaIssue(undefined);
+    if (tool !== undefined) {
+      setHelpOpen(false);
+      setDownloadOpen(false);
+    }
+  }, []);
+
+  const finishArea = useCallback(
+    (area: Area) => {
+      const km2 = areaKm2Of(area);
+      if (levelOf(km2) === "tooLarge") setAreaIssue({ kind: "tooLarge", area, km2 });
+      else askArea(area);
+    },
+    [askArea],
+  );
+
+  // The reducer reads the ref, not the state, so events in the same frame never see a stale one.
+  const onDraw = useCallback(
+    (event: DrawEvent) => {
+      if (storyRef.current) return;
+      const step = reduceDraw(drawRef.current, event);
+      // One drawing, one question: a finished area puts the tool away.
+      const next = step.area === undefined ? step.state : startTool(undefined);
+      drawRef.current = next;
+      setDraw(next);
+      if (step.rejected !== undefined) setAreaIssue({ kind: "rejected", reason: step.rejected });
+      if (step.area !== undefined) finishArea(step.area);
+    },
+    [finishArea],
+  );
+
   useEffect(() => {
     if (linkPending) return;
     const url = new URL(window.location.href);
@@ -259,6 +352,7 @@ export const ExplorerPage = () => {
 
   const startStory = useCallback(() => {
     close();
+    chooseTool(undefined);
     setHelpOpen(false);
     setDownloadOpen(false);
     setNovaOpen(false);
@@ -266,7 +360,7 @@ export const ExplorerPage = () => {
     setChapter(0);
     setPlaying(false);
     setStory(true);
-  }, [close]);
+  }, [close, chooseTool]);
 
   const leaveStory = useCallback(() => {
     speak(undefined);
@@ -331,17 +425,26 @@ export const ExplorerPage = () => {
   const wholeGlobe = () => {
     if (story) leaveStory();
     close();
+    chooseTool(undefined);
     setHelpOpen(false);
     setHomeRequest((count) => count + 1);
   };
 
-  // Esc closes the innermost thing first: onboarding, story, menus, Nova, sheet, selection (SPECS §4).
+  // Esc closes the innermost thing first: onboarding, story, a drawing, menus, Nova, sheet, selection
+  // (SPECS §4). A drawing gives way in steps: its notice, the shape in progress, then the tool.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      const typing = (event.target as HTMLElement | null)?.closest("input, textarea") != null;
+      if (event.key === "Enter" && draw.tool === "polygon" && isDrawing(draw) && !typing)
+        onDraw({ type: "finish" });
       if (event.key === "Escape") {
         if (onboarding !== undefined) setOnboarding(undefined);
         else if (story) exitStory();
-        else if (helpOpen || downloadOpen) {
+        else if (areaIssue !== undefined) setAreaIssue(undefined);
+        else if (draw.tool !== undefined) {
+          if (isDrawing(draw)) onDraw({ type: "cancel" });
+          else chooseTool(undefined);
+        } else if (helpOpen || downloadOpen) {
           setHelpOpen(false);
           setDownloadOpen(false);
         } else if (novaOpen) setNovaOpen(false);
@@ -359,6 +462,8 @@ export const ExplorerPage = () => {
     onboarding,
     story,
     chapter,
+    draw,
+    areaIssue,
     helpOpen,
     downloadOpen,
     novaOpen,
@@ -366,6 +471,8 @@ export const ExplorerPage = () => {
     close,
     exitStory,
     goChapter,
+    onDraw,
+    chooseTool,
   ]);
 
   const chooseLens = (lens: LensId) => {
@@ -381,7 +488,7 @@ export const ExplorerPage = () => {
       openCase(selection.fromCase);
       return;
     }
-    ask(selection.frame, selection.point, lens, selection.fromCase);
+    ask(selection.frame, selection.point, lens, selection.fromCase, selection.area);
   };
 
   const item = selection?.kind === "case" ? selection.item : undefined;
@@ -409,9 +516,20 @@ export const ExplorerPage = () => {
       : live !== undefined
         ? {
             icon: findLens(live.lens)?.icon ?? "flood",
-            name: formatLonLat(live.point),
+            name: liveName(live),
             when: "Live question",
           }
+        : undefined;
+
+  const draft = draftOf(draw);
+  const draftKm2 = draft?.closed === true ? ringAreaKm2(draft.ring) : 0;
+  const draftView = draft && { ...draft, km2: draftKm2, level: levelOf(draftKm2) };
+  const toolsOffWhy = story
+    ? "Not available during the guided tour"
+    : unavailable
+      ? "The 3D globe isn't available in this browser"
+      : framesState?.status !== "success"
+        ? "Waiting for the NISAR frames"
         : undefined;
 
   const showTimeline = item?.timeline !== undefined && item.pending !== true && !sheetOpen;
@@ -563,6 +681,9 @@ export const ExplorerPage = () => {
             homeRequest={homeRequest}
             onOpenCase={onGlobeOpenCase}
             onAsk={onGlobeAsk}
+            drawTool={story ? undefined : draw.tool}
+            draft={draftView}
+            onDraw={onDraw}
             onUnavailable={() => setUnavailable(true)}
             onViewer={(viewer) => {
               viewerRef.current = viewer;
@@ -572,6 +693,7 @@ export const ExplorerPage = () => {
 
         <TopBar
           context={context}
+          tools={<AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />}
           helpOpen={helpOpen}
           downloadOpen={downloadOpen}
           downloads={downloads}
@@ -596,6 +718,22 @@ export const ExplorerPage = () => {
           onWholeGlobe={wholeGlobe}
         />
 
+        {!story && (
+          <AreaGuide
+            tool={draw.tool}
+            draft={draftView}
+            issue={areaIssue}
+            corners={draw.corners.length}
+            onFinish={() => onDraw({ type: "finish" })}
+            onCancel={() => onDraw({ type: "cancel" })}
+            onUseSquare={() => {
+              if (areaIssue?.kind === "tooLarge")
+                askArea({ kind: "point", point: centreOf(areaIssue.area) });
+            }}
+            onDismiss={() => setAreaIssue(undefined)}
+          />
+        )}
+
         {selection === undefined && !story && (
           <>
             <StartCard
@@ -604,7 +742,7 @@ export const ExplorerPage = () => {
               onRetryFrames={retryFrames}
               onStory={startStory}
             />
-            <HintPill />
+            {draw.tool === undefined && <HintPill />}
           </>
         )}
 
@@ -618,7 +756,9 @@ export const ExplorerPage = () => {
             title={
               item !== undefined
                 ? `${item.name}, ${country(item)}`
-                : formatLonLat(live?.point ?? [0, 0])
+                : live !== undefined
+                  ? liveName(live)
+                  : ""
             }
             lens={item?.lens ?? live?.lens ?? DEFAULT_LENS}
             collapsed={collapsed || sheetOpen}
@@ -724,7 +864,7 @@ const storyScene = (item: Case, chapter: number, opacity: number): GlobeScene =>
     ...scene,
     target: {
       key: "story-region",
-      box: chipBounds(REGION_CENTRE, STORY_REGION_KM),
+      box: squareBounds(REGION_CENTRE, STORY_REGION_KM),
       zoom: REGION_ZOOM,
       seconds: STORY_REGION_SECONDS,
     },
@@ -751,13 +891,17 @@ const sceneOf = (
   };
   if (selection === undefined) return empty;
   if (selection.kind === "live") {
-    const box = chipBounds(selection.point, LIVE_CHIP_KM);
+    const { area } = selection;
+    const ring = ringOf(area);
     return {
       ...empty,
-      target: { key: `live|${selection.point.join(",")}`, box, zoom: CHIP_ZOOM },
+      target: { key: `live|${area.kind}|${ring.join(";")}`, box: boundsOf(ring), zoom: CHIP_ZOOM },
       outline: {
-        box,
-        label: `Processed area · ${LIVE_CHIP_KM} km · ${gridMetres(LIVE_CHIP_KM)} m grid`,
+        ring,
+        label:
+          area.kind === "point"
+            ? `Processed area · ${LIVE_CHIP_KM} km · ${gridMetres(LIVE_CHIP_KM)} m grid`
+            : `Selected area · ${formatKm2(areaKm2Of(area))}`,
         processing: !ready,
       },
       point: selection.point,
@@ -771,18 +915,18 @@ const sceneOf = (
       ...empty,
       target: {
         key: item.id,
-        box: chipBounds(item.focus, pending ? REGION_KM : LIVE_CHIP_KM),
+        box: squareBounds(item.focus, pending ? REGION_KM : LIVE_CHIP_KM),
         zoom: pending ? REGION_ZOOM : CHIP_ZOOM,
       },
       selectedCaseId: item.id,
     };
   }
-  const box = chipBounds(item.focus, item.chipKm);
+  const box = squareBounds(item.focus, item.chipKm);
   return {
     ...empty,
     target: { key: item.id, box, zoom: CHIP_ZOOM },
     outline: {
-      box,
+      ring: ringOfBox(box),
       label: `Processed area · ${item.chipKm} km · ${gridMetres(item.chipKm)} m grid`,
       processing: false,
     },

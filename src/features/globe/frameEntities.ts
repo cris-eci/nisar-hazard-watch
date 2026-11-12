@@ -14,6 +14,8 @@ import {
 } from "cesium";
 
 import type { BBox, Frame, LonLat } from "@/features/frames/frame.types";
+import type { Ring } from "@/features/geo/geo.types";
+import { boundsOf } from "@/features/geo/longitude";
 
 export const HOVER_COLOR = Color.fromCssColorString("#e2e8f0");
 export const GOLD = Color.fromCssColorString("#c9b48b");
@@ -38,25 +40,17 @@ export const addFrameEntities = (
     });
   });
 
-export type ChipOutline = { box: BBox; label: string; processing: boolean };
+export type ChipOutline = { ring: Ring; label: string; processing: boolean };
 
-// The processed square: solid gold once measured, a gold dash while the radar job runs (SPECS §2.6).
+// The processed area: solid gold once measured, a gold dash while the radar job runs (SPECS §2.6).
+// A square chip is four corners; a drawn polygon has as many as it was given.
 export const addChipOutline = (
   viewer: Viewer,
-  { box: [west, south, east, north], label, processing }: ChipOutline,
+  { ring, label, processing }: ChipOutline,
 ): Entity[] => {
-  const positions = Cartesian3.fromDegreesArray([
-    west,
-    south,
-    east,
-    south,
-    east,
-    north,
-    west,
-    north,
-    west,
-    south,
-  ]);
+  const [west, , , north] = boundsOf(ring);
+  const first = ring[0];
+  const positions = Cartesian3.fromDegreesArray((first ? [...ring, first] : ring).flat());
   return [
     viewer.entities.add({
       polyline: {

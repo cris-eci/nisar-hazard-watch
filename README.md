@@ -68,6 +68,7 @@ radar can't tell. No forecasts, no probabilities, no causes.
 
 Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 `/explore?frame=47-3` (optionally `&lens=<id>`) asks a live question on a NISAR frame;
+`/explore?bbox=-74.78,2.87,-74.73,2.91` or `?geo=lon,lat_lon,lat_…` asks it on a drawn area;
 `/explore?story=1` starts the guided story. Old `/?frame=` links still open the explorer.
 
 <table>

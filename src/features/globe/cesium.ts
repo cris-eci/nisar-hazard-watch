@@ -11,6 +11,7 @@ import {
   ImageryLayer,
   KeyboardEventModifier,
   Math as CesiumMath,
+  ScreenSpaceEventType,
   UrlTemplateImageryProvider,
   Viewer,
 } from "cesium";
@@ -46,6 +47,9 @@ export const createViewer = (container: HTMLElement): Viewer => {
     // its "3D globe unavailable" pill instead of Cesium's own error panel.
     showRenderLoopErrors: false,
   });
+  // Cesium's own double-click locks the camera onto the entity under the pointer, which would
+  // fight the polygon tool (it closes on a double-click) and the camera that follows the question.
+  viewer.screenSpaceEventHandler.removeInputAction(ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
   viewer.scene.backgroundColor = Color.fromCssColorString("#04070e");
   viewer.scene.globe.baseColor = Color.fromCssColorString("#08101f");
   const controls = viewer.scene.screenSpaceCameraController;
