@@ -5,6 +5,8 @@ import { HazardIcon } from "@/features/cases/HazardIcon";
 import type { IconId } from "@/features/cases/cases";
 import { Link } from "@/lib/Link";
 import { VERSION } from "@/pages/explorer/StartCard";
+import { PlaceSearch } from "@/features/search/PlaceSearch";
+import type { Place } from "@/features/search/placesApi";
 import { BrandMark } from "@/lib/BrandMark";
 
 export type ContextChip = { icon: IconId; name: string; when: string };
@@ -24,12 +26,15 @@ type TopBarProps = {
   tools: ReactNode;
   helpOpen: boolean;
   downloadOpen: boolean;
+  searchOpen: boolean;
   downloads: DownloadItem[];
   story: boolean;
   showReal: boolean;
   reduceMotion: boolean;
   onHelp: (open: boolean) => void;
   onDownload: (open: boolean) => void;
+  onSearch: (open: boolean) => void;
+  onPickPlace: (place: Place) => void;
   onStory: (on: boolean) => void;
   onReplayTour: () => void;
   onShowReal: (on: boolean) => void;
@@ -47,12 +52,15 @@ export const TopBar = ({
   tools,
   helpOpen,
   downloadOpen,
+  searchOpen,
   downloads,
   story,
   showReal,
   reduceMotion,
   onHelp,
   onDownload,
+  onSearch,
+  onPickPlace,
   onStory,
   onReplayTour,
   onShowReal,
@@ -61,18 +69,20 @@ export const TopBar = ({
 }: TopBarProps) => {
   const helpRef = useRef<HTMLDivElement>(null);
   const downloadRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
 
   // A click anywhere outside a menu closes it, like any popover.
   useEffect(() => {
-    if (!helpOpen && !downloadOpen) return;
+    if (!helpOpen && !downloadOpen && !searchOpen) return;
     const close = (event: PointerEvent) => {
       const target = event.target as Node;
       if (helpOpen && !helpRef.current?.contains(target)) onHelp(false);
       if (downloadOpen && !downloadRef.current?.contains(target)) onDownload(false);
+      if (searchOpen && !searchRef.current?.contains(target)) onSearch(false);
     };
     window.addEventListener("pointerdown", close);
     return () => window.removeEventListener("pointerdown", close);
-  }, [helpOpen, downloadOpen, onHelp, onDownload]);
+  }, [helpOpen, downloadOpen, searchOpen, onHelp, onDownload, onSearch]);
 
   return (
     <header className="x-top">
@@ -126,6 +136,29 @@ export const TopBar = ({
       >
         <Icon name="globe" size={18} />
       </button>
+      <div className="x-help" ref={searchRef}>
+        <button
+          type="button"
+          className="x-icon-button"
+          onClick={() => onSearch(!searchOpen)}
+          aria-label="Search a place"
+          title="Search a place"
+          aria-expanded={searchOpen}
+          data-testid="search-button"
+        >
+          <Icon name="search" size={18} />
+        </button>
+        {searchOpen && (
+          <div
+            className="x-menu x-menu--search"
+            role="dialog"
+            aria-label="Search a place"
+            data-testid="search-menu"
+          >
+            <PlaceSearch onPick={onPickPlace} />
+          </div>
+        )}
+      </div>
       <div className="x-help" ref={helpRef}>
         <button
           type="button"

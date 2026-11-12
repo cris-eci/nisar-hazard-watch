@@ -43,6 +43,15 @@ pnpm frames:fetch   # refresh public/data/frames.json from the Observation Plan
 Before reporting work: `pnpm typecheck && pnpm lint && pnpm format:check && pnpm test && pnpm build`
 plus the E2E spec(s) you touched.
 
+## Searching a place
+
+`src/features/search/`: `PlaceSearch` is a combobox (TopBar popover and a button on the start card)
+that calls `GET /api/v1/places?q=` **only when the text is submitted** (Enter or the button):
+OpenStreetMap's Nominatim, which the backend proxies, forbids type-ahead autocomplete. Picking a
+place shows a `PlaceCard` with its NISAR frame (or "No NISAR frame covers this place"), flies the
+camera to its box or to the 10.24 km square (`placeFraming`) and draws that square; "Analyse this
+area" asks the radar at the point. The OpenStreetMap credit comes from the API and is always shown.
+
 ## Choosing an area
 
 `src/features/geo/` is pure (no Cesium types): longitudes and the antimeridian (`longitude.ts`,
@@ -82,9 +91,18 @@ square. Cesium's own double-click is removed in `createViewer` so it never fight
 
 ## Configuration
 
-The frontend reads **no environment variables** (`src/vite-env.d.ts` declares none). Old
-`VITE_ENABLED_HAZARDS` / `VITE_ANALYSIS_API_URL` are unused. Any `VITE_*` variable is inlined into
-the public bundle: never put a secret (LLM key, token) there; secrets belong in a backend.
+The frontend reads **one optional variable**, `VITE_API_BASE_URL` (the backend's origin when it is
+not served from the same one; empty in production). In production Vercel rewrites `/api/*` to the
+Railway backend (`vercel.json`, before the SPA catch-all, which skips `api/`), so the browser only
+talks to its own origin; in development Vite proxies `/api` to `VITE_DEV_API_TARGET` (default
+`http://localhost:8000`). Old `VITE_ENABLED_HAZARDS` / `VITE_ANALYSIS_API_URL` are unused. Any
+`VITE_*` variable is inlined into the public bundle: never put a secret (LLM key, token) there;
+secrets belong in a backend.
+
+`src/lib/api/apiClient.ts` is the only place that calls the backend: `apiRequest(path, zodSchema)`
+validates every answer, and a non-2xx answer (always `application/problem+json`) becomes an
+`ApiError` with its `reasonCode`. E2E never reaches a real backend: specs mock `/api/v1/**` with
+`page.route()`.
 
 ## Honesty rules (non-negotiable)
 
@@ -107,7 +125,7 @@ Mirrors the conventions used at work (consoles-ui-monorepo), kept as simple as t
 - **Arrow-function components**, props as a `type` above the component.
 - **`@/` imports** inside `src/` and tests, never `../`.
 - **Feature folders:** `src/features/<feature>/` (cases, case-panel, charts, downloads, frames,
-  geo, globe, live, nova, onboarding, sheet, story, timeline); shared helpers in `src/lib/`; page code in `src/pages/<page>/`.
+  geo, globe, live, nova, onboarding, search, sheet, story, timeline); shared helpers in `src/lib/`; page code in `src/pages/<page>/`.
 - **CSS per page with its prefix:** `s-` shared site (`src/pages/site/site.css`, tokens), `l-`
   landing, `k-` cases, `m-` method, `a-` about, `x-` explorer, `c-` charts and chips
   (`src/features/charts/charts.css`).

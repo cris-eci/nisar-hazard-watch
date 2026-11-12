@@ -1,0 +1,14 @@
+{
+  "places": [
+    {
+      "id": "r1",
+      "name": "South Atlantic Ocean",
+      "displayName": "South Atlantic Ocean",
+      "kind": "ocean",
+      "point": [-10, -30],
+      "bbox": null,
+      "importance": 0.5
+    }
+  ],
+  "attribution": "© OpenStreetMap contributors"
+}

@@ -27,10 +27,10 @@ import {
   type DrawState,
 } from "@/features/geo/drawMachine";
 import type { Area, DrawTool } from "@/features/geo/geo.types";
-import { formatKm2, levelOf } from "@/features/geo/limits";
+import { AOI_SIDE_KM, formatKm2, levelOf } from "@/features/geo/limits";
 import { boundsOf } from "@/features/geo/longitude";
 import { areaKm2Of, centreOf, ringAreaKm2, ringOf } from "@/features/geo/measure";
-import { ringOfBox, squareBounds } from "@/features/geo/square";
+import { ringOfBox, squareAround, squareBounds } from "@/features/geo/square";
 import { GlobeView, type GlobeScene } from "@/features/globe/GlobeView";
 import { formatLonLat, gridMetres, LIVE_CHIP_KM, liveAnswer } from "@/features/live/liveQuestion";
 import { JobChecklist, JobProblem, PlanPasses } from "@/features/live/LiveSummary";
@@ -51,12 +51,15 @@ import {
   STORY_ADVANCE_MS,
   storyCase,
 } from "@/features/story/chapters";
+import { placeFraming } from "@/features/search/placeFraming";
+import type { Place } from "@/features/search/placesApi";
 import { StoryMode } from "@/features/story/StoryMode";
 import { PassTimeline } from "@/features/timeline/PassTimeline";
 import { formatDay } from "@/features/timeline/timelineLayout";
 import { useAsync } from "@/lib/useAsync";
 import { AreaGuide, type AreaIssue } from "@/pages/explorer/AreaGuide";
 import { AreaTools } from "@/pages/explorer/AreaTools";
+import { PlaceCard } from "@/pages/explorer/PlaceCard";
 import { LEGEND, type DrapeKind } from "@/pages/explorer/drapeLegend";
 import { LayerDock } from "@/pages/explorer/LayerDock";
 import { HintPill, StartCard } from "@/pages/explorer/StartCard";
@@ -188,6 +191,9 @@ export const ExplorerPage = () => {
   const [draw, setDraw] = useState<DrawState>(() => startTool(undefined));
   const drawRef = useRef(draw);
   const [areaIssue, setAreaIssue] = useState<AreaIssue>();
+  const [searchOpen, setSearchOpen] = useState(false);
+  // A place picked from the search bar, waiting for the user to ask about it.
+  const [place, setPlace] = useState<Place>();
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [mode, setMode] = useState<ChartMode>("plain");
@@ -211,6 +217,7 @@ export const ExplorerPage = () => {
         run: previous?.kind === "live" ? previous.run + 1 : 0,
       }));
       setAreaIssue(undefined);
+      setPlace(undefined);
       setCollapsed(false);
       setSheetOpen(false);
       setHelpOpen(false);
@@ -246,6 +253,10 @@ export const ExplorerPage = () => {
     () => (framesState?.status === "success" ? framesState.data : []),
     [framesState],
   );
+  const placeFrame = useMemo(
+    () => (place === undefined ? undefined : frameUnder(frames, place.point)),
+    [frames, place],
+  );
   const framesRef = useRef(frames);
   useEffect(() => {
     framesRef.current = frames;
@@ -274,6 +285,7 @@ export const ExplorerPage = () => {
   const openCase = useCallback((item: Case) => {
     setSelection({ kind: "case", item });
     setAreaIssue(undefined);
+    setPlace(undefined);
     setCollapsed(false);
     setSheetOpen(false);
     setHelpOpen(false);
@@ -347,7 +359,17 @@ export const ExplorerPage = () => {
 
   const close = useCallback(() => {
     setSelection(undefined);
+    setPlace(undefined);
     setSheetOpen(false);
+  }, []);
+
+  const pickPlace = useCallback((picked: Place) => {
+    setSelection(undefined);
+    setSheetOpen(false);
+    setCollapsed(false);
+    setAreaIssue(undefined);
+    setSearchOpen(false);
+    setPlace(picked);
   }, []);
 
   const startStory = useCallback(() => {
@@ -444,9 +466,10 @@ export const ExplorerPage = () => {
         else if (draw.tool !== undefined) {
           if (isDrawing(draw)) onDraw({ type: "cancel" });
           else chooseTool(undefined);
-        } else if (helpOpen || downloadOpen) {
+        } else if (helpOpen || downloadOpen || searchOpen) {
           setHelpOpen(false);
           setDownloadOpen(false);
+          setSearchOpen(false);
         } else if (novaOpen) setNovaOpen(false);
         else if (sheetOpen) setSheetOpen(false);
         else close();
@@ -466,6 +489,7 @@ export const ExplorerPage = () => {
     areaIssue,
     helpOpen,
     downloadOpen,
+    searchOpen,
     novaOpen,
     sheetOpen,
     close,
@@ -508,7 +532,7 @@ export const ExplorerPage = () => {
   const storyItem = story ? tourItem : undefined;
   const scene =
     storyItem === undefined
-      ? sceneOf(selection, job.ready, drapeKind, opacity)
+      ? sceneOf(selection, job.ready, drapeKind, opacity, place)
       : storyScene(storyItem, chapter, opacity);
   const context: ContextChip | undefined =
     item !== undefined
@@ -700,14 +724,29 @@ export const ExplorerPage = () => {
           story={story}
           showReal={showReal}
           reduceMotion={reduceMotion}
+          searchOpen={searchOpen}
           onHelp={(open) => {
             setHelpOpen(open);
-            if (open) setDownloadOpen(false);
+            if (open) {
+              setDownloadOpen(false);
+              setSearchOpen(false);
+            }
           }}
           onDownload={(open) => {
             setDownloadOpen(open);
-            if (open) setHelpOpen(false);
+            if (open) {
+              setHelpOpen(false);
+              setSearchOpen(false);
+            }
           }}
+          onSearch={(open) => {
+            setSearchOpen(open);
+            if (open) {
+              setHelpOpen(false);
+              setDownloadOpen(false);
+            }
+          }}
+          onPickPlace={pickPlace}
           onStory={(on) => {
             if (on && !story) startStory();
             if (!on && story) exitStory();
@@ -734,16 +773,26 @@ export const ExplorerPage = () => {
           />
         )}
 
-        {selection === undefined && !story && (
+        {selection === undefined && !story && place === undefined && (
           <>
             <StartCard
               frames={framesState}
               onOpen={openCase}
               onRetryFrames={retryFrames}
               onStory={startStory}
+              onSearch={() => setSearchOpen(true)}
             />
             {draw.tool === undefined && <HintPill />}
           </>
+        )}
+
+        {selection === undefined && !story && place !== undefined && (
+          <PlaceCard
+            place={place}
+            frame={placeFrame}
+            onAnalyse={() => askArea({ kind: "point", point: place.point })}
+            onClose={close}
+          />
         )}
 
         {selection !== undefined && (
@@ -873,12 +922,25 @@ const storyScene = (item: Case, chapter: number, opacity: number): GlobeScene =>
   };
 };
 
+// A searched place: the camera goes there and the square the radar would read is drawn.
+const placeScene = (place: Place, empty: GlobeScene): GlobeScene => ({
+  ...empty,
+  target: { key: `place|${place.id}`, ...placeFraming(place) },
+  outline: {
+    ring: squareAround(place.point, AOI_SIDE_KM),
+    label: `${AOI_SIDE_KM} km square · ${place.name}`,
+    processing: false,
+  },
+  point: place.point,
+});
+
 // What the globe draws for the current selection.
 const sceneOf = (
   selection: Selection | undefined,
   ready: boolean,
   kind: DrapeKind,
   opacity: number,
+  place?: Place,
 ): GlobeScene => {
   const empty: GlobeScene = {
     target: undefined,
@@ -889,7 +951,7 @@ const sceneOf = (
     drape: undefined,
     drapeAlpha: opacity / 100,
   };
-  if (selection === undefined) return empty;
+  if (selection === undefined) return place === undefined ? empty : placeScene(place, empty);
   if (selection.kind === "live") {
     const { area } = selection;
     const ring = ringOf(area);

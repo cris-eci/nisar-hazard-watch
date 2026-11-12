@@ -287,6 +287,227 @@
   opacity: 0.45;
 }
 
+/* Place search: the popover from the top bar, the start card button and the searched-place card */
+.x-menu--search {
+  width: 380px;
+  gap: 8px;
+}
+
+.x-search {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.x-search__field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 4px 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--fill);
+}
+
+.x-search__field:focus-within {
+  border-color: var(--gold);
+}
+
+.x-search__field input:focus-visible {
+  outline: 0;
+}
+
+.x-search__field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+}
+
+.x-search__field input::placeholder {
+  color: var(--faint);
+}
+
+.x-search__go {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--space);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.x-search__go:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.x-search__status {
+  min-height: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.x-search__status p {
+  margin: 0;
+}
+
+.x-search__list {
+  max-height: 280px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  margin: 0 -6px !important;
+}
+
+.x-search__list[hidden] {
+  display: none;
+}
+
+.x-search__option {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.x-search__option[aria-selected="true"],
+.x-search__option:hover {
+  background: rgba(235, 233, 228, 0.08);
+}
+
+.x-search__name {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.x-search__kind {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  align-self: center;
+}
+
+.x-search__where {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  color: var(--faint);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.x-search__credit {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+.x-search__credit a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+.x-search-cta {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--fill);
+  color: var(--muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.x-search-cta:hover {
+  color: var(--ink);
+  border-color: rgba(235, 233, 228, 0.3);
+}
+
+.x-place {
+  position: absolute;
+  left: var(--inset);
+  top: 72px;
+  z-index: 8;
+  width: 372px;
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+  padding: 20px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.x-place__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.x-place__title {
+  margin: 4px 0 0;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.x-place__close {
+  width: 32px;
+  height: 32px;
+  flex: none;
+}
+
+.x-place__where,
+.x-place__meta,
+.x-place__note {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+.x-place__meta {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.x-place__frame {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--ink-3);
+}
+
+.x-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* Size guide: what to do next while drawing, and why an area can't be asked */
 .x-guide {
   position: absolute;
@@ -2237,6 +2458,15 @@
     top: auto;
     bottom: var(--inset);
     max-height: 62dvh;
+  }
+
+  .x-place {
+    top: auto;
+    bottom: var(--inset);
+  }
+
+  .x-menu--search {
+    width: calc(100vw - 32px);
   }
 
   .x-panel {

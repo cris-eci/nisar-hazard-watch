@@ -1,3 +1,4 @@
+import { Icon } from "@/features/case-panel/icons";
 import { HazardIcon } from "@/features/cases/HazardIcon";
 import { CASES, findLens, type Case } from "@/features/cases/cases";
 import type { Frame } from "@/features/frames/frame.types";
@@ -11,12 +12,13 @@ type StartCardProps = {
   onOpen: (item: Case) => void;
   onRetryFrames: () => void;
   onStory: () => void;
+  onSearch: () => void;
 };
 
 const country = (item: Case): string => item.place.split(",").at(-1)?.trim() ?? item.place;
 
 // Nothing selected yet: the measured cases, and the way into a live question.
-export const StartCard = ({ frames, onOpen, onRetryFrames, onStory }: StartCardProps) => (
+export const StartCard = ({ frames, onOpen, onRetryFrames, onStory, onSearch }: StartCardProps) => (
   <section className="x-start x-glass" aria-label="Start" data-testid="start-card">
     <p className="x-kicker">Measured cases · real NISAR passes</p>
     <h1 className="x-start__title">What did the radar see?</h1>
@@ -24,6 +26,10 @@ export const StartCard = ({ frames, onOpen, onRetryFrames, onStory }: StartCardP
       At each marker our pipeline compared real NISAR passes with the place's own history. Pick one,
       or click any land to ask the radar yourself.
     </p>
+    <button type="button" className="x-search-cta" onClick={onSearch} data-testid="search-cta">
+      <Icon name="search" size={16} />
+      Search a place
+    </button>
     <ul className="x-cases">
       {CASES.map((item) => (
         <li key={item.id}>

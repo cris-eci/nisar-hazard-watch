@@ -23,6 +23,10 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  server: { port: 5173 },
+  // /api reaches a local backend while developing; production proxies it through Vercel.
+  server: {
+    port: 5173,
+    proxy: { "/api": process.env.VITE_DEV_API_TARGET ?? "http://localhost:8000" },
+  },
   test: { include: ["tests/unit/**/*.test.ts"] },
 });
