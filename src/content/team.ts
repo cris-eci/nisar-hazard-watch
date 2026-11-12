@@ -15,7 +15,7 @@ export type TeamMember = {
 export const TEAM: TeamMember[] = [
   {
     name: "Jesús Alfonso Pinzón Vega",
-    handle: "@jesus_pinzon",
+    handle: "@JAPV-X2612",
     degree: "Systems Engineering",
     owner: true,
     photo: "/team/jesus-pinzon.jpg",
@@ -26,7 +26,7 @@ export const TEAM: TeamMember[] = [
   },
   {
     name: "Cristian Santiago Pedraza Rodríguez",
-    handle: "@cris-pe",
+    handle: "@cris-eci",
     degree: "Systems Engineering",
     photo: "/team/cristian.png",
     role: "Front end · design",
@@ -36,21 +36,25 @@ export const TEAM: TeamMember[] = [
   },
   {
     name: "Andersson David Sánchez Méndez",
-    handle: "@ander_14_73",
+    handle: "@AnderssonProgramming",
     degree: "Systems Engineering",
+    role: "Landslide analysis · developer",
+    built: "Landslide hazard module (in progress)",
     github: "https://github.com/AnderssonProgramming",
     linkedin: "https://www.linkedin.com/in/anderssonsm",
   },
   {
     name: "David Stiven Sarria Arcila",
-    handle: "@davidsarriaa",
+    handle: "@DASarria",
     degree: "Systems Engineering",
+    role: "Data pipeline · wildfires",
+    built: "NISAC_Data_Lab: the ASF data pipeline and the response-time lab",
     github: "https://github.com/DASarria",
     linkedin: "https://www.linkedin.com/in/david-stiven-sarria-arcila-99563a381",
   },
   {
     name: "Daniel Felipe Martínez Hernández",
-    handle: "@chocomilitos",
+    handle: "@Ch0comilo",
     degree: "Statistical Engineering",
     role: "Machine learning · radar science",
     built: "NISAR-Modeling and NISAR-Models",
@@ -59,7 +63,7 @@ export const TEAM: TeamMember[] = [
   },
   {
     name: "Katheryn Sofía Guasca Chavarro",
-    handle: "@kathee26",
+    handle: "@KillerZeus666",
     degree: "Systems Engineering",
     photo: "/team/katheryn-guasca.png",
     role: "Front-end developer",

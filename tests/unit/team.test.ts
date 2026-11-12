@@ -15,6 +15,12 @@ describe("team", () => {
     }
   });
 
+  it("shows each member's GitHub login as their handle", () => {
+    for (const member of TEAM) {
+      expect(member.handle, member.name).toBe(`@${member.github?.split("/").pop()}`);
+    }
+  });
+
   it("points every photo at a file that ships with the app", () => {
     for (const member of TEAM) {
       if (member.photo === undefined) continue;

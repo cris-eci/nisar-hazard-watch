@@ -36,7 +36,7 @@ import {
   hasSeenOnboarding,
   markOnboardingSeen,
   ONBOARDING_STEPS,
-} from "@/features/onboarding/onboarding";
+} from "@/features/onboarding/onboardingState";
 import { MoreInfoSheet } from "@/features/sheet/MoreInfoSheet";
 import {
   CHAPTERS,
