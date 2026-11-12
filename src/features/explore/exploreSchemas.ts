@@ -84,6 +84,24 @@ const observationSchema = z.looseObject({
   granule_id: z.string().optional(),
 });
 
+const insarSchema = z.object({
+  pairId: z.string(),
+  status: z.string(),
+  reason: z.string().nullable(),
+  polarization: z.string().nullable(),
+  medianCoherence: z.number().nullable(),
+  coherenceThreshold: z.number(),
+  coherentCells: z.number().nullable(),
+  phaseCells: z.number().nullable(),
+  windowCells: z.number().nullable(),
+  pointCoherence: z.number().nullable(),
+  pointWrappedPhaseRad: z.number().nullable(),
+  phaseReference: z.string().nullable(),
+  correctionsApplied: z.array(z.string()),
+  // Always null: the phase is wrapped and uncorrected, so no displacement is reported.
+  losDisplacementCm: z.null(),
+});
+
 const fireContextSchema = z.object({
   status: z.enum(["available", "unavailable", "notConfigured"]),
   source: z.string(),
@@ -116,6 +134,8 @@ const resultSchema = z.object({
   isDemo: z.boolean(),
   // Independent evidence (wildfire lens only), never part of the radar `lens`.
   fireContext: fireContextSchema.nullable().optional(),
+  // The interferometric pair's measurements (insar lens only).
+  insar: insarSchema.nullable().optional(),
 });
 
 export const explorationSchema = z.object({
@@ -145,6 +165,7 @@ export const explorationSchema = z.object({
 
 export type ExplorationView = z.infer<typeof explorationSchema>;
 export type ExplorationResult = NonNullable<ExplorationView["result"]>;
+export type InsarSummary = NonNullable<ExplorationResult["insar"]>;
 export type FireContext = NonNullable<ExplorationResult["fireContext"]>;
 export type ExplorationLayer = ExplorationResult["layers"][number];
 export type ExplorationStage = ExplorationView["stages"][number];

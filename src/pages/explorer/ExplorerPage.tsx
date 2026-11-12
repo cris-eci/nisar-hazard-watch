@@ -35,6 +35,9 @@ import { ringOfBox, squareAround, squareBounds } from "@/features/geo/square";
 import type { Drape } from "@/features/globe/frameEntities";
 import { GlobeView, type GlobeScene } from "@/features/globe/GlobeView";
 import { isLiveLens, type ExplorationRequest } from "@/features/explore/exploreApi";
+import type { InsarChoice } from "@/features/insar/insarApi";
+import { InsarPairPicker } from "@/features/insar/InsarPairPicker";
+import { insarFromParams } from "@/features/insar/insarLink";
 import { explorationCsv, explorationJson } from "@/features/explore/exploreExport";
 import { defaultLayerId, liveLayers } from "@/features/explore/exploreLayers";
 import type { ExplorationView } from "@/features/explore/exploreSchemas";
@@ -89,6 +92,8 @@ type Selection =
       lens: LensId;
       // A live question started from a case's lens chips can go back to that case.
       fromCase: Case | undefined;
+      // Ground motion measures one pair, chosen first from the picker.
+      insar: InsarChoice | undefined;
       run: number;
     };
 
@@ -106,7 +111,7 @@ const today = new Date().toISOString().slice(0, 10);
 const isLens = (value: string | null): value is LensId => LENSES.some((lens) => lens.id === value);
 
 // Shared links: ?case=<id>, ?frame=<track-frame>[&lens=<id>] for a live question on a point,
-// ?bbox= or ?geo= (plus &lens=) for a drawn area, ?story=1.
+// ?bbox= or ?geo= (plus &lens=) for a drawn area, ?story=1. Ground motion adds &pair=<id>[&coherence=<0.1-0.9>].
 const readParams = () => {
   const params = new URLSearchParams(window.location.search);
   const lens = params.get("lens");
@@ -115,6 +120,7 @@ const readParams = () => {
     frameId: params.get("frame"),
     area: areaFromParams(params),
     lens: isLens(lens) ? lens : DEFAULT_LENS,
+    insar: insarFromParams(params),
     story: params.get("story") === "1",
   };
 };
@@ -124,9 +130,14 @@ const paramsOf = (selection: Selection | undefined, story: boolean): string => {
   if (selection === undefined) return "";
   if (selection.kind === "case") return new URLSearchParams({ case: selection.item.id }).toString();
   const lens = selection.lens !== DEFAULT_LENS && { lens: selection.lens };
+  const pair = selection.insar !== undefined && {
+    pair: selection.insar.pairId,
+    coherence: String(selection.insar.threshold),
+  };
   const params = new URLSearchParams({
     ...(areaToParams(selection.area) ?? { frame: selection.frame.id }),
     ...lens,
+    ...pair,
   });
   // Commas are legal in a query and keep a shared area readable.
   return params.toString().replaceAll("%2C", ",");
@@ -217,7 +228,14 @@ export const ExplorerPage = () => {
   const [unavailable, setUnavailable] = useState(false);
 
   const ask = useCallback(
-    (frame: Frame, point: LonLat, lens: LensId = DEFAULT_LENS, fromCase?: Case, area?: Area) => {
+    (
+      frame: Frame,
+      point: LonLat,
+      lens: LensId = DEFAULT_LENS,
+      fromCase?: Case,
+      area?: Area,
+      insar?: InsarChoice,
+    ) => {
       setSelection((previous) => ({
         kind: "live",
         frame,
@@ -225,6 +243,7 @@ export const ExplorerPage = () => {
         area: area ?? { kind: "point", point },
         lens,
         fromCase,
+        insar,
         run: previous?.kind === "live" ? previous.run + 1 : 0,
       }));
       setAreaIssue(undefined);
@@ -246,18 +265,20 @@ export const ExplorerPage = () => {
         areaLinkRef.current = undefined;
         const centre = centreOf(linkedArea);
         const frame = frameUnder(loaded, centre);
-        if (frame !== undefined) ask(frame, centre, initial.lens, undefined, linkedArea);
+        if (frame !== undefined)
+          ask(frame, centre, initial.lens, undefined, linkedArea, initial.insar);
         else setAreaIssue({ kind: "noFrame" });
         setLinkPending(false);
       } else if (linked !== null) {
         linkRef.current = null;
         const frame = loaded.find((entry) => entry.id === linked);
-        if (frame !== undefined) ask(frame, bboxCentre(frame), initial.lens);
+        if (frame !== undefined)
+          ask(frame, bboxCentre(frame), initial.lens, undefined, undefined, initial.insar);
         setLinkPending(false);
       }
       return loaded;
     },
-    [ask, initial.lens],
+    [ask, initial.lens, initial.insar],
   );
   const { state: framesState, retry: retryFrames } = useAsync(loadFramesAndLink, "frames");
   const frames = useMemo(
@@ -286,12 +307,23 @@ export const ExplorerPage = () => {
 
   const live = selection?.kind === "live" ? selection : undefined;
   const runKey =
-    live === undefined ? "" : `${live.area.kind}|${live.point.join(",")}|${live.lens}|${live.run}`;
-  // InSAR needs a pair, so it has no live question yet; every other lens runs on the backend.
-  const liveRuns = live !== undefined && isLiveLens(live.lens);
+    live === undefined
+      ? ""
+      : `${live.area.kind}|${live.point.join(",")}|${live.lens}|${live.insar?.pairId ?? ""}|${live.insar?.threshold ?? ""}|${live.run}`;
+  // Ground motion waits for a pair; every other lens runs on the backend as soon as it is asked.
+  const needsPair = live !== undefined && live.lens === "insar" && live.insar === undefined;
+  const liveRuns = live !== undefined && isLiveLens(live.lens) && !needsPair;
   const request: ExplorationRequest | undefined =
     live !== undefined && liveRuns
-      ? { lens: live.lens, geometry: toGeoJson(live.area), source: "L" }
+      ? {
+          lens: live.lens,
+          geometry: toGeoJson(live.area),
+          source: "L",
+          ...(live.insar && {
+            pairId: live.insar.pairId,
+            coherenceThreshold: live.insar.threshold,
+          }),
+        }
       : undefined;
   const exploration = useExploration(request, liveRuns ? runKey : "");
   const framePlan = useFramePlan(live?.frame, runKey);
@@ -546,6 +578,16 @@ export const ExplorerPage = () => {
       return;
     }
     ask(selection.frame, selection.point, lens, selection.fromCase, selection.area);
+  };
+
+  // The pair is chosen after the lens: the choice starts the run and goes into the shared link.
+  const measurePair = (current: typeof live, choice: InsarChoice) => {
+    if (current === undefined) return;
+    ask(current.frame, current.point, current.lens, current.fromCase, current.area, choice);
+  };
+  const measureLivePair = (fromCase: Case) => {
+    const frame = frameUnder(frames, fromCase.focus);
+    if (frame !== undefined) ask(frame, fromCase.focus, "insar", fromCase);
   };
 
   const item = selection?.kind === "case" ? selection.item : undefined;
@@ -905,16 +947,23 @@ export const ExplorerPage = () => {
             {subject !== undefined && (
               <ResultSummary subject={subject} mode={mode} onMore={() => setSheetOpen(true)} />
             )}
-            {live !== undefined && !liveRuns && (
-              <div className="x-problem" role="status" data-testid="job-unsupported">
-                <p className="x-problem__title">Ground motion needs a pair of passes</p>
-                <p>The live question for this lens is not available yet. Pick a measured case.</p>
-                <div className="x-problem__actions">
-                  <button type="button" className="x-ghost" onClick={close}>
-                    Pick a measured case
-                  </button>
-                </div>
-              </div>
+            {item !== undefined && item.pending !== true && item.lens === "insar" && (
+              <button
+                type="button"
+                className="x-ghost"
+                onClick={() => measureLivePair(item)}
+                data-testid="measure-live-pair"
+              >
+                Measure a live NISAR pair here
+              </button>
+            )}
+            {live !== undefined && needsPair && (
+              <InsarPairPicker
+                key={live.point.join(",")}
+                point={live.point}
+                onMeasure={(choice) => measurePair(live, choice)}
+                onPickCase={close}
+              />
             )}
             {liveRuns && running && !modalOpen && (
               <LiveProgress

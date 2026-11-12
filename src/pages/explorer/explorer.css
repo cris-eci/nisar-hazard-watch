@@ -1256,6 +1256,11 @@
   border: 1.5px dashed var(--muted);
 }
 
+.x-glyph--measured {
+  border: 2px solid var(--muted);
+  border-radius: 2px;
+}
+
 .x-panel__block {
   display: flex;
   flex-direction: column;
@@ -2746,4 +2751,68 @@
   .x-pill--mark .brand-mark {
     display: none;
   }
+}
+
+/* The pair picker of the ground-motion lens */
+.x-pairs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.x-pairs__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.x-pairs__option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--fill);
+}
+
+.x-pairs__option:has(input:checked) {
+  border-color: var(--gold);
+}
+
+.x-pairs__option input {
+  margin-top: 3px;
+  accent-color: var(--gold);
+}
+
+.x-pairs__option label {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.x-pairs__option small,
+.x-pairs__threshold small {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.x-pairs__threshold {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+}
+
+.x-pairs__threshold output {
+  font-family: var(--mono);
+  color: var(--gold);
 }

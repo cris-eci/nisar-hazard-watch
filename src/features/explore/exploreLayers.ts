@@ -5,7 +5,7 @@ import { absoluteApiPath } from "@/lib/api/apiClient";
 export type LiveLayer = {
   id: string;
   title: string;
-  kind: "observed" | "diagnostic" | "change" | "layer";
+  kind: "observed" | "diagnostic" | "change" | "coherence" | "phase" | "layer";
   units: string;
   legend: Record<string, string> | null;
   valueRange: [number, number] | null;
@@ -15,7 +15,7 @@ export type LiveLayer = {
   bounds: BBox;
 };
 
-const KINDS = ["observed", "diagnostic", "change"] as const;
+const KINDS = ["observed", "diagnostic", "change", "coherence", "phase"] as const;
 
 const kindOf = (kind: string): LiveLayer["kind"] =>
   (KINDS as readonly string[]).includes(kind) ? (kind as LiveLayer["kind"]) : "layer";
@@ -39,6 +39,7 @@ export const liveLayers = (view: ExplorationView): LiveLayer[] =>
 export const defaultLayerId = (layers: LiveLayer[]): string | undefined =>
   (
     layers.find((layer) => layer.kind === "change") ??
+    layers.find((layer) => layer.kind === "coherence") ??
     layers.find((layer) => layer.kind === "diagnostic") ??
     layers.findLast((layer) => layer.kind === "observed") ??
     layers[0]
@@ -47,6 +48,8 @@ export const defaultLayerId = (layers: LiveLayer[]): string | undefined =>
 export const LAYER_GROUPS: Array<{ kind: LiveLayer["kind"]; label: string }> = [
   { kind: "change", label: "Change" },
   { kind: "diagnostic", label: "Diagnostic" },
+  { kind: "coherence", label: "Coherence" },
+  { kind: "phase", label: "Wrapped phase" },
   { kind: "observed", label: "Measured passes" },
   { kind: "layer", label: "Other" },
 ];

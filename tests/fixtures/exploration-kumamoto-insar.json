@@ -1,0 +1,104 @@
+{
+  "id": "exp_0bb9bf27928a4959",
+  "status": "succeeded",
+  "stage": "done",
+  "lens": "insar",
+  "source": "L",
+  "cache": "miss",
+  "etaSeconds": 60.0,
+  "etaRemainingSeconds": null,
+  "elapsedSeconds": 0.0,
+  "stages": [
+    { "name": "planning", "state": "done", "seconds": 0.0, "budgetSeconds": 2.0 },
+    { "name": "reading", "state": "done", "seconds": null, "budgetSeconds": 15.0 },
+    { "name": "analysing", "state": "done", "seconds": 50.216, "budgetSeconds": 30.0 },
+    { "name": "rendering", "state": "done", "seconds": 0.077, "budgetSeconds": 8.0 }
+  ],
+  "progress": { "scenesRead": 0, "scenesTotal": 2 },
+  "plan": {
+    "status": "ready",
+    "seriesKey": null,
+    "dates": [],
+    "maturityMixed": false,
+    "notes": []
+  },
+  "result": {
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [130.59460845387457, 32.60453650504842],
+          [130.70369536003543, 32.603104052253904],
+          [130.70544758315634, 32.69543689431529],
+          [130.5962486029244, 32.69687440981448],
+          [130.59460845387457, 32.60453650504842]
+        ]
+      ]
+    },
+    "areaKm2": 104.88,
+    "windowStart": "2026-07-21",
+    "windowEnd": "2026-08-14",
+    "scenes": [],
+    "observations": [],
+    "lens": null,
+    "aoiSummary": null,
+    "layers": [
+      {
+        "id": "display_coherence_coherence",
+        "title": "Interferometric coherence",
+        "kind": "coherence",
+        "units": "unitless",
+        "colormap": "cividis",
+        "bounds": [130.62283273333418, 32.62720179273994, 130.67695339404756, 32.67298807110619],
+        "url": "/api/v1/explorations/exp_0bb9bf27928a4959/layers/display_coherence_coherence",
+        "legend": null,
+        "valueRange": [0.0, 1.0]
+      },
+      {
+        "id": "display_wrapped_phase_rad_wrapped_phase_rad",
+        "title": "Wrapped phase",
+        "kind": "phase",
+        "units": "rad",
+        "colormap": "twilight",
+        "bounds": [130.62283273333418, 32.62720179273994, 130.67695339404756, 32.67298807110619],
+        "url": "/api/v1/explorations/exp_0bb9bf27928a4959/layers/display_wrapped_phase_rad_wrapped_phase_rad",
+        "legend": null,
+        "valueRange": [-3.1415926536, 3.1415926536]
+      }
+    ],
+    "quality": {
+      "revision": "62057bd4c8b7715c319e76e0",
+      "gridWidth": 250,
+      "gridHeight": 250,
+      "maturityMixed": false,
+      "postingMeters": 20.0,
+      "windowTruncated": true
+    },
+    "limitations": [
+      "Diagnostic evidence from the coherence and the wrapped phase of one NISAR L-band pair, not a validated displacement measurement.",
+      "The phase is wrapped and not corrected for troposphere or ionosphere; no displacement is reported (losDisplacementCm is null).",
+      "No forecast, probability, cause or affected area is reported.",
+      "Only a 5 km window around the centre of the area is measured."
+    ],
+    "scientificStatus": "diagnostic",
+    "timings": { "render_s": 0.077, "elapsed_s": 50.293, "measure_s": 50.216 },
+    "isDemo": false,
+    "insar": {
+      "pairId": "NISAR_L2_PR_GUNW_026_024_A_018_028_4000_SH_20260721T202900_20260721T202934_20260814T202858_20260814T202933_P05023_N_F_J_001",
+      "status": "complete",
+      "reason": null,
+      "polarization": "HH",
+      "medianCoherence": 0.42586714029312134,
+      "coherenceThreshold": 0.35,
+      "coherentCells": 62500,
+      "phaseCells": 39584,
+      "windowCells": 62500,
+      "pointCoherence": 0.25291189551353455,
+      "pointWrappedPhaseRad": null,
+      "phaseReference": "Angle of the native wrapped interferogram",
+      "correctionsApplied": [],
+      "losDisplacementCm": null
+    }
+  },
+  "error": null
+}

@@ -70,6 +70,7 @@ radar can't tell. No forecasts, no probabilities, no causes.
 Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 `/explore?frame=47-3` (optionally `&lens=<id>`) asks a live question on a NISAR frame;
 `/explore?bbox=-74.78,2.87,-74.73,2.91` or `?geo=lon,lat_lon,lat_…` asks it on a drawn area;
+`&lens=insar&pair=<GUNW granule>[&coherence=0.35]` measures one interferometric pair;
 `/explore?story=1` starts the guided story. Old `/?frame=` links still open the explorer.
 
 <table>
@@ -111,7 +112,7 @@ Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
   passes are fetched live from the Observation Plan and the radar answer comes from the backend: a
   progress window with a countdown and NASA facts, then the verdict, the target pass against the
   normal range, the whole-area bars, the quality strip, the measured layers on the globe and the
-  real pass dates. On the wildfire lens an "Independent fire context" block from NASA FIRMS sits
+  real pass dates. On the ground-motion lens the user first picks one of the NISAR interferometric pairs over the spot and a coherence threshold; the answer is the pair's coherence and wrapped phase on the globe, labelled a measurement, never a verdict, with displacement always stated as not reported. On the wildfire lens an "Independent fire context" block from NASA FIRMS sits
   apart from the radar (counts and dates of active-fire detections, never a cause or a burned
   area), and says so when it is missing. "Keep exploring" lets the job run in the background; the L | S switch shows S
   as coming soon.

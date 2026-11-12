@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { FireContextCard } from "@/features/case-panel/FireContextCard";
+import { InsarCard } from "@/features/case-panel/InsarCard";
 import { NormalRangeCard } from "@/features/case-panel/NormalRangeCard";
 import { SOURCE, VERDICT } from "@/features/case-panel/verdicts";
 import { findLens, type LensId } from "@/features/cases/cases";
@@ -132,7 +133,7 @@ export const LiveReport = ({ id }: { id: string }) => {
             <span>Not AI-written · check every number against the data blocks</span>
           </p>
           <p className="r-summary__text">
-            {`${subject.name} (${subject.place}) was asked “${lens?.chip ?? subject.lens}” Verdict: ${VERDICT[subject.verdict].label}. ${subject.verdictLine}${subject.stat === undefined ? "" : ` ${subject.stat} ${subject.statLine ?? ""}`} ${subject.plainLimit}${subject.fireContext?.status === "available" ? ` Fire context, separate from the radar (NASA FIRMS): ${subject.fireContext.headline}.` : ""}`}
+            {`${subject.name} (${subject.place}) was asked “${lens?.chip ?? subject.lens}” ${subject.verdict === "measured" ? "" : `Verdict: ${VERDICT[subject.verdict].label}. `}${subject.verdictLine}${subject.stat === undefined ? "" : ` ${subject.stat} ${subject.statLine ?? ""}`} ${subject.plainLimit}${subject.fireContext?.status === "available" ? ` Fire context, separate from the radar (NASA FIRMS): ${subject.fireContext.headline}.` : ""}`}
           </p>
         </section>
 
@@ -144,7 +145,10 @@ export const LiveReport = ({ id }: { id: string }) => {
               k="Target pass"
               v={subject.target === undefined ? "—" : formatDay(subject.target)}
             />
-            <Fact k="Verdict" v={VERDICT[subject.verdict].label} />
+            <Fact
+              k={subject.verdict === "measured" ? "Result" : "Verdict"}
+              v={VERDICT[subject.verdict].label}
+            />
             <Fact k="Area" v={`${(view.result?.areaKm2 ?? 0).toFixed(1)} km²`} />
           </dl>
           <p className="r-line">
@@ -152,6 +156,16 @@ export const LiveReport = ({ id }: { id: string }) => {
             <ProvenanceChip kind={subject.demo ? "demo" : "real"} source={SOURCE.liveVerdict} />
           </p>
         </section>
+
+        {subject.insar !== undefined && (
+          <section className="r-block r-keep">
+            <p className="r-kicker r-kicker--split">
+              <span>Data 2 · What the pair measured</span>
+              <ProvenanceChip kind="real" source={SOURCE.liveInsar} />
+            </p>
+            <InsarCard insar={subject.insar} heading={false} />
+          </section>
+        )}
 
         {subject.normalRange !== undefined && (
           <section className="r-block r-keep">

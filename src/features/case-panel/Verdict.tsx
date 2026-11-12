@@ -1,13 +1,13 @@
 import { Prov } from "@/features/case-panel/Prov";
 import { SOURCE, VERDICT } from "@/features/case-panel/verdicts";
-import type { Verdict } from "@/features/cases/cases";
+import type { SubjectVerdict } from "@/features/case-panel/subject";
 
 // Departure is a gold diamond, within a ringed circle, insufficient a dashed circle (SPECS §2.7).
-export const VerdictGlyph = ({ verdict }: { verdict: Verdict }) => (
+export const VerdictGlyph = ({ verdict }: { verdict: SubjectVerdict }) => (
   <span className={`x-glyph x-glyph--${verdict}`} aria-hidden="true" />
 );
 
-type VerdictCardProps = { verdict: Verdict; line: string; demo: boolean };
+type VerdictCardProps = { verdict: SubjectVerdict; line: string; demo: boolean };
 
 export const VerdictCard = ({ verdict, line, demo }: VerdictCardProps) => (
   <div className="x-verdict" data-testid="verdict" data-verdict={verdict}>

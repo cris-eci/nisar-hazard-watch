@@ -1,8 +1,9 @@
+import type { SubjectVerdict } from "@/features/case-panel/subject";
 import type { Verdict } from "@/features/cases/cases";
 import { bandsFor, isOutside, type BandPass } from "@/features/cases/demoBand";
 
 // The three backend outcomes in plain words (SPECS §2.7); the sheet shows all three side by side.
-export const VERDICT: Record<Verdict, { label: string; sub: string; state: string }> = {
+export const VERDICT: Record<SubjectVerdict, { label: string; sub: string; state: string }> = {
   departure: {
     label: "Changed beyond its normal range",
     sub: "At least one channel left the band built from earlier passes.",
@@ -17,6 +18,11 @@ export const VERDICT: Record<Verdict, { label: string; sub: string; state: strin
     label: "Not enough radar yet",
     sub: "Thin history, masked pixel or missing pass. We say why.",
     state: "insufficient_data",
+  },
+  measured: {
+    label: "Measured, not a verdict",
+    sub: "This lens reports what the pair measured and no verdict.",
+    state: "measured",
   },
 };
 
@@ -53,6 +59,8 @@ export const SOURCE = {
   matched: "NISAR-Modeling matched_controls.co_pol_contrast",
   caseQuality: "Status, dates and coverage from the backend report",
   liveQuality: "Exploration API → plan, observations and aoiSummary of this run",
+  liveInsar:
+    "Exploration API → result.insar and the coherence and wrapped-phase layers of one NISAR GUNW pair (ASF catalog, read by the analysis service)",
   liveRange:
     "Exploration API → result.lens.point.target_minus_baseline_db and diagnostic_half_width_db",
   liveFire:
