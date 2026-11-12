@@ -191,6 +191,9 @@
 }
 
 .s-nav__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.0625rem;
   font-weight: 600;
   letter-spacing: -0.01em;
@@ -624,8 +627,15 @@
   }
 
   .s-nav__mark {
+    gap: 0.375rem;
     font-size: 0.875rem;
     white-space: nowrap;
+  }
+
+  /* Smaller mark so the Explore pill still fits at 390 px. */
+  .s-nav__mark .brand-mark {
+    width: 20px;
+    height: 20px;
   }
 
   .s-nav__links {

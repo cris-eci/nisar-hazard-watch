@@ -160,6 +160,7 @@
 }
 
 .x-pill--mark {
+  padding-left: 12px;
   font-weight: 600;
   font-size: 15px;
   letter-spacing: -0.01em;
@@ -2082,7 +2083,7 @@
 
   .x-pill--mark {
     font-size: 14px;
-    padding: 0 14px;
+    padding: 0 14px 0 10px;
   }
 
   .x-top {
@@ -2149,5 +2150,12 @@
     width: max-content;
     max-width: calc(100vw - 32px);
     text-align: center;
+  }
+}
+
+/* Below 380 px the top bar has no room for the mark next to the name and the three buttons. */
+@media (max-width: 379px) {
+  .x-pill--mark .brand-mark {
+    display: none;
   }
 }

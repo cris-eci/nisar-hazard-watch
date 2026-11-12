@@ -1,4 +1,5 @@
 import { APP_NAME } from "@/lib/appName";
+import { BrandMark } from "@/lib/BrandMark";
 import { Link } from "@/lib/Link";
 
 export type SitePage = "landing" | "cases" | "method" | "about";
@@ -17,6 +18,7 @@ const PAGE_LINKS: { page: SitePage; to: string; label: string; testId: string }[
 export const SiteNav = ({ page }: SiteNavProps) => (
   <nav className={page === "landing" ? "s-nav" : "s-nav s-nav--glass"} aria-label="Main">
     <Link to="/" className="s-nav__mark">
+      <BrandMark size={24} />
       {APP_NAME}
     </Link>
     <div className="s-nav__links">

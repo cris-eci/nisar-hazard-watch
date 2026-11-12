@@ -5,6 +5,7 @@ import { HazardIcon } from "@/features/cases/HazardIcon";
 import type { IconId } from "@/features/cases/cases";
 import { Link } from "@/lib/Link";
 import { VERSION } from "@/pages/explorer/StartCard";
+import { BrandMark } from "@/lib/BrandMark";
 
 export type ContextChip = { icon: IconId; name: string; when: string };
 
@@ -73,6 +74,7 @@ export const TopBar = ({
   return (
     <header className="x-top">
       <Link to="/" className="x-pill x-pill--mark">
+        <BrandMark />
         NISAR Hazard Watch
       </Link>
       {context !== undefined && !story && (
