@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import type { Locator, Page } from "@playwright/test";
 
 import { OBSERVATION_PLAN_QUERY_URL } from "@/features/frames/observationPlanApi";
-import { ONBOARDING_KEY } from "@/features/onboarding/onboarding";
+import { ONBOARDING_KEY } from "@/features/onboarding/onboardingState";
 
 // Frame 47-3 (ascending, HH+HV, over Colombia); its mocked plan lists 39 dates.
 export const LIVE_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };

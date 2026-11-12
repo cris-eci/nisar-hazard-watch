@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { NovaGlyph } from "@/features/nova/NovaGlyph";
-import { ONBOARDING_STEPS, type OnboardingTarget } from "@/features/onboarding/onboarding";
+import { ONBOARDING_STEPS, type OnboardingTarget } from "@/features/onboarding/onboardingState";
 
 const TEST_ID: Record<OnboardingTarget, string> = {
   cases: "start-card",
