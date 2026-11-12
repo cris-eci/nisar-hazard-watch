@@ -1,3 +1,4 @@
+import { FireContextCard } from "@/features/case-panel/FireContextCard";
 import { Icon } from "@/features/case-panel/icons";
 import { Prov } from "@/features/case-panel/Prov";
 import { QualityStrip } from "@/features/case-panel/QualityStrip";
@@ -43,6 +44,7 @@ export const ResultSummary = ({ subject, mode, onMore }: SummaryProps) => {
         </p>
       )}
       {subject.reason !== undefined && <p className="x-reason">{subject.reason}</p>}
+      {subject.fireContext !== undefined && <FireContextCard context={subject.fireContext} />}
       <QualityStrip items={subject.quality} />
       <p className="x-panel__prov">
         Quality strip <Prov kind={subject.demo ? "demo" : "real"} source={qualitySource} />

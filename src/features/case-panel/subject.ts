@@ -44,6 +44,8 @@ export type Subject = {
   crops: Crops | undefined;
   // Live results: where the target pass sits against the spot's own normal range, per channel.
   normalRange: NormalRange | undefined;
+  // Live wildfire results: independent fire evidence, shown apart from the radar.
+  fireContext: FireContextView | undefined;
   // Live results: the stages the service reported, with their seconds.
   compute: ComputeStep[] | undefined;
   demo: boolean;
@@ -52,6 +54,12 @@ export type Subject = {
 export type NormalRangeChannel = { channel: string; delta: number; halfWidth: number };
 export type NormalRange = { channels: NormalRangeChannel[]; baselinePasses: number };
 export type ComputeStep = { label: string; sub: string };
+export type FireContextView = {
+  status: "available" | "unavailable" | "notConfigured";
+  headline: string;
+  facts: { k: string; v: string }[];
+  note: string;
+};
 
 export const caseSubject = (item: Case): Subject => ({
   kind: "case",
@@ -81,6 +89,7 @@ export const caseSubject = (item: Case): Subject => ({
   figure: item.figure,
   crops: item.crops,
   normalRange: undefined,
+  fireContext: undefined,
   compute: undefined,
   demo: false,
 });

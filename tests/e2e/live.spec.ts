@@ -1,7 +1,22 @@
 import { expect, test } from "@playwright/test";
 
-import { noCoverageView, runningView, succeededView } from "./pom/explorationMock";
+import { noCoverageView, runningView, succeededView, withFireContext } from "./pom/explorationMock";
 import { GlobePage, LIVE_FRAME } from "./pom/GlobePage";
+
+const FIRE_AVAILABLE = {
+  status: "available",
+  source: "NASA FIRMS · VIIRS 375 m active-fire detections",
+  windowStart: "2026-10-30T02:00:00Z",
+  windowEnd: "2026-11-11T02:00:00Z",
+  detections: 3,
+  lowConfidenceExcluded: 0,
+  firstDetection: "2026-11-02T08:41:00Z",
+  lastDetection: "2026-11-09T20:12:00Z",
+  peakFrpMw: 9.54,
+  satellites: ["N20"],
+  products: ["VIIRS_NOAA20_SP"],
+  note: "Independent thermal evidence, separate from the radar.",
+};
 
 test.describe("Explorer: live exploration", () => {
   let globe: GlobePage;
@@ -234,6 +249,61 @@ test.describe("Explorer: live exploration", () => {
     await page.getByTestId("download-csv").click();
     expect((await csv).suggestedFilename()).toMatch(/-passes\.csv$/);
   });
+
+  test.describe("wildfire fire context", () => {
+    test("an available context sits apart from the radar verdict, with its dates and the FIRMS source", async ({
+      page,
+    }) => {
+      await globe.mockExplorations({ first: withFireContext("wildfire", FIRE_AVAILABLE) });
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=wildfire`);
+
+      await expect(globe.verdict).toHaveAttribute("data-verdict", "within");
+      const fire = globe.panel.getByTestId("fire-context");
+      await expect(fire).toContainText("Independent fire context");
+      await expect(fire).toContainText("3 active-fire detections between the two passes");
+      await expect(fire).toContainText("2 Nov 2026");
+      await expect(fire).toContainText("9.5 MW");
+      await expect(fire).toContainText("separate from the radar");
+      await expect(fire.getByTestId("prov-real")).toBeVisible();
+      await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+
+      await globe.moreInfo.click();
+      await expect(page.getByRole("link", { name: /FIRMS active fire data/ })).toBeVisible();
+    });
+
+    test("without a FIRMS key the panel says the answer is radar-only and shows no numbers", async () => {
+      await globe.mockExplorations({
+        first: withFireContext("wildfire", {
+          ...FIRE_AVAILABLE,
+          status: "notConfigured",
+          detections: null,
+          lowConfidenceExcluded: null,
+          firstDetection: null,
+          lastDetection: null,
+          peakFrpMw: null,
+          satellites: [],
+          products: [],
+          note: "Fire context is not configured on this server, so the verdict is radar-only.",
+        }),
+      });
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=wildfire`);
+
+      const fire = globe.panel.getByTestId("fire-context");
+      await expect(fire).toHaveAttribute("data-status", "notConfigured");
+      await expect(fire).toContainText("Fire context not configured");
+      await expect(fire).toContainText("radar-only");
+      await expect(fire.getByTestId("prov-real")).toHaveCount(0);
+      await expect(globe.verdict).toHaveAttribute("data-verdict", "within");
+    });
+
+    test("other lenses show no fire context", async () => {
+      await globe.mockExplorations({ first: succeededView() });
+      await globe.goto(`?frame=${LIVE_FRAME.id}`);
+
+      await expect(globe.verdict).toBeVisible();
+      await expect(globe.panel.getByTestId("fire-context")).toHaveCount(0);
+    });
+  });
 });
 
 test.describe("Report: live answer", () => {
@@ -250,6 +320,20 @@ test.describe("Report: live answer", () => {
     await expect(page.getByTestId("report-stat")).toContainText("32.9%");
     await expect(page.getByTestId("report-scenes").getByRole("listitem")).toHaveCount(5);
     await expect(page.getByTestId("prov-demo")).toHaveCount(0);
+  });
+
+  test("a wildfire report adds the fire context as its own block, apart from the radar data", async ({
+    page,
+  }) => {
+    const globe = new GlobePage(page);
+    const answer = withFireContext("wildfire", FIRE_AVAILABLE);
+    await globe.mockExplorations({ first: answer, final: answer });
+    await page.goto("/report?exploration=exp_761b80c9a2d74538");
+
+    const fire = page.getByTestId("fire-context");
+    await expect(fire).toContainText("3 active-fire detections between the two passes");
+    await expect(page.getByTestId("report")).toContainText("Independent fire context");
+    await expect(page.getByTestId("report-summary")).toContainText("separate from the radar");
   });
 
   test("an answer that does not exist says so and keeps the way back", async ({ page }) => {
