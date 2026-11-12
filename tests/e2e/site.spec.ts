@@ -79,7 +79,7 @@ test.describe("Landing and about pages", () => {
     await expect(page).toHaveURL(/\/about$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Six people, one orbit.");
     await expect(page.locator("[data-testid^=member-]")).toHaveCount(6);
-    await expect(page.getByTestId("member-cris-pe")).toContainText("Front end · design");
+    await expect(page.getByTestId("member-cris-eci")).toContainText("Front end · design");
     await expect(page.getByTestId("site-footer")).toContainText("Cattleya trianae");
 
     await page.goto("/explore");
