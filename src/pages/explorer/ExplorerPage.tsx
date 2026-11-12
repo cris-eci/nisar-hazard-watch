@@ -1,13 +1,16 @@
 import "@/pages/site/site.css";
 import "@/features/charts/charts.css";
 import "@/pages/explorer/explorer.css";
+import "@/pages/explorer/story.css";
 
+import type { Viewer } from "cesium";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { CasePanel } from "@/features/case-panel/CasePanel";
 import { PendingSummary, ResultSummary } from "@/features/case-panel/CaseSummary";
 import { ShowRealContext } from "@/features/case-panel/showReal";
 import { caseSubject, liveSubject, type Subject } from "@/features/case-panel/subject";
+import { VERDICT } from "@/features/case-panel/verdicts";
 import {
   CASES,
   chipBounds,
@@ -18,18 +21,38 @@ import {
   type LensId,
 } from "@/features/cases/cases";
 import type { ChartMode } from "@/features/charts/chartTokens";
+import { captureGlobe, type GlobeStrip } from "@/features/downloads/globeImage";
+import { saveBlob, timelineCsv, timelineJson } from "@/features/downloads/timelineExport";
 import type { Frame, LonLat } from "@/features/frames/frame.types";
 import { findFrameAt, loadFrames } from "@/features/frames/frames";
 import { GlobeView, type GlobeScene } from "@/features/globe/GlobeView";
 import { formatLonLat, gridMetres, LIVE_CHIP_KM, liveAnswer } from "@/features/live/liveQuestion";
 import { JobChecklist, JobProblem, PlanPasses } from "@/features/live/LiveSummary";
 import { useLiveJob } from "@/features/live/useLiveJob";
+import { NovaChat } from "@/features/nova/NovaChat";
+import type { NovaContext } from "@/features/nova/novaAnswer";
+import { Onboarding } from "@/features/onboarding/Onboarding";
+import {
+  hasSeenOnboarding,
+  markOnboardingSeen,
+  ONBOARDING_STEPS,
+} from "@/features/onboarding/onboarding";
 import { MoreInfoSheet } from "@/features/sheet/MoreInfoSheet";
+import {
+  CHAPTERS,
+  LAST_CHAPTER,
+  REGION_CENTRE,
+  STORY_ADVANCE_MS,
+  storyCase,
+} from "@/features/story/chapters";
+import { StoryMode } from "@/features/story/StoryMode";
 import { PassTimeline } from "@/features/timeline/PassTimeline";
+import { formatDay } from "@/features/timeline/timelineLayout";
 import { useAsync } from "@/lib/useAsync";
-import { LayerDock, type DrapeKind } from "@/pages/explorer/LayerDock";
+import { LEGEND, type DrapeKind } from "@/pages/explorer/drapeLegend";
+import { LayerDock } from "@/pages/explorer/LayerDock";
 import { HintPill, StartCard } from "@/pages/explorer/StartCard";
-import { TopBar, type ContextChip } from "@/pages/explorer/TopBar";
+import { TopBar, type ContextChip, type DownloadItem } from "@/pages/explorer/TopBar";
 
 type Selection =
   | { kind: "case"; item: Case }
@@ -51,11 +74,14 @@ const REGION_ZOOM = 1;
 const STEP_MS = 1000;
 const REDUCED_STEP_MS = 80;
 const DEFAULT_OPACITY = 85;
+// Chapter 1 shows the Punjab plains around the Chenab (SPECS §5: ~2,600 km altitude).
+const STORY_REGION_KM = 900;
+const STORY_REGION_SECONDS = 2.2;
 const today = new Date().toISOString().slice(0, 10);
 
 const isLens = (value: string | null): value is LensId => LENSES.some((lens) => lens.id === value);
 
-// Shared links: ?case=<id>, or ?frame=<track-frame>[&lens=<id>] for a live question.
+// Shared links: ?case=<id>, ?frame=<track-frame>[&lens=<id>] for a live question, ?story=1.
 const readParams = () => {
   const params = new URLSearchParams(window.location.search);
   const lens = params.get("lens");
@@ -63,10 +89,12 @@ const readParams = () => {
     item: findCase(params.get("case")),
     frameId: params.get("frame"),
     lens: isLens(lens) ? lens : DEFAULT_LENS,
+    story: params.get("story") === "1",
   };
 };
 
-const paramsOf = (selection: Selection | undefined): string => {
+const paramsOf = (selection: Selection | undefined, story: boolean): string => {
+  if (story) return "story=1";
   if (selection === undefined) return "";
   if (selection.kind === "case") return new URLSearchParams({ case: selection.item.id }).toString();
   return new URLSearchParams({
@@ -88,15 +116,45 @@ const country = (item: Case): string => item.place.split(",").at(-1)?.trim() ?? 
 const prefersReducedMotion = (): boolean =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+const canSpeak = (): boolean => typeof window !== "undefined" && "speechSynthesis" in window;
+
+// Web Speech can be missing or throw (no voices, blocked audio); captions always carry the story.
+const speak = (text: string | undefined): void => {
+  if (!canSpeak()) return;
+  try {
+    window.speechSynthesis.cancel();
+    if (text === undefined) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-US";
+    utterance.rate = 1;
+    window.speechSynthesis.speak(utterance);
+  } catch {
+    // Voice is optional.
+  }
+};
+
 export const ExplorerPage = () => {
   const [initial] = useState(readParams);
   const [selection, setSelection] = useState<Selection | undefined>(
-    initial.item && { kind: "case", item: initial.item },
+    initial.story ? undefined : initial.item && { kind: "case", item: initial.item },
   );
+  const [story, setStory] = useState(initial.story && storyCase() !== undefined);
+  const [chapter, setChapter] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [voice, setVoice] = useState(false);
+  // First visit with nothing open: the four-step tour. Links to a case or the story skip it.
+  const [onboarding, setOnboarding] = useState<number | undefined>(() =>
+    !initial.story && initial.item === undefined && initial.frameId === null && !hasSeenOnboarding()
+      ? 0
+      : undefined,
+  );
+  const [novaOpen, setNovaOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false);
+  const viewerRef = useRef<Viewer | undefined>(undefined);
   // A shared ?frame= link can only open once the frames snapshot is in.
-  const linkRef = useRef(initial.item === undefined ? initial.frameId : null);
+  const linkRef = useRef(initial.item === undefined && !initial.story ? initial.frameId : null);
   const [linkPending, setLinkPending] = useState(
-    initial.item === undefined && initial.frameId !== null,
+    initial.item === undefined && !initial.story && initial.frameId !== null,
   );
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -122,6 +180,7 @@ export const ExplorerPage = () => {
       setCollapsed(false);
       setSheetOpen(false);
       setHelpOpen(false);
+      setDownloadOpen(false);
     },
     [],
   );
@@ -160,40 +219,154 @@ export const ExplorerPage = () => {
     setCollapsed(false);
     setSheetOpen(false);
     setHelpOpen(false);
+    setDownloadOpen(false);
     setDrapeKind("change");
   }, []);
 
-  const onGlobeAsk = useCallback((frame: Frame, point: LonLat) => ask(frame, point), [ask]);
+  // The globe stays put while the story or the tour tells the user where to look.
+  const storyRef = useRef(story);
+  useEffect(() => {
+    storyRef.current = story;
+  }, [story]);
+  const onGlobeOpenCase = useCallback(
+    (item: Case) => {
+      if (!storyRef.current) openCase(item);
+    },
+    [openCase],
+  );
+  const onGlobeAsk = useCallback(
+    (frame: Frame, point: LonLat) => {
+      if (!storyRef.current) ask(frame, point);
+    },
+    [ask],
+  );
 
   useEffect(() => {
     if (linkPending) return;
     const url = new URL(window.location.href);
-    url.search = paramsOf(selection);
+    url.search = paramsOf(selection, story);
     window.history.replaceState(null, "", url);
-  }, [selection, linkPending]);
+  }, [selection, story, linkPending]);
+
+  useEffect(() => {
+    if (onboarding !== undefined) markOnboardingSeen();
+  }, [onboarding]);
 
   const close = useCallback(() => {
     setSelection(undefined);
     setSheetOpen(false);
   }, []);
 
+  const startStory = useCallback(() => {
+    close();
+    setHelpOpen(false);
+    setDownloadOpen(false);
+    setNovaOpen(false);
+    setOnboarding(undefined);
+    setChapter(0);
+    setPlaying(false);
+    setStory(true);
+  }, [close]);
+
+  const leaveStory = useCallback(() => {
+    speak(undefined);
+    setPlaying(false);
+    setStory(false);
+  }, []);
+
+  const exitStory = useCallback(() => {
+    leaveStory();
+    close();
+  }, [leaveStory, close]);
+
+  const exploreFromStory = useCallback(() => {
+    leaveStory();
+    const item = storyCase();
+    if (item !== undefined) openCase(item);
+  }, [leaveStory, openCase]);
+
+  const goChapter = useCallback(
+    (index: number) => {
+      if (index < 0) return;
+      if (index > LAST_CHAPTER) exploreFromStory();
+      else setChapter(index);
+    },
+    [exploreFromStory],
+  );
+
+  // Captions always show; the voice reads them when it is on, and a chapter change cuts it off.
+  useEffect(() => {
+    if (!story) return;
+    speak(voice ? CHAPTERS[chapter]?.caption : undefined);
+  }, [story, chapter, voice]);
+  useEffect(() => () => speak(undefined), []);
+
+  // Play advances every 9 s and stops on the last chapter instead of leaving the story.
+  useEffect(() => {
+    if (!story || !playing) return;
+    const timer = window.setTimeout(() => {
+      const next = Math.min(LAST_CHAPTER, chapter + 1);
+      setChapter(next);
+      if (next === LAST_CHAPTER) setPlaying(false);
+    }, STORY_ADVANCE_MS);
+    return () => window.clearTimeout(timer);
+  }, [story, playing, chapter]);
+
+  const startOnboarding = () => {
+    if (story) leaveStory();
+    close();
+    setHelpOpen(false);
+    setNovaOpen(false);
+    setOnboarding(0);
+  };
+
+  const nextOnboarding = () => {
+    const next = (onboarding ?? 0) + 1;
+    // The panel, dock and timeline only exist with a case open, so step 2 opens the story case.
+    const item = storyCase();
+    if (next === 1 && item !== undefined) openCase(item);
+    setOnboarding(next < ONBOARDING_STEPS.length ? next : undefined);
+  };
+
   const wholeGlobe = () => {
+    if (story) leaveStory();
     close();
     setHelpOpen(false);
     setHomeRequest((count) => count + 1);
   };
 
-  // Esc closes the innermost thing first: menu, then sheet, then the selection (SPECS §4).
+  // Esc closes the innermost thing first: onboarding, story, menus, Nova, sheet, selection (SPECS §4).
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (helpOpen) setHelpOpen(false);
-      else if (sheetOpen) setSheetOpen(false);
-      else close();
+      if (event.key === "Escape") {
+        if (onboarding !== undefined) setOnboarding(undefined);
+        else if (story) exitStory();
+        else if (helpOpen || downloadOpen) {
+          setHelpOpen(false);
+          setDownloadOpen(false);
+        } else if (novaOpen) setNovaOpen(false);
+        else if (sheetOpen) setSheetOpen(false);
+        else close();
+        return;
+      }
+      if (!story || onboarding !== undefined) return;
+      if (event.key === "ArrowRight") goChapter(chapter + 1);
+      if (event.key === "ArrowLeft") goChapter(chapter - 1);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [helpOpen, sheetOpen, close]);
+  }, [
+    onboarding,
+    story,
+    chapter,
+    helpOpen,
+    downloadOpen,
+    novaOpen,
+    sheetOpen,
+    close,
+    exitStory,
+    goChapter,
+  ]);
 
   const chooseLens = (lens: LensId) => {
     if (selection === undefined) return;
@@ -224,7 +397,12 @@ export const ExplorerPage = () => {
           )
         : undefined;
 
-  const scene = sceneOf(selection, job.ready, drapeKind, opacity);
+  const tourItem = storyCase();
+  const storyItem = story ? tourItem : undefined;
+  const scene =
+    storyItem === undefined
+      ? sceneOf(selection, job.ready, drapeKind, opacity)
+      : storyScene(storyItem, chapter, opacity);
   const context: ContextChip | undefined =
     item !== undefined
       ? { icon: item.hazard, name: item.name, when: item.when }
@@ -238,6 +416,131 @@ export const ExplorerPage = () => {
 
   const showTimeline = item?.timeline !== undefined && item.pending !== true && !sheetOpen;
   const showDock = item?.crops !== undefined && !sheetOpen;
+
+  const lensId = item?.lens ?? live?.lens;
+  const lensChip = lensId === undefined ? "" : (findLens(lensId)?.chip ?? "");
+  const novaContext: NovaContext = {
+    subject,
+    pending: item?.pending === true ? item : undefined,
+    running: live !== undefined && !job.ready,
+    mode,
+  };
+  const lookingAt =
+    item !== undefined
+      ? `${item.name} · ${lensChip} · ${
+          item.pending === true
+            ? "no measurement yet"
+            : sheetOpen
+              ? "full view"
+              : VERDICT[item.verdict].label
+        }`
+      : live !== undefined
+        ? `${formatLonLat(live.point)} · ${lensChip} · ${
+            subject === undefined ? "processing" : VERDICT[subject.verdict].label
+          }`
+        : "the whole globe";
+
+  const downloadPng = async () => {
+    setDownloadOpen(false);
+    const viewer = viewerRef.current;
+    if (viewer === undefined) return;
+    const shown = storyItem ?? item;
+    const strip: GlobeStrip = {
+      title:
+        shown !== undefined
+          ? `${shown.name}, ${shown.place}`
+          : live !== undefined
+            ? `Live question · ${formatLonLat(live.point)}`
+            : "The whole globe · NISAR measured cases",
+      question:
+        shown !== undefined
+          ? (findLens(shown.lens)?.chip ?? "")
+          : live !== undefined
+            ? lensChip
+            : "Click any land to ask the radar",
+      dates: [
+        shown?.target !== undefined ? `Target pass ${formatDay(shown.target)}` : undefined,
+        `Exported ${today}`,
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      legend:
+        scene.drape === undefined
+          ? undefined
+          : (({ stops, scale, text }) => ({ ramp: stops, scale, text }))(
+              LEGEND[storyItem === undefined ? drapeKind : "change"],
+            ),
+      // The explorer's point chart and pass dates are demo, and so is every live answer.
+      demo:
+        storyItem === undefined &&
+        (live !== undefined ||
+          (item !== undefined &&
+            item.pending !== true &&
+            (item.band !== undefined || item.timeline !== undefined))),
+    };
+    const blob = await captureGlobe(viewer, strip);
+    if (blob !== null) saveBlob(blob, `nisar-${shown?.id ?? "globe"}-view.png`);
+  };
+
+  const timelineWhy =
+    item === undefined
+      ? "Open a case first"
+      : item.timeline === undefined
+        ? "This case has no pass timeline yet"
+        : undefined;
+  const downloads: DownloadItem[] = [
+    {
+      id: "png",
+      label: "Screenshot of the globe",
+      sub: "PNG of this view, with its place, dates and legend",
+      disabledWhy: unavailable ? "The 3D globe isn't available in this browser" : undefined,
+      onPick: () => void downloadPng(),
+    },
+    {
+      id: "json",
+      label: "Timeline data · JSON",
+      sub: "One entry per pass, demo flags included",
+      disabledWhy: timelineWhy,
+      onPick: () => {
+        setDownloadOpen(false);
+        if (item === undefined) return;
+        saveBlob(
+          new Blob([timelineJson(item)], { type: "application/json" }),
+          `nisar-${item.id}-timeline.json`,
+        );
+      },
+    },
+    {
+      id: "csv",
+      label: "Timeline data · CSV",
+      sub: "Same rows, for spreadsheets",
+      disabledWhy: timelineWhy,
+      onPick: () => {
+        setDownloadOpen(false);
+        if (item === undefined) return;
+        saveBlob(
+          new Blob([timelineCsv(item)], { type: "text/csv" }),
+          `nisar-${item.id}-timeline.csv`,
+        );
+      },
+    },
+    {
+      id: "pdf",
+      label: "PDF report",
+      sub: "Data blocks plus a template summary, ready to print",
+      disabledWhy:
+        item === undefined
+          ? "Open a case first"
+          : item.pending === true
+            ? "No measurement to report yet"
+            : undefined,
+      onPick: () => {
+        setDownloadOpen(false);
+        if (item !== undefined)
+          window.open(`/report?case=${encodeURIComponent(item.id)}`, "_blank", "noopener");
+      },
+    },
+  ];
 
   return (
     <ShowRealContext value={showReal}>
@@ -255,29 +558,52 @@ export const ExplorerPage = () => {
             frames={frames}
             cases={CASES}
             scene={scene}
-            view={sheetOpen ? "sheet" : "panel"}
+            view={story ? "story" : sheetOpen ? "sheet" : "panel"}
             reduceMotion={reduceMotion}
             homeRequest={homeRequest}
-            onOpenCase={openCase}
+            onOpenCase={onGlobeOpenCase}
             onAsk={onGlobeAsk}
             onUnavailable={() => setUnavailable(true)}
+            onViewer={(viewer) => {
+              viewerRef.current = viewer;
+            }}
           />
         )}
 
         <TopBar
           context={context}
           helpOpen={helpOpen}
+          downloadOpen={downloadOpen}
+          downloads={downloads}
+          story={story}
           showReal={showReal}
           reduceMotion={reduceMotion}
-          onHelp={setHelpOpen}
+          onHelp={(open) => {
+            setHelpOpen(open);
+            if (open) setDownloadOpen(false);
+          }}
+          onDownload={(open) => {
+            setDownloadOpen(open);
+            if (open) setHelpOpen(false);
+          }}
+          onStory={(on) => {
+            if (on && !story) startStory();
+            if (!on && story) exitStory();
+          }}
+          onReplayTour={startOnboarding}
           onShowReal={setShowReal}
           onReduceMotion={setReduceMotion}
           onWholeGlobe={wholeGlobe}
         />
 
-        {selection === undefined && (
+        {selection === undefined && !story && (
           <>
-            <StartCard frames={framesState} onOpen={openCase} onRetryFrames={retryFrames} />
+            <StartCard
+              frames={framesState}
+              onOpen={openCase}
+              onRetryFrames={retryFrames}
+              onStory={startStory}
+            />
             <HintPill />
           </>
         )}
@@ -339,11 +665,72 @@ export const ExplorerPage = () => {
             mode={mode}
             onMode={setMode}
             onClose={() => setSheetOpen(false)}
+            onAskNova={() => setNovaOpen(true)}
+          />
+        )}
+
+        {storyItem !== undefined && (
+          <StoryMode
+            item={storyItem}
+            chapter={chapter}
+            playing={playing}
+            voice={voice}
+            voiceAvailable={canSpeak()}
+            onGo={goChapter}
+            onTogglePlay={() => setPlaying(!playing)}
+            onToggleVoice={() => setVoice(!voice)}
+            onExit={exitStory}
+            onExplore={exploreFromStory}
+          />
+        )}
+
+        {!story && (
+          <NovaChat
+            open={novaOpen}
+            context={novaContext}
+            lookingAt={lookingAt}
+            mode={mode}
+            reduceMotion={reduceMotion}
+            onMode={setMode}
+            onOpen={(open) => {
+              setNovaOpen(open);
+              if (open) {
+                setHelpOpen(false);
+                setDownloadOpen(false);
+              }
+            }}
+          />
+        )}
+
+        {onboarding !== undefined && (
+          <Onboarding
+            step={onboarding}
+            onNext={nextOnboarding}
+            onSkip={() => setOnboarding(undefined)}
           />
         )}
       </main>
     </ShowRealContext>
   );
+};
+
+// The story's camera per chapter: the region first, then the chip, then the chip with its change map.
+const storyScene = (item: Case, chapter: number, opacity: number): GlobeScene => {
+  const view = CHAPTERS[chapter]?.view ?? "region";
+  const scene = sceneOf({ kind: "case", item }, true, "change", opacity);
+  if (view === "drape") return scene;
+  if (view === "chip") return { ...scene, drape: undefined };
+  return {
+    ...scene,
+    target: {
+      key: "story-region",
+      box: chipBounds(REGION_CENTRE, STORY_REGION_KM),
+      zoom: REGION_ZOOM,
+      seconds: STORY_REGION_SECONDS,
+    },
+    outline: undefined,
+    drape: undefined,
+  };
 };
 
 // What the globe draws for the current selection.

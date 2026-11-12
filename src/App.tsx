@@ -18,6 +18,9 @@ const CasesPage = lazy(async () => ({
 const MethodPage = lazy(async () => ({
   default: (await import("@/pages/method/MethodPage")).MethodPage,
 }));
+const ReportPage = lazy(async () => ({
+  default: (await import("@/pages/report/ReportPage")).ReportPage,
+}));
 
 // Links shared before the landing page existed point at /?frame=..., so they still open the explorer.
 const isLegacyExplorerLink = (): boolean =>
@@ -28,6 +31,7 @@ const CurrentPage = ({ pathname }: { pathname: string }) => {
   if (pathname === "/cases") return <CasesPage />;
   if (pathname === "/method") return <MethodPage />;
   if (pathname === "/about") return <AboutPage />;
+  if (pathname === "/report") return <ReportPage />;
   return <LandingPage />;
 };
 

@@ -1,332 +1,218 @@
 # DESIGN.md: NISAR Hazard Watch
 
-The visual system of the app. Read this before building or changing any UI, so screens made by
-different people (and agents) look like one product.
+The visual system of the app as built for **design v7**. Read this before building or changing any
+UI, so screens made by different people (and agents) look like one product. The full spec is the
+design handoff (`design_handoff_v7/SPECS.md`, next to this repo); where this file and the code
+disagree, the code is current and this file should be fixed.
 
 ## Overview
 
-Two surfaces share one product:
+v7 is a **radar evidence explorer**, not a hazard detector. Every answer has the same five beats:
+the question → the measurement → the verdict in plain words → the second witness → what this
+can't tell you. Three words: **calm, scientific, honest**. Colour is reserved for **data** and the
+one gold accent; chrome stays ink on deep blue.
 
-- **Landing page (`/`)**: **one scroll-driven story over a fixed Earth**. The planet stays on
-  screen while the pitch plays out on it: the clouds dissolve ("Radar brings its own light"), NISAR's
-  orbit appears while a counter climbs to 12 days, then the planet turns to the Venezuela M7.5
-  epicentre and a callout shows the demo fringes. After the story: a draggable optical/radar
-  comparison, a pipeline timeline that fills as you scroll, a horizontal events carousel, the
-  mission and a closing call to action. Mood: calm, product-grade, space; deep space blacks and
-  blues with one gold accent. Tokens live in `src/pages/site/site.css`; the scene in
-  `EarthHero.tsx`, the motion in `useLandingMotion.ts`.
-- **Method (`/method`)**: same system as the landing. After the intro, a **satellite teardown**:
-  a sticky three.js stage (`SatelliteTeardown.tsx`, model in `teardownScene.ts`, copy in
-  `teardownSteps.ts`) that takes a stylised NISAR apart over six scroll steps, lazy-loaded near the
-  viewport and paused off screen; without WebGL it falls back to a list. Then the hazard pill
-  switch ("From echoes to a map", `?hazard=` in the URL) and a scrollytelling of the four steps per
-  hazard: the steps scroll on the left and a sticky square figure cross-fades the explorer's demo
-  rasters on the right. Then validation in a gold-figure grid, limits, and one closing action.
-  Layout in `src/pages/method/method.css`.
-- **About (`/about`)**: the team. A crew orbit (the six members turning round the team logo), a
-  crew manifest whose cards a gold radar sweep "acquires" as you scroll (static and acquired under
-  reduced motion), and links to the project. Team data lives in `src/content/team.ts`, apart from
-  the layout; missing roles and links render as grey placeholders. Layout in
-  `src/pages/about/about.css` (`a-*`).
-- **Explorer (`/explore`)**: the app. A **mission-control look over a real planet**: the Cesium
-  globe fills the screen and glass cards float over it. A top bar (wordmark pill, Guided tour /
-  Explore switch, Whole globe, Method), one card at the bottom left and the frame panel on the
-  right. Three modes: an **intro** card on a first visit, a **guided tour** through the featured
-  events (chapter, title, dots, Next event), and **explore** (hazard, pass direction, featured
-  events; hover a real NISAR frame, click it to analyse it). Layout in
-  `src/pages/explorer/explorer.css`.
-
-Three words: **calm, scientific, legible**. Colour is reserved for **data** and the one gold
-accent: chrome stays ink on deep blue, so burn scars, flood extents and interferogram fringes are
-the brightest thing on screen.
+| Page       | Layout file                       | Prefix | What it is                                                                                                                                               |
+| ---------- | --------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`        | `src/pages/landing/landing.css`   | `l-`   | Scroll story over a fixed three.js Earth, compare slider, pipeline, cases carousel, "where it fails", data sources, mission, close                       |
+| `/explore` | `src/pages/explorer/explorer.css` | `x-`   | Full-screen Cesium globe with glass cards: start card, case panel, layer dock, pass timeline, "More information" sheet                                   |
+| `/cases`   | `src/pages/cases/cases.css`       | `k-`   | The measured cases as cards, filtered by question, plus the five-hazard icon row                                                                         |
+| `/method`  | `src/pages/method/method.css`     | `m-`   | Satellite teardown, Qadirabad scroll sequence, six steps, band chart in three states, lenses, works / fails, experimental models, landslides, colour key |
+| `/about`   | `src/pages/about/about.css`       | `a-`   | Crew orbit round the team logo, crew manifest, project links                                                                                             |
 
 ### One system
 
-All pages share `src/pages/site/`: `site.css` holds the tokens, type, pills, chips, nav and
-footer (`s-*` classes); `SiteNav.tsx`; `SiteFooter.tsx`; `siteMotion.ts` for smooth scroll and
-section entrances. Each page keeps only its own layout (`l-*` landing, `m-*` method, `a-*` about,
-`x-*` explorer). Tailwind stays
-available for one-off utilities, but new UI uses the tokens below.
+Content pages share `src/pages/site/`: `site.css` holds the tokens, type scale, buttons, chips,
+nav and footer (`s-*`); `SiteNav.tsx`, `SiteFooter.tsx`, `siteMotion.ts`. Charts and provenance
+chips are shared by every page in `src/features/charts/charts.css` (`c-*`). Each page keeps only
+its own layout under its prefix. Tailwind stays available for one-off utilities; new UI uses the
+tokens below.
 
-## Colors
+## Colours
 
-Tokens live on `.site` in `site/site.css`.
+### Chrome tokens
 
-| Token      | Value                                   | Use                                                         |
-| ---------- | --------------------------------------- | ----------------------------------------------------------- |
-| `space`    | `#04070e`                               | Page background                                             |
-| `deep`     | `#08101f`                               | Image wells, panels                                         |
-| `night`    | `#0e1930`                               | Inset surfaces                                              |
-| `ink`      | `#ebe9e4`                               | Primary text; the picked segment                            |
-| `ink-2`    | `#d4d2cc`                               | Secondary text on images and panels                         |
-| `muted`    | `#a9a69e`                               | Secondary body, captions, mono labels                       |
-| `gold`     | `#c9b48b` (hover `#dccaa3`)             | The only accent: actions, key figures, selection, the orbit |
-| `gold-ink` | `#16120a`                               | Text on gold                                                |
-| `demo`     | `#fcd34d` on `rgba(245,158,11,.18)`     | DEMO DATA / DEMO VALUES chips                               |
-| `hairline` | `rgba(235,233,228,.08–.12)`             | Borders, dividers, rails                                    |
-| `glass`    | `rgba(8,16,31,.72–.80)` + blur 16–20 px | Nav pills, callouts, explorer cards and panel               |
+On `.site` in `site/site.css`; the explorer adds its own on `.explorer` in `explorer.css`.
 
-### Semantic (data colours)
+| Token        | Value                                                         | Use                                                                |
+| ------------ | ------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `--space`    | `#04070e`                                                     | Page background                                                    |
+| `--deep`     | `#08101f`                                                     | Image wells, panels                                                |
+| `--night`    | `#0e1930`                                                     | Inset surfaces                                                     |
+| `--ink`      | `#ebe9e4`                                                     | Primary text; picked segment; explorer primary button              |
+| `--ink-2`    | `#d4d2cc`                                                     | Secondary text on panels                                           |
+| `--ink-3`    | `#c4c1ba`                                                     | Explorer tertiary text                                             |
+| `--muted`    | `#a9a69e`                                                     | Captions, mono labels, planned passes                              |
+| `--faint`    | `#8d8a83`                                                     | Explorer keys and meta                                             |
+| `--fainter`  | `#6f6c66`                                                     | Explorer month ticks, least important text                         |
+| `--gold`     | `#c9b48b` (hover `--gold-hover` `#dccaa3`)                    | The only accent: actions, selection, target pass, baseline bracket |
+| `--gold-ink` | `#16120a`                                                     | Text on gold                                                       |
+| `--hairline` | `rgba(235,233,228,.12)`                                       | Borders, dividers (explorer `--line`)                              |
+| `--glass`    | `rgba(8,16,31,.78)` (explorer `--glass-bg` `.9`) + blur 20 px | Nav, explorer cards                                                |
 
-Data colours are owned by each hazard in `src/features/analysis/hazards.ts`. Never reuse them for
-UI chrome.
+### Data scales (never in chrome)
 
-| Hazard                      | Low       | Moderate  | High      |
-| --------------------------- | --------- | --------- | --------- |
-| Wildfire (burn severity)    | `#facc15` | `#f97316` | `#dc2626` |
-| Flood (extent)              | `#7dd3fc` | `#38bdf8` | `#2563eb` |
-| Deforestation (forest loss) | `#e9c46a` | `#d97706` | `#b45309` |
+From SPECS §6; each lives next to the component that draws it.
 
-| Layer                      | Scale                                                                                        |
-| -------------------------- | -------------------------------------------------------------------------------------------- |
-| Earthquake displacement    | Diverging `#2563eb` (away) → white → `#dc2626` (toward), symmetric ±N cm, transparent near 0 |
-| Interferogram fringes      | Hue wheel, one cycle per λ/2 = 11.92 cm                                                      |
-| Backscatter (before/after) | Grayscale, −22 dB black → −4 dB white                                                        |
+| Scale                              | Values                                                                                                                               | Where in code                                            |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| Channels                           | HH `#e8894a` solid line, circle markers; HV `#6fb3e8` dashed `6 4`, square markers                                                   | `src/features/charts/chartTokens.ts` (`CHANNEL`)         |
+| Signed dB change                   | −8 `#2f6db5` → 0 `#f2f0eb` → +8 `#c2473a`                                                                                            | `LayerDock.tsx`, `MoreInfoSheet.tsx`, `methodContent.ts` |
+| Baseline backscatter               | viridis −30…0 dB `#440154 #3b528b #21918c #5ec962 #fde725`                                                                           | same                                                     |
+| HH − HV                            | 2 dB `#1f8a80` → 7 `#f2f0eb` → 12 dB `#7b4fae`                                                                                       | `methodContent.ts` (colour key)                          |
+| Optical classes (OPERA, Okabe–Ito) | new water `#0072b2` · stable water `#56b4e9` · stayed dry `#a8997a` · water loss `#e69f00` · mixed `#cc79a7` · unsupported `#62666d` | `src/features/cases/cases.ts` (`OPTICAL`)                |
+| No measurement                     | `#62666d` (hatch `#54585f`). **Never white.**                                                                                        | everywhere a gap is drawn                                |
 
-| Status                      | Style                                                       |
-| --------------------------- | ----------------------------------------------------------- |
-| Demo data chip, demo values | `demo` token, mono uppercase                                |
-| Error                       | `rgba(239,68,68,.3)` border on `rgba(239,68,68,.08)`, retry |
-| HH only passes              | Dimmed (50 %) in the pass grid; HH+HV is the normal case    |
-| Selected frame outline      | `gold` with a 6–8 % fill; hovered frame `#e2e8f0`           |
-| Featured event markers      | Gold points with the country label, explore mode only       |
+### Provenance chips
+
+`src/lib/ProvenanceChip.tsx`, classes `c-prov--real | --demo | --todo`, mono 9.5 px uppercase pills.
+
+| Chip    | Style                                             | Rule                                      |
+| ------- | ------------------------------------------------- | ----------------------------------------- |
+| Real    | transparent, `rgba(235,233,228,.35)` border       | Can be hidden (Help → "Show REAL labels") |
+| Demo    | `rgba(245,158,11,.18)` fill, `#fcd34d` text       | Always visible                            |
+| To fill | dashed `rgba(235,233,228,.45)` border, muted text | Always visible                            |
+
+The chip's `title` holds its source, so anyone can check a number on hover.
 
 ## Typography
 
-### Font Family
+**Albert Sans** 300/400/500/600 for text and **JetBrains Mono** 400/500 for numbers, dates, units
+and kickers, both from Google Fonts in `site/site.css`.
 
-**Albert Sans** 300/400/500/600 for all text, and **JetBrains Mono** 400/500 for data labels only
-(uppercase, letter-spacing 0.04–0.06em, 11–13 px), both from Google Fonts in `site/site.css`.
+| Step        | Size (site.css)                                            | Weight / tracking / leading |
+| ----------- | ---------------------------------------------------------- | --------------------------- |
+| Display     | `--step-display` `clamp(3.25rem, 1rem + 7vw, 8.5rem)`      | 500 / −0.045em / 0.92       |
+| Head        | `--step-head` `clamp(2.5rem, 1.4rem + 3.6vw, 5rem)`        | 500 / −0.035em / 0.98       |
+| Title       | `--step-title` `clamp(1.75rem, 1.3rem + 1.2vw, 2.5rem)`    | 500                         |
+| Lead        | `--step-lead` `clamp(1.125rem, 1rem + 0.5vw, 1.375rem)`    | 400 / — / 1.45              |
+| Body        | `--step-body` `clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem)` | 400 / — / 1.55              |
+| Small       | `--step-small` 0.875rem                                    | 400                         |
+| Mono kicker | 10.5–13 px, letter-spacing 0.05–0.08em, uppercase via CSS  | 400–500                     |
 
-### Explorer hierarchy
-
-| Element                 | Style                                       |
-| ----------------------- | ------------------------------------------- |
-| Intro title             | `clamp(28px, 3.2vw, 40px)`, −0.035em        |
-| Tour title, panel title | 26 / 24 px, −0.03em                         |
-| Key figure (ha, cm)     | 52 px, −0.045em, `tabular-nums`             |
-| Body on cards           | 14–15 px                                    |
-| Panel section titles    | 14 px in `ink-2`                            |
-| Labels, meta, dates     | JetBrains Mono 11–12 px, uppercase, `muted` |
-
-### Content-page scale (landing, method)
-
-Defined in `site/site.css`:
-
-| Step    | Size                                         | Weight / tracking / leading |
-| ------- | -------------------------------------------- | --------------------------- |
-| Display | `clamp(3.25rem, 1rem + 7vw, 8.5rem)`         | 500 / −0.045em / 0.92       |
-| Head    | `clamp(2.5rem, 1.4rem + 3.6vw, 5rem)`        | 500 / −0.035em / 0.98       |
-| Lead    | `clamp(1.125rem, 1rem + 0.5vw, 1.375rem)`    | 400 / — / 1.45              |
-| Body    | `clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem)` | 400 / — / 1.55              |
-| Small   | 14–15 px                                     | 400                         |
-
-Outside the scale on purpose: the "12" counter (weight 300, gold), "Pick any frame." and the
-callout's centimetre value. Headlines never run past two lines at any width.
+Explorer: panel title 24 px; body 13–15 px; quality-strip key mono 9.5 px, value 12.5 px.
 
 ### Principles
 
-- **Weights:** 400 for text, 500 for headings and actions, 600 for the wordmark, 300 only for the
-  big gold figures ("12", validation values).
-- **Sentence case** for headings, buttons and labels ("Burn analysis", "Open the globe").
-  This is deliberate and consistent; do not mix in Title Case.
-- `tabular-nums` on every number that changes or is compared (areas, centimetres, dates).
-- Headings use `text-wrap: balance` (global).
-- Mono labels are written in sentence case in code and uppercased with CSS, so screen readers
-  and tests read words, not letters.
-- `…` for ellipses and loading text ("Loading NISAR frames…").
-- Dates are ISO `YYYY-MM-DD`: scientific audience, unambiguous across countries.
+- **Sentence case** for headings, buttons and labels. No Title Case.
+- Mono labels are written in sentence case in code and uppercased with CSS, so screen readers and
+  tests read words.
+- `tabular-nums` on every number that changes or is compared.
+- Dates read as "26 Jul 2026" in the UI (`formatDay`, `en-GB`, UTC); data stays ISO
+  `YYYY-MM-DD`.
+- Every number has its unit and source: dB, %, "k of n cells", "80 m grid" / "40 m grid".
 
 ## Layout
 
-### Spacing System
-
-Content pages use the clamp-based `--margin` and section gaps in `site.css`. Explorer cards sit
-16 px from the edges (12 px on phones), with 16–22 px padding and 12–22 px between blocks.
-
-### Grid & Container
-
-- **Explorer:** full-screen globe. Top bar 16 px from the top; bottom-left card 340 px (explore) or
-  up to 440 px (tour); frame panel 400 px on the right, from 76 px to 20 px off the bottom.
-- **Content pages:** `s-container`, max 76rem, centred.
-
-### Whitespace Philosophy
-
-The globe needs room to breathe: never add a third floating card. The camera centres a frame in the
-free band between the left card and the right panel when it flies there (`framedRectangle`).
-
-## Elevation & Depth
-
-| Level | Use                          | Style                                                 |
-| ----- | ---------------------------- | ----------------------------------------------------- |
-| 0     | Globe                        | Full bleed                                            |
-| 1     | Explorer cards, panel, pills | `glass` + 1 px hairline border, radius 24 (pills 999) |
-| 2     | Tooltip                      | `glass`, mono 11 px, radius 10, follows the cursor    |
-
-### Decorative Depth
-
-The landing's depth lives mostly in the WebGL scene (Earth's Fresnel atmosphere, a soft blue halo,
-a starfield, NISAR's gold orbit). Pages allow exactly these: a text shadow on text over the planet
-or a photo, a bottom gradient on event cards, glass on pills, callouts, chips and explorer cards,
-and a soft gold ring on the epicentre marker. No other gradients or glows.
-
-## Shapes
-
-### Border Radius Scale
-
-| Radius                     | Use                                       |
-| -------------------------- | ----------------------------------------- |
-| 999                        | Buttons, pills, segmented controls, chips |
-| 24                         | Explorer cards and panel                  |
-| `clamp(14px, 1.6vw, 28px)` | Images and cards on content pages         |
-| 16                         | Callouts, the hazard grid                 |
-| 10–12                      | Tooltip, event rows, formula blocks       |
-
-### Photography & Illustrations
-
-No stock imagery or illustrations: NASA public-domain pictures on content pages (credited in the
-footer), Esri imagery in the landing's event cards and the explorer, and data layers. The footer's
-Colombian place photos are openly licensed (Wikimedia Commons), each credited on its card. Never use
-the NASA meatball or worm logos; the official Space Apps logo, which teams may use, sits on a light
-plate in the footer.
+- **Content pages:** `--margin` `clamp(1rem, 0.5rem + 2vw, 2rem)`, section gaps `--gap-section`,
+  image radius `--radius` `clamp(14px, 1.6vw, 28px)`.
+- **Explorer** (`--inset` 16 px from the edges): top bar of glass pills (wordmark, case context,
+  Guided tour | Explore switch, Cases, Method, Whole globe, Help, Full screen); start card 372 px or
+  case panel 360 px on the left; layer dock 256 px on the right; pass timeline at the bottom
+  (≤ 680 px); "More information" sheet (radius 28, `rgba(7,13,26,.97)`, blur 24, shadow
+  `-30px 0 80px rgba(0,0,0,.45)`) over the globe, leaving a strip of globe visible on the left.
+- The globe needs room: the camera frames a case's chip in the free area between the cards.
 
 ## Components
 
-### Top Navigation
-
-Content pages: `SiteNav` (wordmark left; Events, Method, About and a glass "Open the globe" pill
-right; clear over the landing's planet, glass elsewhere; About drops Events). On narrow phones the
-page links give way to the pill. Explorer: its own top bar of glass
-pills (wordmark, mode switch, Whole globe, Method).
-
 ### Buttons
 
-- **Primary:** gold pill (`gold` on `gold-ink`, hover `gold-hover`, active `scale(.97)`). One per
-  view.
-- **Secondary:** ghost pill with a hairline border.
-- **Text button:** `muted`, or gold for "Back to tour" and retry-style actions.
-- Every icon-only button has an `aria-label`.
+- **Content pages:** `s-button`, a gold pill (`--gold` on `--gold-ink`, hover `--gold-hover`,
+  active `scale(.97)`), one per view; `s-gold-link` for text actions. The nav's "Open the explorer"
+  is a dark pill.
+- **Explorer:** `x-primary`, an ink pill (`--ink` background, dark text); `x-ghost`, a hairline
+  pill; icon buttons are round glass pills with an `aria-label`.
 
-### Cards & Containers
+### Navigation
 
-Explorer cards and panel: level 1 glass. The panel scrolls inside; sections are split by a
-hairline. Satellite passes and method details fold into `<details>`.
+`SiteNav`: wordmark left; Cases, Method, About and the "Open the explorer" pill right (short label
+on phones). The explorer has its own top bar (above). Its "Guided tour" / "Explore" switch starts and leaves
+the guided story (`?story=1`).
 
-### Inputs & Forms
+### Charts (`src/features/charts/`)
 
-None today beyond buttons.
+- **Band chart** (`BandChart.tsx`, Recharts 3 `ComposedChart`): each channel's normal range as a
+  band with dashed edges, HH/HV lines that break at gaps (`connectNulls={false}`), hollow baseline
+  dots, a filled target dot, a white ring on out-of-band points, a gold TARGET line. Plain hides the
+  axes; Technical adds dB axes, dates and Δ vs median in the glass tooltip. Insufficient data shows
+  a dashed overlay with the reason.
+- **Contrast bars** (`ContrastBars.tsx`, HTML): shares of a group on a **fixed 0–100% axis**, all
+  rows on one subgrid so every track starts at the same x; colour per optical class; "k / n" in
+  mono.
+- **Matched whisker** (`MatchedWhisker.tsx`): point `#0072b2` with a white ring, interval caps,
+  zero tick.
+- **Metrics chart** (`MetricsChart.tsx`, Method): fixed 0–1 axis; a missing metric is a dashed
+  empty track with "—", never 0; EXPERIMENTAL badge; dashed amber tag on reused dev data.
 
-### Tags / Badges
+### Pass timeline (`src/features/timeline/`)
 
-JetBrains Mono chips: data labels on `rgba(4,7,14,.6)` + blur; DEMO DATA on the `demo` token.
+CSS, not Recharts. Measured passes 8 px filled; baseline 10 px hollow gold rings under a gold
+"Baseline · n passes" bracket; target 13 px gold with a double ring; planned 11 px dashed
+`--muted` after the TODAY line, never clickable; the **next planned pass** gets a brighter 2 px
+dashed ring and a "Next" label, and its date sits in the legend. Optical lane: rotated squares.
+Tiny bars (6 px wide, ≤ 20 px) for "% outside range". Play steps through measured passes every
+900 ms; "Baseline ↔ Target" toggle; a Demo dates chip while dates are spaced.
 
-### Tab / Filter
+### Case panel (`src/features/case-panel/`)
 
-`SegmentedControl`: `role="group"` with `aria-pressed` buttons; the picked one is an `ink` pill on
-a faint track. Variants: `pills`, `small` (pass direction), `bar` (glass, the mode switch) and
-`grid` (two columns with colour dots, the hazard picker).
+Lens chips (`aria-pressed`), verdict glyph + plain line (departure = gold rotated square, within =
+ringed circle, insufficient = dashed circle), band chart, contrast bars, a 3-cell quality strip
+(values wrap, never inside a date; the why is in the `title`), chips for each block, then "More
+information".
 
-### CTA / Footer
+### Footer
 
-Content pages: gold pill buttons (radius 999, `gold` on `gold-ink`, hover `gold-hover`, active
-`scale(.97)`); the nav's "Open the globe" is a glass pill. The page closes with a mono label, "Pick
-any frame." and one gold pill, then `SiteFooter`: a Colombian place seen from orbit (the Blue
-Marble map positioned so the place sits under a gold marker, behind a scrim), a headline, the team
-and Space Apps signature, a place card with its photo credit, link columns (a fixed PROJECT column
-plus the page's own), an optional picture credits note, the outlined NOVA FRONTIER wordmark and a
-base bar with the non-affiliation notice. Each page picks its place: Chiribiquete (landing), Nevado
-del Ruiz (method), Chía (about).
+`SiteFooter`: a Colombian place seen from orbit with a gold marker, headline, team and Space Apps
+signature, a place card with its photo credit, link columns, picture credits, the outlined NOVA
+FRONTIER wordmark and the non-affiliation notice. Each page picks its own place.
 
-### Landing motion
+## Motion
 
-- **Smooth scroll:** Lenis (`lerp: .1`) driven from `gsap.ticker`, feeding ScrollTrigger.
-- **Story:** one GSAP timeline scrubbed by the 520vh story section (`scrub: .6`); it tweens a
-  `controls` object (view offset, camera distance, planet rotation, orbit opacity, drift, callout)
-  that `EarthHero` reads every frame, so scrolling never re-renders React. The callout is moved
-  with `style.transform` from a per-frame callback.
-- **Sections:** entrances with `gsap.from` (y 28, opacity 0, `power3.out`, stagger .08, once at
-  `top 78%`), so nothing stays hidden if JS fails. Compare slides 92 → 50 once; the pipeline bar
-  and steps fill with the scroll; events slide sideways in a 300vh pinned section; the mission
-  picture has a gentle parallax.
-- **Easing:** `power3.out` for entrances, `power2.inOut` for camera moves,
-  `cubic-bezier(.22,1,.36,1)` and 160 ms for CSS hovers.
-- **Below 40rem** layer C moves above the planet and the callout card sits under the marker; the
-  callout card always slides to stay on screen.
-
-### Landing reduced motion
-
-No Lenis, no idle spin, drift or orbit. The story becomes the hero followed by layers A, B and C as
-plain sections over a static globe (clouds at .35, no callout); compare starts at 50; events become
-a native horizontal scroll. This is the layout the E2E tests see.
-
-## Explorer behaviour
-
-- **Real data only for geometry:** frame polygons come from `public/data/frames.json` (the
-  Observation Plan snapshot) and passes from the live Observation Plan API. Only the analysis on
-  top is demo until the pipeline serves it.
-- **Modes:** the intro shows on a first visit (remembered in localStorage); a shared link
-  (`?event=`, `?frame=`) skips it and opens in explore mode. Frames answer the pointer and event
-  markers show only in explore mode. The tour steps with ←/→ and hands over to explore after the
-  last event. Esc closes the panel and zooms out.
-- **Camera:** arrives from deep space (2.4 s, quartic out), spins slowly until the first touch,
-  flies 1.8 s to a frame and then to the analysis area; instant with reduced motion.
+- **Content pages:** Lenis smooth scroll driven from `gsap.ticker`, ScrollTrigger reveals (y 28 →
+  0, `power3.out`, stagger .08), the landing story scrubbed over a pinned section, the cases
+  carousel scrolling sideways, Method's teardown and Qadirabad sequence scrubbed, charts revealed
+  with a `clip-path` wipe.
+- **Explorer:** camera flights 1.6–2.4 s; the globe spins until the first interaction; UI toggles
+  200 ms.
+- **Reduced motion** (`prefers-reduced-motion`, or Help → Reduce motion in the explorer): no Lenis,
+  no reveals, no spin, instant camera flights; the compare slider starts at 50. E2E runs this way.
 
 ## Do's and Don'ts
 
 ### Do
 
-- Keep colour for data and the gold accent; keep chrome ink on deep blue.
-- Label anything simulated with the **Demo data** / **Demo values** chip.
-- Design every async view's states: loading (shimmer, still under reduced motion), error with a
-  retry, empty, success.
-- Put shareable state in the URL (`?event=`, `?frame=`, `?hazard=`).
-- Respect `prefers-reduced-motion`: no idle spin, instant camera flights, no smooth scroll.
-- Give the camera room for the cards when framing an area.
+- Keep colour for data and the gold accent; chrome stays ink on deep blue.
+- Put a Demo chip on every simulated value; keep Demo and To fill chips visible.
+- Draw "no measurement" in grey, keep gaps as gaps, use a fixed 0–100% axis for shares.
+- Design every async view's states: loading, error with retry, empty, success.
+- Put shareable state in the URL (`?case=`, `?frame=`, `?lens=`).
 
 ### Don't
 
-- Don't use hazard colours for buttons, links or decoration.
-- Don't show a number without its unit and source (ha, cm, dB; which passes).
+- Don't use data colours for buttons, links or decoration.
+- Don't show a number without its unit and source.
+- Don't present a planned pass, a demo series or a demo verdict as a measurement.
 - Don't add a third font or Title Case.
-- Don't hide data behind hover only: the events list is the keyboard path into the globe.
-- Don't present demo results or validation figures as real.
+- Don't promise live radar answers while they are a demo.
 
-## Responsive Behavior
+## Responsive behaviour
 
-### Breakpoints
+Built desktop-first (1280–1920 px); every page works down to 390 px with no horizontal scroll.
+Explorer breakpoints: ≤ 1100 px hides the case context pill; ≤ 900 px hides the layer dock; ≤ 760 px
+hides the mode switch and page links (they move into the Help menu), docks the start card and
+panel to the bottom, hides the pass timeline and turns the sheet into a full page. SPECS §4
+proposes a proper mobile bottom sheet for a later round.
 
-Built desktop-first for judging and demos (1280–1920 px). Content pages reflow down to 390 px.
-Below 48rem the explorer drops the mode switch, the bottom card spans the width and the panel
-covers the screen when open.
+## Iteration guide
 
-### Touch Targets
+1. Start from an existing component (charts, `ProvenanceChip`, glass card, quality strip) before
+   making a new one.
+2. Check focus, reduced motion and every async state before calling a screen done.
+3. Verify in the browser with screenshots at 1440 px and 390 px, not just in code.
 
-Buttons are at least ~36 px high; `touch-action: manipulation` on controls; pinch zooms the globe.
+## Known gaps
 
-### Image Behavior
-
-Data layers are draped over their lon/lat bounds on the globe and scale with it.
-
-## Iteration Guide
-
-1. Start from an existing component (`SegmentedControl`, glass card, `MapLegend`, `MethodDetails`) before
-   creating a new one.
-2. A new hazard only adds an entry in `hazards.ts` (label, colours, copy); the UI must not change.
-3. Check focus, reduced motion and every async state before calling a screen done.
-4. Verify in the browser with screenshots at 1440×900, not just in code.
-
-## Landing page checks
-
-Before shipping a landing change: no headline over two lines at 1440, 768 and 390 px; contrast at
-least 4.5:1 (text over the planet keeps its shadow); every section has a heading; type from the
-landing scale; the story checked at several scroll points; real pictures (NASA public domain, and
-the HLS/Sentinel-2 optical frame), credited in the footer; motion uses transform and opacity only and stops under
-`prefers-reduced-motion`. Component classes must win over base styles: base resets in
-`site.css` use `:where()` for zero specificity.
-
-## Known Gaps
-
-- The explorer on a phone works but is not designed: the panel should become a bottom sheet.
-- The globe has no keyboard way to pick an arbitrary frame (only featured events); a
-  "go to track/frame" search would close it.
+- Guided story: chapter 1's areas and people affected and chapter 5's photos and news are TO FILL
+  slots. Nova is rule-based (DEMO) until a real model replaces `novaAnswer`.
+- HV and HH−HV layers are not drawn until the backend serves them.
 - UI copy is English only.

@@ -8,7 +8,7 @@ import type {
   Source,
   Verdict,
 } from "@/features/cases/cases";
-import { demoBandPasses, type BandPass } from "@/features/cases/demoBand";
+import { caseBandPasses, type BandPass } from "@/features/cases/demoBand";
 import type { LonLat } from "@/features/frames/frame.types";
 import {
   formatLonLat,
@@ -67,7 +67,7 @@ export const caseSubject = (item: Case): Subject => ({
   verdict: item.verdict,
   verdictLine: item.verdictLine,
   reason: item.reason,
-  passes: item.band === undefined ? undefined : demoBandPasses(item.band),
+  passes: caseBandPasses(item),
   stat: item.stat,
   statLine: item.statLine,
   groups: item.groups ?? [],

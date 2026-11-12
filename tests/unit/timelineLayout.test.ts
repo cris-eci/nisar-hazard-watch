@@ -38,7 +38,24 @@ describe("pass timeline layout", () => {
     const planned = layout.passes.filter((item) => item.kind === "plan");
     expect(planned.every((item) => !item.clickable)).toBe(true);
     expect(layout.measured).toEqual([0, 1, 2, 3]);
-    expect(layout.planLeft).toBe(planned[0]?.left);
+    expect(layout.next).toEqual({ left: planned[0]?.left, date: "2026-09-30" });
+  });
+
+  it("marks only the earliest planned pass after today as next", () => {
+    const layout = layoutTimeline({
+      ...data,
+      passes: [
+        ...data.passes,
+        { date: "2026-10-20", kind: "plan" },
+        { date: "2026-09-18", kind: "plan" },
+      ],
+    });
+    const next = layout.passes.filter((item) => item.next);
+    expect(next.map((item) => item.date)).toEqual(["2026-09-18"]);
+    expect(layout.next?.date).toBe("2026-09-18");
+    expect(layout.passes.filter((item) => item.kind !== "plan").some((item) => item.next)).toBe(
+      false,
+    );
   });
 
   it("brackets the baseline and finds the target", () => {

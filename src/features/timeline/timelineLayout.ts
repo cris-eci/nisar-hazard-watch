@@ -1,4 +1,5 @@
 import type { PassKind, TimelineData } from "@/features/cases/cases";
+import { nextPlannedPass } from "@/features/frames/nextPlannedPass";
 
 /*
  * Pure layout maths for the Pass Timeline: where each pass, month tick and bracket sits (as % of
@@ -35,6 +36,8 @@ export type LaidPass = {
   bar: number;
   // Planned passes are a promise, not data: never selectable.
   clickable: boolean;
+  // The earliest planned pass after today, the one people actually wait for.
+  next: boolean;
 };
 
 export type TimelineLayout = {
@@ -46,7 +49,7 @@ export type TimelineLayout = {
   baseline?: { left: number; width: number; count: number; first: string; last: string };
   targetIndex: number;
   measured: number[];
-  planLeft?: number;
+  next?: { left: number; date: string };
 };
 
 const monthLabel = (iso: string): string =>
@@ -69,6 +72,10 @@ export const monthTicks = (start: string, end: string): string[] => {
 export const layoutTimeline = (data: TimelineData): TimelineLayout => {
   const pct = (date: string) => axisPct(date, data.start, data.end);
   const maxPct = Math.max(BAR_SCALE_FLOOR, ...data.passes.map((item) => item.outsidePct ?? 0));
+  const next = nextPlannedPass(
+    data.passes.filter((item) => item.kind === "plan"),
+    data.today,
+  );
   const passes: LaidPass[] = data.passes.map((item, index) => ({
     index,
     date: item.date,
@@ -77,11 +84,12 @@ export const layoutTimeline = (data: TimelineData): TimelineLayout => {
     left: pct(item.date),
     bar: barHeight(item.kind, item.outsidePct, maxPct),
     clickable: item.kind !== "plan",
+    next: item === next,
   }));
   const base = passes.filter((item) => item.kind === "base");
   const first = base[0];
   const last = base.at(-1);
-  const plan = passes.find((item) => item.kind === "plan");
+  const nextPass = passes.find((item) => item.next);
   return {
     passes,
     months: monthTicks(data.start, data.end).map((iso) => ({
@@ -105,7 +113,7 @@ export const layoutTimeline = (data: TimelineData): TimelineLayout => {
       }),
     targetIndex: passes.findIndex((item) => item.kind === "target"),
     measured: passes.filter((item) => item.clickable).map((item) => item.index),
-    ...(plan !== undefined && { planLeft: plan.left }),
+    ...(nextPass !== undefined && { next: { left: nextPass.left, date: nextPass.date } }),
   };
 };
 
@@ -127,7 +135,7 @@ const ROLE: Record<PassKind, string> = {
 export const passAria = (item: LaidPass): string => {
   const what =
     item.kind === "plan"
-      ? "Planned pass from the Observation Plan, not acquired yet"
+      ? `${item.next ? "Next planned" : "Planned"} pass from the Observation Plan, not acquired yet`
       : item.kind === "target"
         ? "Target pass"
         : item.kind === "base"

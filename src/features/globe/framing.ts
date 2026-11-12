@@ -5,7 +5,7 @@ import type { BBox } from "@/features/frames/frame.types";
  * of the panel and above the timeline, or in the left strip while the sheet is open.
  */
 
-export type GlobeView = "panel" | "sheet";
+export type GlobeView = "panel" | "sheet" | "story";
 export type Insets = { left: number; right: number; top: number; bottom: number };
 
 // Below this width the panel sits over the lower half of the screen instead of the left side.
@@ -15,6 +15,9 @@ const DOCK_PX = 288;
 const TOP_PX = 72;
 const TIMELINE_PX = 200;
 const SHEET_STRIP_PX = 440;
+// The story card sits on the right and the caption bar along the bottom (SPECS §5).
+const STORY_CARD_PX = 488;
+const STORY_CAPTION_PX = 220;
 
 export const viewInsets = (view: GlobeView, width: number, height: number): Insets => {
   if (width < NARROW_PX) return { left: 0, right: 0, top: TOP_PX, bottom: height * 0.5 };
@@ -25,6 +28,8 @@ export const viewInsets = (view: GlobeView, width: number, height: number): Inse
       top: TOP_PX,
       bottom: TOP_PX,
     };
+  if (view === "story")
+    return { left: 0, right: STORY_CARD_PX, top: TOP_PX, bottom: STORY_CAPTION_PX };
   return { left: PANEL_PX, right: DOCK_PX, top: TOP_PX, bottom: TIMELINE_PX };
 };
 
