@@ -2,6 +2,7 @@ import { Icon } from "@/features/case-panel/icons";
 import { Prov } from "@/features/case-panel/Prov";
 import { QualityStrip } from "@/features/case-panel/QualityStrip";
 import type { Subject } from "@/features/case-panel/subject";
+import { NormalRangeCard } from "@/features/case-panel/NormalRangeCard";
 import { VerdictCard } from "@/features/case-panel/Verdict";
 import { SOURCE } from "@/features/case-panel/verdicts";
 import type { Case } from "@/features/cases/cases";
@@ -23,11 +24,15 @@ export const ResultSummary = ({ subject, mode, onMore }: SummaryProps) => {
       {subject.passes !== undefined && (
         <BandChart passes={subject.passes} mode={mode} height={PANEL_CHART_PX} compact />
       )}
+      {subject.normalRange !== undefined && <NormalRangeCard range={subject.normalRange} compact />}
       {group !== undefined && (
         <div className="x-panel__block">
           <p className="x-kicker x-kicker--split">
             <span>{group.title} · whole area</span>
-            <Prov kind="real" source={SOURCE.groups} />
+            <Prov
+              kind={subject.demo ? "demo" : "real"}
+              source={subject.kind === "live" ? SOURCE.liveQuality : SOURCE.groups}
+            />
           </p>
           <ContrastBars group={group} mode={mode} compact />
         </div>

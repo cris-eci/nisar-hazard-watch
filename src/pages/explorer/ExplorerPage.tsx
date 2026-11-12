@@ -9,7 +9,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CasePanel } from "@/features/case-panel/CasePanel";
 import { PendingSummary, ResultSummary } from "@/features/case-panel/CaseSummary";
 import { ShowRealContext } from "@/features/case-panel/showReal";
-import { caseSubject, liveSubject, type Subject } from "@/features/case-panel/subject";
+import { caseSubject, type Subject } from "@/features/case-panel/subject";
 import { VERDICT } from "@/features/case-panel/verdicts";
 import { CASES, findCase, findLens, LENSES, type Case, type LensId } from "@/features/cases/cases";
 import type { ChartMode } from "@/features/charts/chartTokens";
@@ -30,11 +30,22 @@ import type { Area, DrawTool } from "@/features/geo/geo.types";
 import { AOI_SIDE_KM, formatKm2, levelOf } from "@/features/geo/limits";
 import { boundsOf } from "@/features/geo/longitude";
 import { areaKm2Of, centreOf, ringAreaKm2, ringOf } from "@/features/geo/measure";
+import { toGeoJson } from "@/features/geo/serialize";
 import { ringOfBox, squareAround, squareBounds } from "@/features/geo/square";
+import type { Drape } from "@/features/globe/frameEntities";
 import { GlobeView, type GlobeScene } from "@/features/globe/GlobeView";
-import { formatLonLat, gridMetres, LIVE_CHIP_KM, liveAnswer } from "@/features/live/liveQuestion";
-import { JobChecklist, JobProblem, PlanPasses } from "@/features/live/LiveSummary";
-import { useLiveJob } from "@/features/live/useLiveJob";
+import { isLiveLens, type ExplorationRequest } from "@/features/explore/exploreApi";
+import { explorationCsv, explorationJson } from "@/features/explore/exploreExport";
+import { defaultLayerId, liveLayers } from "@/features/explore/exploreLayers";
+import type { ExplorationView } from "@/features/explore/exploreSchemas";
+import { exploreSubject } from "@/features/explore/exploreSubject";
+import { exploreTimeline } from "@/features/explore/exploreTimeline";
+import { useExploration } from "@/features/explore/useExploration";
+import { JobModal } from "@/features/live/JobModal";
+import { formatLonLat, gridMetres, LIVE_CHIP_KM } from "@/features/live/liveQuestion";
+import { LiveProblem, LiveProgress } from "@/features/live/LiveStatus";
+import { PlanState } from "@/features/live/LiveSummary";
+import { useFramePlan } from "@/features/live/useFramePlan";
 import { NovaChat } from "@/features/nova/NovaChat";
 import type { NovaContext } from "@/features/nova/novaAnswer";
 import { Onboarding } from "@/features/onboarding/Onboarding";
@@ -62,6 +73,8 @@ import { AreaTools } from "@/pages/explorer/AreaTools";
 import { PlaceCard } from "@/pages/explorer/PlaceCard";
 import { LEGEND, type DrapeKind } from "@/pages/explorer/drapeLegend";
 import { LayerDock } from "@/pages/explorer/LayerDock";
+import { LiveLayerDock } from "@/pages/explorer/LiveLayerDock";
+import { SourceSwitch } from "@/pages/explorer/SourceSwitch";
 import { HintPill, StartCard } from "@/pages/explorer/StartCard";
 import { TopBar, type ContextChip, type DownloadItem } from "@/pages/explorer/TopBar";
 
@@ -84,8 +97,6 @@ const CHIP_ZOOM = 3.2;
 // Chocó has no processed square yet, so the camera shows the region around the event instead.
 const REGION_KM = 240;
 const REGION_ZOOM = 1;
-const STEP_MS = 1000;
-const REDUCED_STEP_MS = 80;
 const DEFAULT_OPACITY = 85;
 // Chapter 1 shows the Punjab plains around the Chenab (SPECS §5: ~2,600 km altitude).
 const STORY_REGION_KM = 900;
@@ -274,13 +285,32 @@ export const ExplorerPage = () => {
   );
 
   const live = selection?.kind === "live" ? selection : undefined;
-  const runKey = live === undefined ? "" : `${live.point.join(",")}|${live.lens}|${live.run}`;
-  const job = useLiveJob(live?.frame, runKey, reduceMotion ? REDUCED_STEP_MS : STEP_MS);
-  const liveFrameId = live?.frame.id;
-  const answer = useMemo(
-    () => (liveFrameId === undefined ? undefined : liveAnswer(liveFrameId)),
-    [liveFrameId],
+  const runKey =
+    live === undefined ? "" : `${live.area.kind}|${live.point.join(",")}|${live.lens}|${live.run}`;
+  // InSAR needs a pair, so it has no live question yet; every other lens runs on the backend.
+  const liveRuns = live !== undefined && isLiveLens(live.lens);
+  const request: ExplorationRequest | undefined =
+    live !== undefined && liveRuns
+      ? { lens: live.lens, geometry: toGeoJson(live.area), source: "L" }
+      : undefined;
+  const exploration = useExploration(request, liveRuns ? runKey : "");
+  const framePlan = useFramePlan(live?.frame, runKey);
+  const phase = exploration.state.phase;
+  const running = phase === "starting" || phase === "running";
+  const exploredView =
+    exploration.state.phase === "running" || exploration.state.phase === "done"
+      ? exploration.state.view
+      : undefined;
+  const receivedAt = exploration.state.phase === "running" ? exploration.state.receivedAt : 0;
+  // The wait modal can be closed while the job runs; it stays closed for that run.
+  const [modalClosedFor, setModalClosedFor] = useState("");
+  const modalOpen = liveRuns && running && modalClosedFor !== runKey && !story;
+  const layers = useMemo(
+    () => (phase === "done" && exploredView !== undefined ? liveLayers(exploredView) : []),
+    [phase, exploredView],
   );
+  const [layerChoice, setLayerChoice] = useState<{ runKey: string; id: string | undefined }>();
+  const layerId = layerChoice?.runKey === runKey ? layerChoice.id : defaultLayerId(layers);
 
   const openCase = useCallback((item: Case) => {
     setSelection({ kind: "case", item });
@@ -462,6 +492,7 @@ export const ExplorerPage = () => {
       if (event.key === "Escape") {
         if (onboarding !== undefined) setOnboarding(undefined);
         else if (story) exitStory();
+        else if (modalOpen) setModalClosedFor(runKey);
         else if (areaIssue !== undefined) setAreaIssue(undefined);
         else if (draw.tool !== undefined) {
           if (isDrawing(draw)) onDraw({ type: "cancel" });
@@ -486,6 +517,8 @@ export const ExplorerPage = () => {
     story,
     chapter,
     draw,
+    modalOpen,
+    runKey,
     areaIssue,
     helpOpen,
     downloadOpen,
@@ -519,20 +552,35 @@ export const ExplorerPage = () => {
   const subject: Subject | undefined =
     item !== undefined && item.pending !== true
       ? caseSubject(item)
-      : live !== undefined && answer !== undefined && job.ready
-        ? liveSubject(
-            live.point,
-            live.lens,
-            `Track ${live.frame.track} · Frame ${live.frame.frame}`,
-            answer,
-          )
+      : live !== undefined && phase === "done" && exploredView !== undefined
+        ? exploreSubject(exploredView, {
+            name: liveName(live),
+            frameLabel: `Track ${live.frame.track} · Frame ${live.frame.frame}`,
+            point: live.point,
+          })
         : undefined;
+  const liveTimeline = useMemo(
+    () =>
+      phase === "done" && exploredView !== undefined
+        ? exploreTimeline(
+            exploredView,
+            framePlan.plan?.status === "success" ? framePlan.plan.data : undefined,
+            today,
+          )
+        : undefined,
+    [phase, exploredView, framePlan.plan],
+  );
+  const liveLayer = layers.find((layer) => layer.id === layerId);
 
   const tourItem = storyCase();
   const storyItem = story ? tourItem : undefined;
   const scene =
     storyItem === undefined
-      ? sceneOf(selection, job.ready, drapeKind, opacity, place)
+      ? sceneOf(selection, !running, drapeKind, opacity, {
+          place,
+          liveDrape: liveLayer && { url: liveLayer.href, bounds: liveLayer.bounds },
+          gridMetres: gridMetresOf(exploredView),
+        })
       : storyScene(storyItem, chapter, opacity);
   const context: ContextChip | undefined =
     item !== undefined
@@ -557,14 +605,16 @@ export const ExplorerPage = () => {
         : undefined;
 
   const showTimeline = item?.timeline !== undefined && item.pending !== true && !sheetOpen;
+  const showLiveTimeline = liveTimeline !== undefined && !sheetOpen;
   const showDock = item?.crops !== undefined && !sheetOpen;
+  const showLiveDock = layers.length > 0 && !sheetOpen;
 
   const lensId = item?.lens ?? live?.lens;
   const lensChip = lensId === undefined ? "" : (findLens(lensId)?.chip ?? "");
   const novaContext: NovaContext = {
     subject,
     pending: item?.pending === true ? item : undefined,
-    running: live !== undefined && !job.ready,
+    running: live !== undefined && running,
     mode,
   };
   const lookingAt =
@@ -612,24 +662,30 @@ export const ExplorerPage = () => {
           : (({ stops, scale, text }) => ({ ramp: stops, scale, text }))(
               LEGEND[storyItem === undefined ? drapeKind : "change"],
             ),
-      // The explorer's point chart and pass dates are demo, and so is every live answer.
+      // A case's point chart and pass dates are demo; a live answer is real unless the service says
+      // its result is synthetic.
       demo:
         storyItem === undefined &&
-        (live !== undefined ||
-          (item !== undefined &&
+        (live !== undefined
+          ? subject?.demo === true
+          : item !== undefined &&
             item.pending !== true &&
-            (item.band !== undefined || item.timeline !== undefined))),
+            (item.band !== undefined || item.timeline !== undefined)),
     };
     const blob = await captureGlobe(viewer, strip);
     if (blob !== null) saveBlob(blob, `nisar-${shown?.id ?? "globe"}-view.png`);
   };
 
-  const timelineWhy =
-    item === undefined
-      ? "Open a case first"
-      : item.timeline === undefined
-        ? "This case has no pass timeline yet"
-        : undefined;
+  const exportsLive = live !== undefined && exploredView?.result != null;
+  const timelineWhy = exportsLive
+    ? undefined
+    : live !== undefined
+      ? "Wait for the answer first"
+      : item === undefined
+        ? "Open a case first"
+        : item.timeline === undefined
+          ? "This case has no pass timeline yet"
+          : undefined;
   const downloads: DownloadItem[] = [
     {
       id: "png",
@@ -640,11 +696,20 @@ export const ExplorerPage = () => {
     },
     {
       id: "json",
-      label: "Timeline data · JSON",
-      sub: "One entry per pass, demo flags included",
+      label: exportsLive ? "Result data · JSON" : "Timeline data · JSON",
+      sub: exportsLive
+        ? "The service's full answer for this question"
+        : "One entry per pass, demo flags included",
       disabledWhy: timelineWhy,
       onPick: () => {
         setDownloadOpen(false);
+        if (exportsLive && exploredView !== undefined) {
+          saveBlob(
+            new Blob([explorationJson(exploredView)], { type: "application/json" }),
+            `nisar-exploration-${exploredView.id}.json`,
+          );
+          return;
+        }
         if (item === undefined) return;
         saveBlob(
           new Blob([timelineJson(item)], { type: "application/json" }),
@@ -654,11 +719,18 @@ export const ExplorerPage = () => {
     },
     {
       id: "csv",
-      label: "Timeline data · CSV",
-      sub: "Same rows, for spreadsheets",
+      label: exportsLive ? "Passes · CSV" : "Timeline data · CSV",
+      sub: exportsLive ? "One row per scene: date, role, outcome" : "Same rows, for spreadsheets",
       disabledWhy: timelineWhy,
       onPick: () => {
         setDownloadOpen(false);
+        if (exportsLive && exploredView !== undefined) {
+          saveBlob(
+            new Blob([explorationCsv(exploredView)], { type: "text/csv" }),
+            `nisar-exploration-${exploredView.id}-passes.csv`,
+          );
+          return;
+        }
         if (item === undefined) return;
         saveBlob(
           new Blob([timelineCsv(item)], { type: "text/csv" }),
@@ -670,15 +742,24 @@ export const ExplorerPage = () => {
       id: "pdf",
       label: "PDF report",
       sub: "Data blocks plus a template summary, ready to print",
-      disabledWhy:
-        item === undefined
-          ? "Open a case first"
-          : item.pending === true
-            ? "No measurement to report yet"
-            : undefined,
+      disabledWhy: exportsLive
+        ? undefined
+        : live !== undefined
+          ? "Wait for the answer first"
+          : item === undefined
+            ? "Open a case first"
+            : item.pending === true
+              ? "No measurement to report yet"
+              : undefined,
       onPick: () => {
         setDownloadOpen(false);
-        if (item !== undefined)
+        if (exportsLive && exploredView !== undefined)
+          window.open(
+            `/report?exploration=${encodeURIComponent(exploredView.id)}`,
+            "_blank",
+            "noopener",
+          );
+        else if (item !== undefined)
           window.open(`/report?case=${encodeURIComponent(item.id)}`, "_blank", "noopener");
       },
     },
@@ -717,7 +798,12 @@ export const ExplorerPage = () => {
 
         <TopBar
           context={context}
-          tools={<AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />}
+          tools={
+            <>
+              <AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />
+              <SourceSwitch />
+            </>
+          }
           helpOpen={helpOpen}
           downloadOpen={downloadOpen}
           downloads={downloads}
@@ -819,17 +905,51 @@ export const ExplorerPage = () => {
             {subject !== undefined && (
               <ResultSummary subject={subject} mode={mode} onMore={() => setSheetOpen(true)} />
             )}
-            {live !== undefined &&
-              !job.ready &&
-              (job.plan?.status === "error" ||
-              (job.plan?.status === "success" && job.plan.data.length === 0) ? (
-                <JobProblem job={job} onPickCase={close} />
-              ) : (
-                <JobChecklist lens={live.lens} done={job.done} />
-              ))}
-            {live !== undefined && job.plan?.status === "success" && job.plan.data.length > 0 && (
-              <PlanPasses passes={job.plan.data} today={today} />
+            {live !== undefined && !liveRuns && (
+              <div className="x-problem" role="status" data-testid="job-unsupported">
+                <p className="x-problem__title">Ground motion needs a pair of passes</p>
+                <p>The live question for this lens is not available yet. Pick a measured case.</p>
+                <div className="x-problem__actions">
+                  <button type="button" className="x-ghost" onClick={close}>
+                    Pick a measured case
+                  </button>
+                </div>
+              </div>
             )}
+            {liveRuns && running && !modalOpen && (
+              <LiveProgress
+                view={exploredView}
+                receivedAt={receivedAt}
+                onDetails={() => setModalClosedFor("")}
+                onCancel={() => void exploration.cancel()}
+              />
+            )}
+            {liveRuns && exploration.state.phase === "error" && (
+              <LiveProblem
+                reasonCode={exploration.state.error.reasonCode}
+                detail={exploration.state.error.message}
+                onRetry={exploration.retry}
+                onPickCase={close}
+              />
+            )}
+            {liveRuns &&
+              phase === "done" &&
+              exploredView !== undefined &&
+              exploredView.result === null && (
+                <LiveProblem
+                  reasonCode={exploredView.error?.reasonCode ?? "ANALYSIS_FAILED"}
+                  detail={exploredView.error?.detail ?? "The analysis did not produce a result."}
+                  notes={exploredView.plan?.notes ?? []}
+                  onRetry={exploration.retry}
+                  onPickCase={close}
+                />
+              )}
+            {subject?.kind === "live" && exploredView?.status === "partial" && (
+              <p className="x-reason" data-testid="partial-note">
+                Partial answer: only some of the planned passes could be measured.
+              </p>
+            )}
+            {live !== undefined && <PlanState framePlan={framePlan} today={today} />}
           </CasePanel>
         )}
 
@@ -842,10 +962,38 @@ export const ExplorerPage = () => {
           />
         )}
 
+        {showLiveDock && (
+          <LiveLayerDock
+            layers={layers}
+            selectedId={layerId}
+            opacity={opacity}
+            onSelect={(id) => setLayerChoice({ runKey, id })}
+            onOpacity={setOpacity}
+          />
+        )}
+
         {showTimeline && item.timeline !== undefined && (
           <div className="x-timeline-wrap" data-collapsed={collapsed}>
             <PassTimeline key={item.id} data={item.timeline} />
           </div>
+        )}
+
+        {showLiveTimeline && (
+          <div className="x-timeline-wrap" data-collapsed={collapsed}>
+            <PassTimeline key={runKey} data={liveTimeline} demo={false} />
+          </div>
+        )}
+
+        {modalOpen && live !== undefined && (
+          <JobModal
+            lensChip={lensChip}
+            placeName={liveName(live)}
+            view={exploredView}
+            receivedAt={receivedAt}
+            reduceMotion={reduceMotion}
+            onKeepExploring={() => setModalClosedFor(runKey)}
+            onCancel={() => void exploration.cancel()}
+          />
         )}
 
         {sheetOpen && subject !== undefined && (
@@ -934,14 +1082,29 @@ const placeScene = (place: Place, empty: GlobeScene): GlobeScene => ({
   point: place.point,
 });
 
+type SceneExtras = {
+  // A searched place waiting to be asked about.
+  place?: Place | undefined;
+  // The layer of the live result drawn on the globe.
+  liveDrape?: Drape | undefined;
+  // Posting the service reported for the live result, in metres.
+  gridMetres?: number | undefined;
+};
+
+const gridMetresOf = (view: ExplorationView | undefined): number | undefined => {
+  const posting = view?.result?.quality["postingMeters"];
+  return Array.isArray(posting) && typeof posting[0] === "number" ? posting[0] : undefined;
+};
+
 // What the globe draws for the current selection.
 const sceneOf = (
   selection: Selection | undefined,
   ready: boolean,
   kind: DrapeKind,
   opacity: number,
-  place?: Place,
+  extras: SceneExtras = {},
 ): GlobeScene => {
+  const { place, liveDrape, gridMetres: liveGrid } = extras;
   const empty: GlobeScene = {
     target: undefined,
     outline: undefined,
@@ -962,12 +1125,13 @@ const sceneOf = (
         ring,
         label:
           area.kind === "point"
-            ? `Processed area · ${LIVE_CHIP_KM} km · ${gridMetres(LIVE_CHIP_KM)} m grid`
+            ? `Processed area · ${LIVE_CHIP_KM} km${liveGrid === undefined ? "" : ` · ${liveGrid} m grid`}`
             : `Selected area · ${formatKm2(areaKm2Of(area))}`,
         processing: !ready,
       },
       point: selection.point,
       frame: selection.frame,
+      drape: liveDrape,
     };
   }
   const { item } = selection;

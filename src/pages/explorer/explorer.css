@@ -508,6 +508,221 @@
   cursor: not-allowed;
 }
 
+/* Live exploration: the wait modal, its facts, the layer dock and the source switch */
+.x-jobmodal {
+  position: absolute;
+  left: 50%;
+  top: 88px;
+  transform: translateX(-50%);
+  z-index: 14;
+  width: min(440px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 20px;
+  border-radius: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+}
+
+.x-jobmodal__title {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.x-jobmodal__timer {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.x-jobmodal__left {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.x-jobmodal__meta {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.x-jobmodal__bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(235, 233, 228, 0.1);
+  overflow: hidden;
+}
+
+.x-jobmodal__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--gold);
+  transition: width 400ms linear;
+}
+
+.x-jobmodal__bar[data-overdue="true"] > span {
+  animation: x-pulse 1.6s ease-in-out infinite;
+}
+
+.x-jobmodal__bar[data-reduce="true"] > span {
+  transition: none;
+  animation: none;
+}
+
+.x-jobmodal__late {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-3);
+}
+
+.x-jobmodal__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.x-facts-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--fill);
+}
+
+.x-facts-carousel__text {
+  margin: 0;
+  min-height: 4.2em;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+
+.x-facts-carousel__source {
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.x-facts-carousel__source a {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.x-facts-carousel__nav {
+  display: flex;
+  gap: 4px;
+}
+
+.x-facts-carousel__nav button {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  cursor: pointer;
+}
+
+.x-layers {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow: auto;
+}
+
+.x-layers__group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.x-layers__label {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.x-layers__option {
+  padding: 5px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.x-layers__option:hover {
+  background: rgba(235, 233, 228, 0.06);
+}
+
+.x-layers__option[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+.x-layers__legend {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 0 0 !important;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.x-layers__legend span {
+  font-family: var(--mono);
+  color: var(--ink-3);
+}
+
+.x-source {
+  height: 40px;
+  box-sizing: border-box;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(8, 16, 31, 0.8);
+  border: 1px solid rgba(235, 233, 228, 0.1);
+  backdrop-filter: blur(16px);
+}
+
+.x-source button {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 13px;
+  cursor: default;
+}
+
+.x-source button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--space);
+}
+
+.x-source button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 /* Size guide: what to do next while drawing, and why an area can't be asked */
 .x-guide {
   position: absolute;

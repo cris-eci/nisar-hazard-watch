@@ -48,7 +48,9 @@ export const suggestionsFor = (hasSelection: boolean): string[] =>
 
 const provenance = (subject: Subject): string => {
   if (subject.demo)
-    return "This live answer is simulated. The passes come from NASA's Observation Plan, but the verdict and the chart are demo until the backend runs. Every demo value carries a DEMO chip.";
+    return "This answer is synthetic: the service marked it as a stand-in, not a measurement. Every demo value carries a DEMO chip.";
+  if (subject.kind === "live")
+    return "This answer was computed for this spot just now from NISAR L-band scenes: the passes, the numbers and the layers come from the radar service. It is diagnostic evidence, not a validated classifier, and the chips say what each value is.";
   const map = subject.crops === undefined ? "" : " The map on the globe is a crop of its figure.";
   return `The verdict, percentages and cell counts for ${subject.name} come from the backend's published report.${map} The point time series, the pass dates on the timeline and their bars are demo until the backend serves them, and each carries a DEMO chip.`;
 };
@@ -78,7 +80,7 @@ export const novaAnswer = (question: string, context: NovaContext): NovaReply =>
   if (running)
     return {
       kind: "nodata",
-      text: "The radar job is still running, so there's no result to explain yet. The checklist shows where it is.",
+      text: "The radar job is still running, so there's no result to explain yet. The panel shows where it is.",
     };
   if (subject === undefined)
     return {

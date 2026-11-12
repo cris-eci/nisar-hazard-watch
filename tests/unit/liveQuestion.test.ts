@@ -1,37 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { bandSentence } from "@/features/case-panel/verdicts";
-import { demoBandPasses, verdictOf } from "@/features/cases/demoBand";
-import {
-  archiveError,
-  gridMetres,
-  jobSteps,
-  liveAnswer,
-  pickDemoVerdict,
-  splitPlan,
-} from "@/features/live/liveQuestion";
+import { demoBandPasses } from "@/features/cases/demoBand";
+import { archiveError, gridMetres, jobSteps, splitPlan } from "@/features/live/liveQuestion";
 import { framedBox, viewInsets } from "@/features/globe/framing";
 
-const ids = Array.from({ length: 400 }, (_, i) => `${i % 173}-${i}`);
-
-describe("live question (demo answer on a real frame)", () => {
-  it("gives the same frame the same answer every time", () => {
-    for (const id of ids.slice(0, 20)) expect(pickDemoVerdict(id)).toBe(pickDemoVerdict(id));
-  });
-
-  it("spreads frames over all three outcomes", () => {
-    const seen = new Set(ids.map(pickDemoVerdict));
-    expect(seen).toEqual(new Set(["departure", "within", "insufficient"]));
-  });
-
-  it("computes the verdict from the series with the band rule, not from the pick", () => {
-    for (const id of ids.slice(0, 50)) {
-      const answer = liveAnswer(id);
-      expect(answer.verdict).toBe(verdictOf(answer.passes));
-      expect(answer.quality).toHaveLength(3);
-    }
-  });
-
+describe("live question helpers", () => {
   it("names the optical step after the lens", () => {
     expect(jobSteps("flood_wetland")[5]?.label).toBe("Looking for optical water");
     expect(jobSteps("wildfire")[5]?.label).toBe("Looking for optical vegetation loss");

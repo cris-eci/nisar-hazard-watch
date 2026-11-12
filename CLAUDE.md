@@ -14,7 +14,8 @@ Pages (`src/App.tsx` switches on the pathname; no router dependency):
   `?bbox=<west,south,east,north>` (east below west crosses ±180°) or `?geo=<lon,lat_lon,lat_…>`
   asks it on a drawn rectangle or polygon; `?story=1` starts the guided story. Legacy `/?frame=`
   links also open the explorer.
-- `/report?case=<id>` a printable one-page report for a measured case (`src/pages/report/`).
+- `/report?case=<id>` a printable one-page report for a measured case; `/report?exploration=<id>`
+  the same for a live answer, fetched from the backend (`src/pages/report/`).
 
 Design source of truth: `design_handoff_v7/` next to this repo (outside git) (`SPECS.md`, `DATA_PROVENANCE.md`). Visual system:
 `DESIGN.md`.
@@ -65,6 +66,28 @@ turn pointer events into machine events; `ExplorerPage` owns the state. Sizes: 1
 (110 km²), up to 400 km² accepted, above that the UI explains the limit and offers the centred
 square. Cesium's own double-click is removed in `createViewer` so it never fights the polygon tool.
 
+## The live exploration flow
+
+`src/features/explore/` talks to the backend: `exploreSchemas.ts` (zod, the runtime truth, built from
+the backend's real answer in `tests/fixtures/exploration-qadirabad.json`), `exploreApi.ts`
+(`startExploration`, `getExploration`, `cancelExploration`, `LIVE_LENSES`), `useExploration.ts`
+(`followExploration` polls about once a second with an `AbortController`, `useExploration` adds
+cancel and retry and keeps following when the modal is closed), `exploreProblems.ts` (one message per
+`reasonCode`, never raw text), `exploreTiming.ts` (countdown and "taking longer than expected"),
+`exploreLayers.ts`, `exploreTimeline.ts`, `exploreSubject.ts` (the answer as a `Subject`),
+`exploreExport.ts`. A fresh area takes about one to two and a half minutes (about 100 s of it is the
+gateway reading scenes), so the UI never promises less: `JobModal` shows the stages, the countdown
+and a `FactsCarousel` (`src/content/facts.ts`, each fact with a source, `getFacts()` is the seam for
+a CMS), and "Keep exploring" closes it while the job continues. `LiveLayerDock` drapes one measured
+PNG at a time (the backend answers `/api/v1/explorations/{id}/layers/{layerId}` with a redirect to
+the gateway, which must allow our origin in its CORS list). `SourceSwitch` shows L | S; S is
+disabled ("coming soon") and every request sends `source: "L"`.
+
+Honest labelling: a live result carries `REAL` chips only; nothing in it is demo. The answer has no
+per-date point series, so `NormalRangeCard` (target minus baseline against the diagnostic
+half-width) replaces the band chart. Labels never say more than the API did (no cause, probability
+or hectares).
+
 ## Data
 
 - **Frames:** `public/data/frames.json` is a snapshot of all 16,663 NISAR frames from the NISAR
@@ -73,18 +96,18 @@ square. Cesium's own double-click is removed in `createViewer` so it never fight
   hit-testing runs locally on it, so the explorer doesn't depend on the API being up. Short keys
   (`t`, `f`, `p`, `x`, `r`) keep it small.
 - **Passes:** `fetchAcquisitions(track, frame)` queries the same FeatureServer live when a live
-  question runs (`src/features/live/useLiveJob.ts`). A pass can list several mode codes
+  question runs (`src/features/live/useFramePlan.ts`). A pass can list several mode codes
   (`148,212,156`); it is HH+HV when any of them is L-band cross-pol. `nextPlannedPass` picks the
   earliest pass strictly after today from unsorted input.
 - **Measured cases:** `src/features/cases/cases.ts` (`CASES`, `LENSES`, `OPTICAL`). Every number is
   copied from the science backend's reports (github.com/Ch0comilo/NISAR-Modeling); layer crops and
   report figures are static files in `public/cases/`. Pass timeline dates in `cases.ts` are DEMO
   (12-day spacing) until the backend serves real ones.
-- **Demo values:** the band chart series (`src/features/cases/demoBand.ts`, with the backend's band
-  rule; a case's series sits on its own timeline dates up to the target via `caseBandPasses`) and
-  the live-question answer (`src/features/live/liveQuestion.ts`, picked from the frame id)
-  are DEMO until `POST /v1/explore` exists (spec: NISAR-Modeling `docs/EXPLORE_API.md`). No backend
-  is called today.
+- **Demo values:** the band chart series of the measured cases (`src/features/cases/demoBand.ts`,
+  with the backend's band rule; a case's series sits on its own timeline dates up to the target via
+  `caseBandPasses`) stay DEMO. A live answer has no demo value: what the backend did not measure is
+  not shown, and the demo chart is replaced by the normal-range card (the answer has no per-date
+  point series).
 - **Experimental model metrics** on `/method`: `src/features/charts/metrics.ts`, from the
   NISAR-Models model cards (github.com/Ch0comilo/NISAR-Models).
 - **Basemap:** Esri World Imagery tiles (`src/features/globe/cesium.ts`), no key.

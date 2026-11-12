@@ -100,6 +100,5 @@ export const HintPill = () => (
   <p className="x-hint" data-testid="hint-pill">
     <span className="x-hint__ring" aria-hidden="true" />
     Click any land to ask the radar
-    <span className="x-hint__meta">Demo answer for now</span>
   </p>
 );

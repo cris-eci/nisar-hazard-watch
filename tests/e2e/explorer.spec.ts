@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { succeededView } from "./pom/explorationMock";
 import { GlobePage, LIVE_FRAME } from "./pom/GlobePage";
 
 test.describe("Explorer: measured cases", () => {
@@ -147,16 +148,19 @@ test.describe("Explorer: measured cases", () => {
 });
 
 test.describe("Explorer: live questions", () => {
-  test("a frame link asks the radar: real passes, demo answer", async ({ page }) => {
+  test("a frame link asks the radar: the passes are NASA's plan, the answer is the backend's", async ({
+    page,
+  }) => {
     const globe = new GlobePage(page);
     await globe.mockObservationPlan();
+    await globe.mockExplorations({ first: succeededView() });
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
     await expect(globe.panelMeta).toContainText(`Live question · ${LIVE_FRAME.title}`);
     await expect(globe.planPasses).toContainText("39 passes in the plan");
     await expect(globe.planPasses.getByTestId("prov-real")).toBeVisible();
-    await expect(globe.verdict).toBeVisible({ timeout: 20_000 });
-    await expect(globe.verdict.getByTestId("prov-demo")).toBeVisible();
-    await expect(globe.jobChecklist).toBeHidden();
+    await expect(globe.verdict).toBeVisible();
+    await expect(globe.verdict.getByTestId("prov-real")).toBeVisible();
+    await expect(globe.verdict.getByTestId("prov-demo")).toHaveCount(0);
     await expect(page).toHaveURL(new RegExp(`frame=${LIVE_FRAME.id}`));
   });
 
@@ -164,6 +168,7 @@ test.describe("Explorer: live questions", () => {
     await page.clock.setFixedTime(new Date("2026-11-10T12:00:00Z"));
     const globe = new GlobePage(page);
     await globe.mockObservationPlan();
+    await globe.mockExplorations({ first: succeededView() });
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
     const next = globe.planPasses.locator('li[data-next="true"]');
     await expect(next).toHaveCount(1);
@@ -171,22 +176,31 @@ test.describe("Explorer: live questions", () => {
     await expect(next).toContainText("next pass");
   });
 
-  test("an archive failure says so and retries", async ({ page }) => {
+  test("an archive failure on the plan says so and retries, without touching the answer", async ({
+    page,
+  }) => {
     const globe = new GlobePage(page);
     await globe.mockObservationPlan({ status: 502, failures: 1 });
+    await globe.mockExplorations({ first: succeededView() });
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
-    await expect(globe.jobError).toContainText("We couldn't reach the radar archive");
-    await expect(globe.jobError).toContainText("Nothing is wrong with this place.");
-    await globe.jobError.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByTestId("plan-error")).toContainText(
+      "We couldn't reach the radar archive",
+    );
+    await expect(globe.verdict).toBeVisible();
+    await page.getByTestId("plan-error").getByRole("button", { name: "Try again" }).click();
     await expect(globe.planPasses).toContainText("39 passes in the plan");
-    await expect(globe.verdict).toBeVisible({ timeout: 20_000 });
   });
 
   test("a full queue asks to wait; Pick a measured case goes back to the list", async ({
     page,
   }) => {
     const globe = new GlobePage(page);
-    await globe.mockObservationPlan({ status: 503, failures: 1 });
+    await globe.mockObservationPlan();
+    await globe.mockExplorations({
+      startProblems: [
+        { status: 503, reasonCode: "QUEUE_FULL", detail: "5 explorations are running" },
+      ],
+    });
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
     await expect(globe.jobError).toContainText("Lots of people are asking right now.");
     await globe.jobError.getByRole("button", { name: "Pick a measured case" }).click();
@@ -196,6 +210,7 @@ test.describe("Explorer: live questions", () => {
   test("another lens on a case re-runs it as a live question", async ({ page }) => {
     const globe = new GlobePage(page);
     await globe.mockObservationPlan();
+    await globe.mockExplorations({ first: succeededView() });
     await globe.goto("?case=qadirabad");
     await globe.lens("vegetation_disturbance").click();
     await expect(globe.panelMeta).toContainText("Live question");
@@ -211,6 +226,7 @@ test.describe("Explorer: live questions", () => {
     test.slow();
     const globe = new GlobePage(page);
     await globe.mockObservationPlan();
+    await globe.mockExplorations({ first: succeededView() });
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
     await expect(globe.panelMeta).toContainText(LIVE_FRAME.title);
 
