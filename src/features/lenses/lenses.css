@@ -455,6 +455,56 @@
   text-wrap: pretty;
 }
 
+/* Wildfire rule rows (#27): one row per assessed pass. */
+.x-lrule__rule {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.x-lrule__row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.x-lrule__n--small {
+  font-size: 20px;
+}
+
+.x-lrule__label {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* Second witness (#27 FIRMS): status label as in the OPERA section. */
+.x-lwit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.x-lwit .c-fire {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.x-lwit__status {
+  margin-left: auto;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(235, 233, 228, 0.2);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: #8d8a83;
+}
+
+.x-lwit__status[data-ready="true"] {
+  border-color: rgba(235, 233, 228, 0.35);
+  color: #d4d2cc;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .x-lrun__dot,
   .x-lrule__bar i {
