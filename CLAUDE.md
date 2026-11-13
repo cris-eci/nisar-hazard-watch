@@ -132,10 +132,12 @@ or hectares).
 ## Configuration
 
 The frontend reads **one optional variable**, `VITE_API_BASE_URL` (the backend's origin when it is
-not served from the same one; empty in production). In production Vercel rewrites `/api/*` to the
-Railway backend (`vercel.json`, before the SPA catch-all, which skips `api/`), so the browser only
-talks to its own origin; in development Vite proxies `/api` to `VITE_DEV_API_TARGET` (default
-`http://localhost:8000`). Old `VITE_ENABLED_HAZARDS` / `VITE_ANALYSIS_API_URL` are unused. Any
+not served from the same one). Vercel production sets it to the Railway backend, so browsers call
+it directly and its rate limit sees each user's own address (an external rewrite hides the client
+IP: Vercel sends it in `x-vercel-forwarded-for`, not in `X-Forwarded-For`; the backend allows the
+production origin by CORS). Previews leave it empty and use the `/api/*` rewrite of `vercel.json`
+(before the SPA catch-all, which skips `api/`); in development Vite proxies `/api` to
+`VITE_DEV_API_TARGET` (default `http://localhost:8000`). Old `VITE_ENABLED_HAZARDS` / `VITE_ANALYSIS_API_URL` are unused. Any
 `VITE_*` variable is inlined into the public bundle: never put a secret (LLM key, token) there;
 secrets belong in a backend.
 
