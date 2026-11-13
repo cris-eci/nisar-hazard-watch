@@ -12,6 +12,7 @@ import { formatDay } from "@/features/timeline/timelineLayout";
 import { Link } from "@/lib/Link";
 import { ProvenanceChip } from "@/lib/ProvenanceChip";
 import { VERSION } from "@/pages/explorer/StartCard";
+import { LiveReport } from "@/pages/report/LiveReport";
 import { areaOf, reportSummary, SUMMARY_LABEL } from "@/pages/report/reportSummary";
 
 const REPORT_CHART_PX = 220;
@@ -19,16 +20,20 @@ const REPORT_CHART_PX = 220;
 // /report?case=<id>: one printable A4 page per measured case (Report v7). DATA blocks come straight
 // from the case; the summary above them is a template, labelled as such.
 export const ReportPage = () => {
-  const id = new URLSearchParams(window.location.search).get("case");
+  const params = new URLSearchParams(window.location.search);
+  const exploration = params.get("exploration");
+  const id = params.get("case");
   const item = findCase(id);
 
   useEffect(() => {
+    if (exploration !== null) return;
     document.title =
       item === undefined
         ? "NISAR Hazard Watch · Report"
         : `${item.name} · NISAR Hazard Watch report`;
-  }, [item]);
+  }, [item, exploration]);
 
+  if (exploration !== null) return <LiveReport id={exploration} />;
   return (
     <main className="r-page" data-testid="report">
       <div className="r-actions">

@@ -46,14 +46,18 @@ export const bandSentence = (passes: BandPass[]): string => {
 export const SOURCE = {
   caseVerdict:
     "Verdict from the NISAR-Modeling backend report for this case (status, interpretation_status); see Sources",
-  liveVerdict: "Simulated live job. Real source: POST /v1/explore → lens.state",
+  liveVerdict:
+    "Exploration API → result.lens.point.status, computed for this spot from the scenes listed under Evidence",
   groups:
     "Cell counts from NISAR-Modeling docs/results/flood_pilot_summary.json and FLOOD_CHARACTERIZATION.md",
   matched: "NISAR-Modeling matched_controls.co_pol_contrast",
   caseQuality: "Status, dates and coverage from the backend report",
-  liveQuality: "Simulated. Real source: job status, series_attempts, optical coverage",
-  steps: "Steps mirror the backend pipeline (EXPLORE_API.md); live job timings are simulated",
-  liveTiming: "The steps are the backend's; their timing here is simulated",
+  liveQuality: "Exploration API → plan, observations and aoiSummary of this run",
+  liveRange:
+    "Exploration API → result.lens.point.target_minus_baseline_db and diagnostic_half_width_db",
+  liveTimeline:
+    "Dates of the scenes the service read (ASF catalog) and the passes still to come from NASA's NISAR Observation Plan",
+  steps: "Steps mirror the backend pipeline (EXPLORE_API.md)",
   crop: "Crop of the NISAR-Modeling report figure (docs/cases/*.png). The API will serve it",
   figure: "NISAR-Modeling report figure",
   plan: "NISAR Observation Plan (NASA), fetched live for this frame",

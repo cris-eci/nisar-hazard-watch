@@ -1,84 +1,17 @@
-import { Icon } from "@/features/case-panel/icons";
 import { Prov } from "@/features/case-panel/Prov";
 import { SOURCE } from "@/features/case-panel/verdicts";
-import type { LensId } from "@/features/cases/cases";
 import type { Acquisition } from "@/features/frames/frame.types";
 import { nextPlannedPass } from "@/features/frames/nextPlannedPass";
-import { archiveError, jobSteps, JOB_STEP_COUNT, splitPlan } from "@/features/live/liveQuestion";
-import type { LiveJob } from "@/features/live/useLiveJob";
+import { archiveError, splitPlan } from "@/features/live/liveQuestion";
+import type { FramePlan } from "@/features/live/useFramePlan";
 import { formatDay } from "@/features/timeline/timelineLayout";
-
-type ChecklistProps = { lens: LensId; done: number };
-
-// SPECS §3: the six backend steps, the running one pulsing.
-export const JobChecklist = ({ lens, done }: ChecklistProps) => (
-  <div className="x-job" role="status" data-testid="job-checklist">
-    <p className="x-kicker x-kicker--split x-job__title">
-      <span>
-        Processing radar · step {Math.min(done + 1, JOB_STEP_COUNT)} of {JOB_STEP_COUNT}
-      </span>
-      <Prov kind="demo" source={SOURCE.liveTiming} />
-    </p>
-    <ol className="x-steps">
-      {jobSteps(lens).map((step, index) => {
-        const state = index < done ? "done" : index === done ? "running" : "waiting";
-        return (
-          <li key={step.label} className="x-step" data-state={state}>
-            <span className="x-step__dot">
-              <Icon name="tick" size={10} />
-            </span>
-            {step.label}
-          </li>
-        );
-      })}
-    </ol>
-    <p className="x-job__foot">
-      The passes are real; the answer is a demo until the live radar API is connected. You can keep
-      exploring.
-    </p>
-  </div>
-);
-
-type JobProblemProps = { job: LiveJob; onPickCase: () => void };
-
-// Loading lives in the checklist; this covers the archive failing and a frame with no passes.
-export const JobProblem = ({ job, onPickCase }: JobProblemProps) => {
-  if (job.plan?.status === "error") {
-    const copy = archiveError(job.plan.error);
-    return (
-      <div className="x-problem" role="alert" data-testid="job-error">
-        <p className="x-problem__title">{copy.title}</p>
-        <p>{copy.body}</p>
-        <div className="x-problem__actions">
-          <button type="button" className="x-primary x-primary--small" onClick={job.retry}>
-            Try again
-          </button>
-          <button type="button" className="x-ghost" onClick={onPickCase}>
-            Pick a measured case
-          </button>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="x-problem" role="status" data-testid="job-empty">
-      <p className="x-problem__title">No NISAR passes planned here yet</p>
-      <p>The Observation Plan lists no passes for this frame, so there is nothing to compare.</p>
-      <div className="x-problem__actions">
-        <button type="button" className="x-ghost" onClick={onPickCase}>
-          Pick a measured case
-        </button>
-      </div>
-    </div>
-  );
-};
 
 const SHOWN_PAST = 3;
 const SHOWN_UPCOMING = 2;
 
 type PassListProps = { passes: Acquisition[]; today: string };
 
-// The frame's real schedule, so the demo answer above always sits next to something checkable.
+// The frame's real schedule, so the answer above always sits next to something checkable.
 export const PlanPasses = ({ passes, today }: PassListProps) => {
   // The plan promises no order: sort so "last few, then next few" reads right.
   const sorted = passes.toSorted((a, b) => a.date.localeCompare(b.date));
@@ -114,4 +47,31 @@ export const PlanPasses = ({ passes, today }: PassListProps) => {
       </ul>
     </div>
   );
+};
+
+type PlanStateProps = { framePlan: FramePlan; today: string };
+
+// The Observation Plan is supplementary here: its failure never hides the exploration's answer.
+export const PlanState = ({ framePlan: { plan, retry }, today }: PlanStateProps) => {
+  if (plan?.status === "error") {
+    const copy = archiveError(plan.error);
+    return (
+      <div className="x-panel__block" role="status" data-testid="plan-error">
+        <p className="x-kicker">Passes over this frame</p>
+        <p className="x-plan__count">{copy.title}.</p>
+        <button type="button" className="x-text" onClick={retry}>
+          Try again
+        </button>
+      </div>
+    );
+  }
+  if (plan?.status !== "success") return null;
+  if (plan.data.length === 0)
+    return (
+      <div className="x-panel__block" role="status" data-testid="plan-empty">
+        <p className="x-kicker">Passes over this frame</p>
+        <p className="x-plan__count">The Observation Plan lists no passes for this frame.</p>
+      </div>
+    );
+  return <PlanPasses passes={plan.data} today={today} />;
 };

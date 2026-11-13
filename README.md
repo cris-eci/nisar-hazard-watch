@@ -34,8 +34,9 @@ radar can't tell. No forecasts, no probabilities, no causes.
 > measured cases are **real**: frames and passes come from NASA's NISAR Observation Plan, case
 > numbers and layer images from the science team's reports
 > ([Ch0comilo/NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling)). Some things are still
-> **demo**: the per-pass band chart series, the pass timeline dates, and the answer to a live
-> question on any other land. Every value carries a **Real** / **Demo** / **To fill** chip in the
+> **demo**: the per-pass band chart series and the pass timeline dates of the measured cases. A live
+> question on any other land is answered by the backend with measured radar (**Real**, about one to
+> two and a half minutes on a fresh area). Every value carries a **Real** / **Demo** / **To fill** chip in the
 > app; Demo and To fill chips can't be hidden. See
 > [What is real and what is demo](#what-is-real-and-what-is-demo).
 
@@ -64,7 +65,7 @@ radar can't tell. No forecasts, no probabilities, no causes.
 | `/cases`   | The measured cases as cards, filterable by question                                                                                                          |
 | `/method`  | How it works: satellite teardown, the Qadirabad sequence, six steps, the band chart, the five lenses, experimental models, landslides, colour key            |
 | `/about`   | The team (Nova Frontier) and project links                                                                                                                   |
-| `/report`  | `?case=<id>`: a printable one-page report for a measured case                                                                                                |
+| `/report`  | `?case=<id>` (a measured case) or `?exploration=<id>` (a live answer): a printable one-page report                                                           |
 
 Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 `/explore?frame=47-3` (optionally `&lens=<id>`) asks a live question on a NISAR frame;
@@ -107,8 +108,11 @@ Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 - **Pass timeline:** baseline, target, measured and planned passes, the optical lane and the next
   planned pass.
 - **Live question:** hover any land to see its NISAR frame, click to ask about it. The frame's
-  passes are fetched live from the Observation Plan; the answer is a labelled demo until the
-  backend API exists.
+  passes are fetched live from the Observation Plan and the radar answer comes from the backend: a
+  progress window with a countdown and NASA facts, then the verdict, the target pass against the
+  normal range, the whole-area bars, the quality strip, the measured layers on the globe and the
+  real pass dates. "Keep exploring" lets the job run in the background; the L | S switch shows S
+  as coming soon.
 - **Guided tour / Explore switch:** the guided story on the Chenab flood (see below).
 - **Nova:** the round button bottom right opens a chat that explains what is on screen (rule-based,
   demo).
@@ -119,11 +123,11 @@ Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/explorer-start.jpg" alt="Explorer start card listing the measured cases over the globe with case markers"></td>
-    <td width="50%"><img src="docs/screenshots/explorer-live.jpg" alt="A live question on track 47, frame 3: demo verdict and the frame's real passes from the Observation Plan"></td>
+    <td width="50%"><img src="docs/screenshots/explorer-live.jpg" alt="A live question on track 47, frame 3 and the frame's real passes from the Observation Plan"></td>
   </tr>
   <tr>
     <td align="center"><b>What did the radar see?</b><br><sub>The start card and case markers</sub></td>
-    <td align="center"><b>A live question</b><br><sub>Real passes, demo answer</sub></td>
+    <td align="center"><b>A live question</b><br><sub>The frame's real passes</sub></td>
   </tr>
 </table>
 
@@ -156,27 +160,30 @@ All numbers live in `src/features/cases/cases.ts`, copied from the
 | Experimental model metrics (Method)      | [Ch0comilo/NISAR-Models](https://github.com/Ch0comilo/NISAR-Models) model cards                                                                                                                                                       | Copied into `src/features/charts/metrics.ts` and `src/pages/method/methodContent.ts`.                                                                                                                                                       |
 | Landing and footer pictures              | NASA/JPL-Caltech, NASA Visible Earth, NASA HLS via Worldview, Wikimedia Commons                                                                                                                                                       | Static files in `public/landing/` and `public/footer/`, credited on the pages.                                                                                                                                                              |
 
-There is no backend call yet: the science team's point exploration API is specified in
-[EXPLORE_API.md](https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md) and
-not connected.
+A live question calls the backend (`POST /api/v1/explorations`, then polling `GET
+/api/v1/explorations/{id}`), which asks the science team's gateway
+([NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling)); place search calls `GET
+/api/v1/places`. Every answer is validated with zod (`src/features/explore/exploreSchemas.ts`)
+before it reaches the UI, and the measured layers are PNGs the backend redirects to.
 
 ## What is real and what is demo
 
 The full element-by-element list is the design handoff's `DATA_PROVENANCE.md`. In short:
 
-| Real                                                                             | Demo (chip always visible)                                                      |
-| -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| NISAR frame outlines, track, frame, direction, HH+HV flag                        | Band chart series (HH/HV per pass) and its band, on cases and live questions    |
-| Pass dates for a live question's frame (Observation Plan)                        | Pass timeline dates (12-day spacing) and its "% outside range" bars             |
-| Case verdicts, contrast bars (cell counts), matched-pairs whisker, quality strip | The answer to a live question: verdict, quality, and the processing step timing |
-| Change and baseline crops draped on the globe, report figures in the sheet       |                                                                                 |
-| Method: works / fails cards, Transformer benchmark, experimental model metrics   |                                                                                 |
+| Real                                                                             | Demo (chip always visible)                                                   |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| NISAR frame outlines, track, frame, direction, HH+HV flag                        | Band chart series (HH/HV per pass) and its band, on measured cases           |
+| Pass dates for a live question's frame (Observation Plan)                        | Pass timeline dates (12-day spacing) and its "% outside range" bars on cases |
+| Case verdicts, contrast bars (cell counts), matched-pairs whisker, quality strip | Nothing in a live answer: it is measured or it is not shown                  |
+| A live answer: verdict, normal-range card, whole-area bars, quality, layers      |                                                                              |
+| Change and baseline crops draped on the globe, report figures in the sheet       |                                                                              |
+| Method: works / fails cards, Transformer benchmark, experimental model metrics   |                                                                              |
 
 Nova's answers are demo too (rule-based, see below), and the report's summary is a template.
 
 **To fill:** Chocó's event facts (Servicio Geológico Colombiano) and its NISAR frame; in the guided
-story, chapter 1's areas and people affected and chapter 5's photos and news. HV and HH−HV layers
-are not drawn at all until the backend serves them.
+story, chapter 1's areas and people affected and chapter 5's photos and news. On the measured cases HV and
+HH−HV layers are not drawn at all; a live answer draws the layers the backend returns.
 
 ## Guided story, onboarding, Nova and reports
 
@@ -243,9 +250,12 @@ pnpm dev            # http://localhost:5173
 
 ## Configuration
 
-**None.** The frontend reads no environment variables: the Observation Plan and Esri imagery need
-no key. Old variables such as `VITE_ENABLED_HAZARDS` or `VITE_ANALYSIS_API_URL` are unused and can
-be removed from any deployment.
+One optional variable, `VITE_API_BASE_URL`: the backend's origin when it is not served from the
+same one (empty in production). In production Vercel rewrites `/api/*` to the Railway backend
+(`vercel.json`), so the browser only talks to its own origin; in development Vite proxies `/api`
+to `VITE_DEV_API_TARGET` (default `http://localhost:8000`). The Observation Plan and Esri imagery
+need no key. Old variables such as `VITE_ENABLED_HAZARDS` or `VITE_ANALYSIS_API_URL` are unused and
+can be removed from any deployment.
 
 > [!WARNING]
 > Anything named `VITE_*` is baked into the JavaScript bundle and readable by every visitor. Never
@@ -260,7 +270,9 @@ be removed from any deployment.
   and `story` for the guided story, onboarding, Nova, downloads and the report), page objects in
   `tests/e2e/pom/` (`GlobePage`, `MethodPage`), `data-testid` locators, the Observation Plan mocked
   from `tests/e2e/mocks/`. `GlobePage.skipOnboarding()` marks the quick tour as seen, as on any
-  visit after the first.
+  visit after the first. The live flow is covered by `live` and `search`, which mock
+  `/api/v1/**` (`ExplorationMock`, a real recorded answer in `tests/fixtures/`); E2E never reaches
+  a real backend.
 - E2E runs against the **production build** (`pnpm build && pnpm preview`) on port 5174, or on
   `E2E_PORT` when set, with reduced motion on. Headless Chromium renders Cesium with software WebGL
   (SwiftShader), so it is slow; it uses two workers.
@@ -271,7 +283,8 @@ be removed from any deployment.
 
 The app is a static single-page build: `pnpm build` writes `dist/`. It is hosted on Vercel;
 `vercel.json` rewrites every path except `data/`, `cesium/` and `assets/` to `index.html`. Any
-static host works with the same fallback. No environment variables are needed.
+static host works with the same fallback, provided it forwards `/api/*` to the backend (or
+`VITE_API_BASE_URL` points at it).
 
 ## Project structure
 

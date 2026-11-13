@@ -42,6 +42,9 @@ export type ApiRequest = {
   signal?: AbortSignal;
 };
 
+// A path the backend returned (it already carries /api/v1), made fetchable from this origin.
+export const absoluteApiPath = (path: string): string => `${API_BASE}${path}`;
+
 export const apiUrl = (path: string, query: Query = {}): string => {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query))

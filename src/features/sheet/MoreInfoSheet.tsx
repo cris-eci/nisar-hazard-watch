@@ -3,6 +3,7 @@ import { Prov } from "@/features/case-panel/Prov";
 import type { Subject } from "@/features/case-panel/subject";
 import { VerdictGlyph } from "@/features/case-panel/Verdict";
 import { bandSentence, SOURCE, VERDICT, VERDICT_ORDER } from "@/features/case-panel/verdicts";
+import { NormalRangeCard } from "@/features/case-panel/NormalRangeCard";
 import { findLens, OPTICAL } from "@/features/cases/cases";
 import { BandChart } from "@/features/charts/BandChart";
 import type { ChartMode } from "@/features/charts/chartTokens";
@@ -112,6 +113,16 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
                 </figcaption>
               </figure>
             )}
+            {subject.normalRange !== undefined && (
+              <div className="x-inset">
+                <NormalRangeCard range={subject.normalRange} />
+                {subject.stat !== undefined && (
+                  <p className="x-panel__stat" data-testid="sheet-stat">
+                    <strong>{subject.stat}</strong> {subject.statLine}
+                  </p>
+                )}
+              </div>
+            )}
             {subject.passes !== undefined && (
               <div className="x-inset">
                 <BandChart
@@ -205,7 +216,9 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
             <p className="x-sheet__kicker">04 · The second witness</p>
             {subject.witness === undefined ? (
               <p className="x-muted">
-                No second witness yet: the optical stage runs after the radar.
+                {subject.kind === "live"
+                  ? "No second witness: optical evidence was not requested for this question."
+                  : "No second witness yet: the optical stage runs after the radar."}
               </p>
             ) : (
               <p className="x-witness">
@@ -281,7 +294,28 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
         </div>
 
         <aside className="x-sheet__side">
-          {subject.lens !== "insar" && (
+          {subject.compute !== undefined && subject.compute.length > 0 && (
+            <div className="x-card">
+              <p className="x-kicker x-kicker--split">
+                <span>How this was computed</span>
+                <Prov kind="real" source={SOURCE.liveQuality} />
+              </p>
+              <ol className="x-steps x-steps--done" data-testid="sheet-compute">
+                {subject.compute.map((step) => (
+                  <li key={step.label} className="x-step" data-state="done">
+                    <span className="x-step__dot">
+                      <Icon name="tick" size={10} />
+                    </span>
+                    <span className="x-step__text">
+                      {step.label}
+                      <span className="x-step__sub">{step.sub}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+          {subject.lens !== "insar" && subject.compute === undefined && (
             <div className="x-card">
               <p className="x-kicker x-kicker--split">
                 <span>How this was computed</span>

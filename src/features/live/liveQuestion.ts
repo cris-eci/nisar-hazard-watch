@@ -1,64 +1,12 @@
-import type { LensId, QualityItem, Source, Verdict } from "@/features/cases/cases";
-import { demoBandPasses, verdictOf, type BandPass } from "@/features/cases/demoBand";
+import type { LensId, Source, Verdict } from "@/features/cases/cases";
 import type { Acquisition, LonLat } from "@/features/frames/frame.types";
 import { OBSERVATION_PLAN_QUERY_URL } from "@/features/frames/observationPlanApi";
-
-/*
- * A live question on any land: the frame and its passes are real (frames.json and the Observation
- * Plan); the radar answer is DEMO until POST /v1/explore exists. The demo series is picked from the
- * frame id so the same frame always gives the same answer, and the verdict is computed from it with
- * the backend's own band rule instead of being typed in.
- */
 
 // The lens API reads a 128 × 128 grid at 80 m posting.
 export const LIVE_CHIP_KM = 10.24;
 export const GRID_CELLS = 128;
 
 export const gridMetres = (chipKm: number): number => Math.round((chipKm * 1000) / GRID_CELLS);
-
-// FNV-1a: tiny, stable across browsers, good enough to spread frame ids.
-export const hashString = (text: string): number => {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
-    hash = Math.imul(hash, 0x01000193);
-  }
-  return hash >>> 0;
-};
-
-// Same mix as the prototype: 12 in 20 departures, 4 within, 4 with not enough radar.
-export const pickDemoVerdict = (frameId: string): Verdict => {
-  const bucket = hashString(frameId) % 20;
-  if (bucket < 12) return "departure";
-  if (bucket < 16) return "within";
-  return "insufficient";
-};
-
-export type LiveAnswer = { passes: BandPass[]; verdict: Verdict; quality: QualityItem[] };
-
-const QUALITY: Record<Verdict, QualityItem[]> = {
-  departure: [
-    { k: "Status", v: "Complete", why: "All selected passes usable." },
-    { k: "Passes", v: "5 + 1", why: "Five baseline passes and the latest one." },
-    { k: "Optical", v: "Pending", why: "The optical stage returns after the radar." },
-  ],
-  within: [
-    { k: "Status", v: "Partial", why: "One selected pass was masked." },
-    { k: "Passes", v: "5 + 1", why: "Five baseline passes and the latest one." },
-    { k: "Optical", v: "Withheld", why: "Too little joint optical coverage." },
-  ],
-  insufficient: [
-    { k: "Status", v: "No data", why: "Zero usable pixels at the point." },
-    { k: "Series", v: "2 tried", why: "At most one alternative is tried." },
-    { k: "Passes", v: "2 of 3+", why: "The band needs three earlier passes." },
-  ],
-};
-
-export const liveAnswer = (frameId: string): LiveAnswer => {
-  const passes = demoBandPasses(pickDemoVerdict(frameId));
-  const verdict = verdictOf(passes);
-  return { passes, verdict, quality: QUALITY[verdict] };
-};
 
 export const LIVE_LINE: Record<Verdict, string> = {
   departure: "At least one channel left this spot's normal range on the latest pass.",
@@ -70,20 +18,45 @@ export const LIVE_LINE: Record<Verdict, string> = {
 export const LIVE_REASON =
   "Try a longer date window, or a point a little away from steep terrain and open water.";
 
-export const LIVE_LIMITS = {
-  plain:
-    "A change in the echo can come from water, soil moisture, crops or terrain. The radar doesn't say which.",
-  tech: "Diagnostic band only; within bounds is not verified normal conditions. Point pixel support is checked separately from the chip.",
-  alternatives: ["Soil moisture", "Crops", "Terrain shadow", "Stable water"],
-  empties: ["Cause", "Probability", "Class"],
+// What else changes radar the way each lens looks for (NISAR-Modeling exploration lenses).
+export const LENS_ALTERNATIVES: Record<LensId, string[]> = {
+  flood_wetland: [
+    "Existing water",
+    "Wind-roughened water",
+    "Soil moisture",
+    "Crops",
+    "Terrain shadow",
+  ],
+  vegetation_disturbance: [
+    "Phenology",
+    "Harvest or clearing",
+    "Soil moisture",
+    "Storm damage",
+    "Viewing and terrain effects",
+  ],
+  wildfire: [
+    "Harvest or clearing",
+    "Seasonal vegetation change",
+    "Moisture",
+    "Storm damage",
+    "Terrain shadow",
+  ],
+  agriculture: ["Soil moisture", "Irrigation", "Tillage", "Mixed fields", "Viewing geometry"],
+  insar: ["Troposphere", "Ionosphere", "Vegetation decorrelation", "Soil moisture"],
 };
 
+// Left empty on purpose: the API reports none of these (see its `limitations`).
+export const LIVE_EMPTIES = ["Cause", "Probability", "Area in hectares", "Displacement"];
+
+const MODELING = "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs";
+
 export const LIVE_SOURCES: Source[] = [
-  { label: "NASA · NISAR Observation Plan (feature service)", href: OBSERVATION_PLAN_QUERY_URL },
   {
-    label: "NISAR-Modeling · point exploration API",
-    href: "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
+    label: "ASF DAAC · NISAR L2 GCOV scenes",
+    href: "https://asf.alaska.edu/data-sets/sar-data-sets/nisar/",
   },
+  { label: "NISAR-Modeling · exploration lenses", href: `${MODELING}/EXPLORATION_LENSES.md` },
+  { label: "NASA · NISAR Observation Plan (feature service)", href: OBSERVATION_PLAN_QUERY_URL },
 ];
 
 export type JobStep = { label: string; sub: string };
@@ -105,8 +78,6 @@ export const jobSteps = (lens: LensId): JobStep[] => [
     sub: "OPERA · within 4 days",
   },
 ];
-
-export const JOB_STEP_COUNT = 6;
 
 // The Observation Plan lists past and future dates alike; today splits them.
 export const splitPlan = (

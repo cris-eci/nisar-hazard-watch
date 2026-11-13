@@ -417,8 +417,8 @@ export const LandingPage = () => {
             Ask the radar.
           </h2>
           <p className="l-close__body" data-reveal>
-            Open a measured case, or click any land to try a live question (a labelled demo answer
-            for now).
+            Open a measured case, or click any land to ask a live question: the radar reads NISAR
+            scenes for that spot in about a minute.
           </p>
           <div className="l-close__action" data-reveal>
             <Link to="/explore" className="s-button s-button--large" testId="cta-band">

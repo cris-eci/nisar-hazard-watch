@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "@/features/case-panel/icons";
+import { Prov } from "@/features/case-panel/Prov";
 import { SOURCE } from "@/features/case-panel/verdicts";
 import type { TimelineData } from "@/features/cases/cases";
 import {
@@ -16,7 +17,8 @@ const PLAY_MS = 900;
 // Pixels from the top of the track: bars grow up from just above the radar axis.
 const BAR_BASE_PX = 34;
 
-type PassTimelineProps = { data: TimelineData };
+// `demo` is true for a measured case (its pass dates are illustrative) and false for a live result.
+type PassTimelineProps = { data: TimelineData; demo?: boolean };
 
 const passClass = (item: LaidPass, comparing: boolean, selected: boolean): string => {
   const kind =
@@ -31,7 +33,7 @@ const passClass = (item: LaidPass, comparing: boolean, selected: boolean): strin
 };
 
 // SPECS §2.4: measured, compared (baseline bracket + target) and planned passes, with the optical lane.
-export const PassTimeline = ({ data }: PassTimelineProps) => {
+export const PassTimeline = ({ data, demo = true }: PassTimelineProps) => {
   const layout = useMemo(() => layoutTimeline(data), [data]);
   const hasTarget = layout.targetIndex >= 0;
   const [comparing, setComparing] = useState(hasTarget);
@@ -90,9 +92,13 @@ export const PassTimeline = ({ data }: PassTimelineProps) => {
           </span>
           <span className="x-tl__sub">{readout.sub}</span>
         </div>
-        <span className="c-prov c-prov--demo" title={SOURCE.timeline} data-testid="prov-demo">
-          Demo dates
-        </span>
+        {demo ? (
+          <span className="c-prov c-prov--demo" title={SOURCE.timeline} data-testid="prov-demo">
+            Demo dates
+          </span>
+        ) : (
+          <Prov kind="real" source={SOURCE.liveTimeline} />
+        )}
         {hasTarget && (
           <button
             type="button"

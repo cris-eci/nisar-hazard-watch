@@ -1,0 +1,723 @@
+{
+  "id": "exp_761b80c9a2d74538",
+  "status": "succeeded",
+  "stage": "done",
+  "lens": "flood_wetland",
+  "source": "L",
+  "cache": "hit",
+  "etaSeconds": 60.0,
+  "etaRemainingSeconds": null,
+  "elapsedSeconds": 0.0,
+  "stages": [
+    {
+      "name": "planning",
+      "state": "done",
+      "seconds": 0.85,
+      "budgetSeconds": 2.0
+    },
+    {
+      "name": "reading",
+      "state": "done",
+      "seconds": 0.067,
+      "budgetSeconds": 15.0
+    },
+    {
+      "name": "analysing",
+      "state": "done",
+      "seconds": 5.894,
+      "budgetSeconds": 30.0
+    },
+    {
+      "name": "rendering",
+      "state": "done",
+      "seconds": 12.317,
+      "budgetSeconds": 8.0
+    }
+  ],
+  "progress": {
+    "scenesRead": 5,
+    "scenesTotal": 5
+  },
+  "plan": {
+    "status": "ready",
+    "seriesKey": "084_A_018_4005_DHDH",
+    "dates": ["2026-07-14", "2026-08-19", "2026-09-12", "2026-10-18", "2026-11-11"],
+    "maturityMixed": true,
+    "notes": []
+  },
+  "result": {
+    "geometry": {
+      "type": "Polygon",
+      "coordinates": [
+        [
+          [73.65929411553837, 32.28225672351888],
+          [73.76801274267835, 32.28336435502421],
+          [73.76676107346378, 32.375721461694816],
+          [73.65793206832663, 32.37460989386051],
+          [73.65929411553837, 32.28225672351888]
+        ]
+      ]
+    },
+    "areaKm2": 104.904,
+    "windowStart": "2026-06-13",
+    "windowEnd": "2026-11-12",
+    "scenes": [
+      {
+        "granuleId": "NISAR_L2_PR_GCOV_025_084_A_018_4005_DHDH_A_20260714T002204_20260714T002239_P05023_F_F_J_001",
+        "acquiredAt": "2026-07-14T00:22:04Z",
+        "track": 84,
+        "direction": "A",
+        "frame": 18,
+        "mode": "DHDH",
+        "maturity": "provisional",
+        "configuration": "PR",
+        "crid": "P05023",
+        "version": 1,
+        "coverage": 1.0
+      },
+      {
+        "granuleId": "NISAR_L2_PR_GCOV_028_084_A_018_4005_DHDH_A_20260819T002202_20260819T002237_P05023_N_F_J_001",
+        "acquiredAt": "2026-08-19T00:22:02Z",
+        "track": 84,
+        "direction": "A",
+        "frame": 18,
+        "mode": "DHDH",
+        "maturity": "provisional",
+        "configuration": "PR",
+        "crid": "P05023",
+        "version": 1,
+        "coverage": 1.0
+      },
+      {
+        "granuleId": "NISAR_L2_PR_GCOV_030_084_A_018_4005_DHDH_A_20260912T002202_20260912T002237_P05023_N_F_J_001",
+        "acquiredAt": "2026-09-12T00:22:02Z",
+        "track": 84,
+        "direction": "A",
+        "frame": 18,
+        "mode": "DHDH",
+        "maturity": "provisional",
+        "configuration": "PR",
+        "crid": "P05023",
+        "version": 1,
+        "coverage": 1.0
+      },
+      {
+        "granuleId": "NISAR_L2_PR_GCOV_033_084_A_018_4005_DHDH_A_20261018T002202_20261018T002237_P05023_N_F_J_001",
+        "acquiredAt": "2026-10-18T00:22:02Z",
+        "track": 84,
+        "direction": "A",
+        "frame": 18,
+        "mode": "DHDH",
+        "maturity": "provisional",
+        "configuration": "PR",
+        "crid": "P05023",
+        "version": 1,
+        "coverage": 1.0
+      },
+      {
+        "granuleId": "NISAR_L2_UR_GCOV_035_084_A_018_4005_DHDH_A_20261111T002203_20261111T002238_P05036_F_F_J_001",
+        "acquiredAt": "2026-11-11T00:22:03Z",
+        "track": 84,
+        "direction": "A",
+        "frame": 18,
+        "mode": "DHDH",
+        "maturity": "unvalidated",
+        "configuration": "UR",
+        "crid": "P05036",
+        "version": 1,
+        "coverage": 1.0
+      }
+    ],
+    "observations": [
+      {
+        "date": "2026-07-14",
+        "status": "observed",
+        "granule_id": "NISAR_L2_PR_GCOV_025_084_A_018_4005_DHDH_A_20260714T002204_20260714T002239_P05023_F_F_J_001"
+      },
+      {
+        "date": "2026-08-19",
+        "status": "observed",
+        "granule_id": "NISAR_L2_PR_GCOV_028_084_A_018_4005_DHDH_A_20260819T002202_20260819T002237_P05023_N_F_J_001"
+      },
+      {
+        "date": "2026-09-12",
+        "status": "observed",
+        "granule_id": "NISAR_L2_PR_GCOV_030_084_A_018_4005_DHDH_A_20260912T002202_20260912T002237_P05023_N_F_J_001"
+      },
+      {
+        "date": "2026-10-18",
+        "status": "observed",
+        "granule_id": "NISAR_L2_PR_GCOV_033_084_A_018_4005_DHDH_A_20261018T002202_20261018T002237_P05023_N_F_J_001"
+      },
+      {
+        "date": "2026-11-11",
+        "status": "observed",
+        "granule_id": "NISAR_L2_UR_GCOV_035_084_A_018_4005_DHDH_A_20261111T002203_20261111T002238_P05036_F_F_J_001"
+      }
+    ],
+    "lens": {
+      "id": "flood_wetland",
+      "point": {
+        "status": "within_observed_baseline",
+        "diagnostic_half_width_db": {
+          "HH": 3.0,
+          "HV": 5.761958589363098
+        },
+        "target_minus_baseline_db": {
+          "HH": -1.1593303680419922,
+          "HV": -0.8499851226806641
+        }
+      },
+      "radar": {
+        "grid": {
+          "epsg": 32643,
+          "width": 1024,
+          "height": 1024,
+          "bounds_native": [373740.0, 3572520.0, 383980.0, 3582760.0],
+          "pixel_spacing_m": [10.0, 10.0]
+        },
+        "cells": 1048576,
+        "layer": {
+          "href": "/v2/jobs/01299b8dba7144fea6612792e7cfc54c/layers/baseline_change.tif",
+          "role": "target_minus_observed_baseline_db",
+          "dates": ["2026-11-11"],
+          "units": "dB",
+          "polarizations": ["HH", "HV"]
+        },
+        "layers": [
+          {
+            "href": null,
+            "role": "flood_signature_flags",
+            "bands": ["dual_darkening", "co_pol_brightening"],
+            "units": "diagnostic flag",
+            "legend": {
+              "0": "absent_on_sampled_support",
+              "1": "supports"
+            },
+            "sha256": "e32a66e93f886413f5cf87b49a06f99d101f8bb55ade15758540945dbec1dca5",
+            "resampling": "nearest"
+          }
+        ],
+        "posting_m": 10.0,
+        "comparator": "Target minus median of the prior measured dates",
+        "grid_cells": 1048576,
+        "common_cells": 1048576,
+        "polarizations": ["HH", "HV"],
+        "mad_departure_cells": 344652,
+        "dual_darkening_cells": 208344,
+        "co_pol_brightening_cells": 128837,
+        "diagnostic_half_width_db": "max(3, 3 \u00d7 max(1.4826 \u00d7 MAD, 1))",
+        "dual_darkening_max_delta_db": {
+          "HH": -3.0,
+          "HV": -1.5
+        },
+        "co_pol_brightening_min_delta_db": 3.0,
+        "median_target_minus_baseline_db": {
+          "HH": -1.7021886110305786,
+          "HV": -0.2171027660369873
+        }
+      },
+      "reason": null,
+      "status": "evaluated",
+      "version": "1.0",
+      "evidence": {
+        "status": "unavailable"
+      },
+      "evaluation": {
+        "grid": {
+          "epsg": 32643,
+          "width": 1024,
+          "height": 1024,
+          "pixel_spacing_m": [10.0, 10.0]
+        },
+        "point": {
+          "x": 378867.6582795717,
+          "y": 3577631.4317789823,
+          "row": 512,
+          "column": 512,
+          "reason": null,
+          "series": [
+            {
+              "db": {
+                "HH": -8.579997062683105,
+                "HV": -20.255191802978516
+              },
+              "date": "2026-07-14"
+            },
+            {
+              "db": {
+                "HH": -8.035162925720215,
+                "HV": -18.070158004760742
+              },
+              "date": "2026-08-19"
+            },
+            {
+              "db": {
+                "HH": -8.009577751159668,
+                "HV": -12.383674621582031
+              },
+              "date": "2026-09-12"
+            },
+            {
+              "db": {
+                "HH": -10.604528427124023,
+                "HV": -17.66426658630371
+              },
+              "date": "2026-10-18"
+            },
+            {
+              "db": {
+                "HH": -9.466910362243652,
+                "HV": -18.71719741821289
+              },
+              "date": "2026-11-11"
+            }
+          ],
+          "status": "evaluated",
+          "change_db": {
+            "HH": -1.1593303680419922,
+            "HV": -0.8499851226806641
+          },
+          "selection": "requested_point",
+          "baseline_db": {
+            "HH": -8.30757999420166,
+            "HV": -17.867212295532227
+          },
+          "inside_grid": true,
+          "signature_states": {
+            "dual_darkening": "absent_on_sampled_support",
+            "co_pol_brightening": "absent_on_sampled_support"
+          },
+          "observation_bracket": ["2026-10-18", "2026-11-11"],
+          "baseline_scaled_mad_db": {
+            "HH": 0.4228518356323242,
+            "HV": 1.9206528631210327
+          },
+          "cross_minus_co_change_db": -0.7029204368591309
+        },
+        "reason": null,
+        "status": "evaluated",
+        "policy_id": "explore_flood_observations_v1",
+        "questions": [
+          "Did both radar channels darken relative to this pixel's observed baseline?",
+          "Did a baseline-matched surrounding population change differently from the focal patch?",
+          "Do independently dated optical snapshots show new water or water already present?"
+        ],
+        "confounders": [
+          {
+            "id": "existing_water",
+            "status": "unavailable"
+          },
+          {
+            "id": "rain_or_soil_moisture",
+            "status": "unavailable"
+          },
+          {
+            "id": "freeze_thaw",
+            "status": "unavailable"
+          },
+          {
+            "id": "wind",
+            "status": "unavailable"
+          },
+          {
+            "id": "incidence_and_track",
+            "status": "unavailable"
+          },
+          {
+            "id": "speckle_and_noise",
+            "status": "unavailable"
+          },
+          {
+            "id": "layover_or_shadow",
+            "status": "unavailable"
+          }
+        ],
+        "target_date": "2026-11-11",
+        "uncertainty": {
+          "model": {
+            "reason": "Diagnostic thresholds have no fitted probability model.",
+            "status": "unavailable"
+          },
+          "observation": {
+            "reason": "Sensor error and speckle uncertainty are unestimated.",
+            "status": "unavailable"
+          },
+          "spatial_heterogeneity": {
+            "kind": "cell_distribution",
+            "cells": 1048576,
+            "scope": "common_radar_grid",
+            "units": "dB",
+            "change_quantiles_25_50_75": {
+              "HH": [-4.423424482345581, -1.7021886110305786, 0.9431321620941162],
+              "HV": [-2.41540789604187, -0.2171027660369873, 1.967825174331665]
+            }
+          }
+        },
+        "baseline_dates": ["2026-07-14", "2026-08-19", "2026-09-12", "2026-10-18"],
+        "displacement_cm": null,
+        "grid_signatures": {
+          "dual_darkening": {
+            "state": "supports",
+            "fraction": 0.19869232177734375,
+            "signature_cells": 208344,
+            "supported_cells": 1048576
+          },
+          "co_pol_brightening": {
+            "state": "supports",
+            "fraction": 0.12286853790283203,
+            "signature_cells": 128837,
+            "supported_cells": 1048576
+          }
+        },
+        "contract_version": "1.0",
+        "phenomenon_class": null,
+        "signature_policy": {
+          "interpretation": "Evidence states refer to measured signatures or the explicitly named optical claim.",
+          "dual_darkening_max_change_db": {
+            "co": -3.0,
+            "cross": -1.5
+          },
+          "co_pol_brightening_min_change_db": 3.0
+        },
+        "water_comparison": {
+          "reason": "optical_evidence_unavailable",
+          "status": "insufficient_data"
+        },
+        "causal_attribution": null,
+        "phenomenon_probability": null,
+        "surrounding_comparison": {
+          "reason": null,
+          "series": [
+            {
+              "date": "2026-07-14",
+              "focal_mean_db": {
+                "HH": -7.79405403137207,
+                "HV": -16.44500160217285
+              },
+              "control_mean_db": {
+                "HH": -8.39908504486084,
+                "HV": -17.17150115966797
+              }
+            },
+            {
+              "date": "2026-08-19",
+              "focal_mean_db": {
+                "HH": -7.630985260009766,
+                "HV": -15.872737884521484
+              },
+              "control_mean_db": {
+                "HH": -7.384904861450195,
+                "HV": -16.016956329345703
+              }
+            },
+            {
+              "date": "2026-09-12",
+              "focal_mean_db": {
+                "HH": -7.879066467285156,
+                "HV": -16.51416778564453
+              },
+              "control_mean_db": {
+                "HH": -7.255716800689697,
+                "HV": -16.597911834716797
+              }
+            },
+            {
+              "date": "2026-10-18",
+              "focal_mean_db": {
+                "HH": -7.970127582550049,
+                "HV": -16.374515533447266
+              },
+              "control_mean_db": {
+                "HH": -8.003271102905273,
+                "HV": -15.762086868286133
+              }
+            },
+            {
+              "date": "2026-11-11",
+              "focal_mean_db": {
+                "HH": -9.731414794921875,
+                "HV": -16.85806655883789
+              },
+              "control_mean_db": {
+                "HH": -9.802953720092773,
+                "HV": -17.054039001464844
+              }
+            }
+          ],
+          "status": "evaluated",
+          "matches": {
+            "criterion": "unique baseline co-/cross-pol levels within declared dB tolerance; at most 128 nearest candidates; contrast uses matched positives only; not causal matching on all confounders",
+            "positive_pixels": 115,
+            "matched_fraction": 1.0,
+            "matched_control_pixels": 115,
+            "matched_positive_pixels": 115,
+            "baseline_mean_positive_minus_control_db_by_channel": [
+              0.003676413453143576, 0.008617840642514436
+            ]
+          },
+          "channels": {
+            "HH": {
+              "status": "conditional_spatial_resampling",
+              "control_blocks": 37,
+              "control_pixels": 115,
+              "interval_limit": "Conditional resampling of fixed spatial blocks; spatial independence, measurement errors, reference errors and causal identification are not established",
+              "control_mean_db": -2.0583854271017987,
+              "positive_blocks": 4,
+              "positive_pixels": 115,
+              "mean_contrast_db": 0.06786393134490298,
+              "positive_mean_db": -1.9905214957568957,
+              "control_median_db": -1.8862123489379883,
+              "positive_median_db": -2.259021043777466,
+              "valid_resampling_draws": 397,
+              "spatial_resampling_95_interval_db": [-1.5952425820899734, 1.4934498289616362]
+            },
+            "HV": {
+              "status": "conditional_spatial_resampling",
+              "control_blocks": 37,
+              "control_pixels": 115,
+              "interval_limit": "Conditional resampling of fixed spatial blocks; spatial independence, measurement errors, reference errors and causal identification are not established",
+              "control_mean_db": -0.7166527831036111,
+              "positive_blocks": 4,
+              "positive_pixels": 115,
+              "mean_contrast_db": 0.18735542297363283,
+              "positive_mean_db": -0.5292973601299783,
+              "control_median_db": -0.834406852722168,
+              "positive_median_db": -0.5141429901123047,
+              "valid_resampling_draws": 397,
+              "spatial_resampling_95_interval_db": [-1.3217257948998489, 1.2113059870526244]
+            }
+          },
+          "definition": "Change in a 60 m focal patch minus change in unique baseline-level matched cells 120\u2013300 m away.",
+          "focal_cells": 115,
+          "minimum_cells": 5,
+          "focal_radius_m": 60,
+          "focal_grid_cells": 115,
+          "surrounding_cells": 2376,
+          "comparison_annulus_m": [120, 300],
+          "spatial_block_size_m": [80.0, 80.0],
+          "differential_darkening": {
+            "claim": "Focal-minus-control mean change is at most -3 dB co-pol and -1.5 dB cross-pol.",
+            "state": "absent_on_sampled_support",
+            "reason": null
+          },
+          "surrounding_grid_cells": 2376,
+          "minimum_matched_fraction": 0.5,
+          "minimum_supported_fraction": 0.5,
+          "independently_stable_controls": false
+        }
+      },
+      "target_date": "2026-11-11",
+      "baseline_dates": ["2026-07-14", "2026-08-19", "2026-09-12", "2026-10-18"],
+      "temporal_analysis": {
+        "dates": ["2026-07-14", "2026-08-19", "2026-09-12", "2026-10-18", "2026-11-11"],
+        "spectral": {
+          "reason": "Need at least six observed dates",
+          "status": "insufficient_temporal_support"
+        },
+        "stochastic": {
+          "status": "experimental",
+          "channels": {
+            "HH": {
+              "series": [
+                {
+                  "date": "2026-07-14",
+                  "latent_median_db": -12.70895481917673,
+                  "observed_mean_db": -14.608918664123786,
+                  "conditional_80_db": [-14.468931082984591, -11.318542011312116],
+                  "conditional_95_db": [-15.005398487477157, -10.378606587701643]
+                },
+                {
+                  "date": "2026-08-19",
+                  "latent_median_db": -12.255142951901782,
+                  "observed_mean_db": -11.380090571243676,
+                  "conditional_80_db": [-13.794582129942713, -10.30698632790612],
+                  "conditional_95_db": [-14.713379480338459, -9.314197338775603]
+                },
+                {
+                  "date": "2026-09-12",
+                  "latent_median_db": -12.252951061915429,
+                  "observed_mean_db": -10.90835098859963,
+                  "conditional_80_db": [-13.931701866788854, -10.416153829367785],
+                  "conditional_95_db": [-14.865430818915845, -10.128259884075591]
+                },
+                {
+                  "date": "2026-10-18",
+                  "latent_median_db": -12.458566097009701,
+                  "observed_mean_db": -11.265110160935436,
+                  "conditional_80_db": [-14.377107261268561, -10.553830684128048],
+                  "conditional_95_db": [-14.982806277499256, -9.44891165207449]
+                },
+                {
+                  "date": "2026-11-11",
+                  "latent_median_db": -12.457368403740857,
+                  "observed_mean_db": -13.51791633926495,
+                  "conditional_80_db": [-14.082120014009787, -10.711540548969056],
+                  "conditional_95_db": [-14.945827205669078, -9.136070634822431]
+                }
+              ],
+              "status": "fit_returned",
+              "supported_cells": 1048576
+            },
+            "HV": {
+              "series": [
+                {
+                  "date": "2026-07-14",
+                  "latent_median_db": -20.597845660857246,
+                  "observed_mean_db": -21.942175911963965,
+                  "conditional_80_db": [-20.673880254237204, -20.5341802917637],
+                  "conditional_95_db": [-20.68467481057897, -20.50589763715503]
+                },
+                {
+                  "date": "2026-08-19",
+                  "latent_median_db": -20.598132430247432,
+                  "observed_mean_db": -20.477128145633657,
+                  "conditional_80_db": [-20.67744243046017, -20.542679611668426],
+                  "conditional_95_db": [-20.70156003997199, -20.509781771074636]
+                },
+                {
+                  "date": "2026-09-12",
+                  "latent_median_db": -20.587236007390572,
+                  "observed_mean_db": -20.35952010502416,
+                  "conditional_80_db": [-20.656224768735946, -20.530013610875635],
+                  "conditional_95_db": [-20.692152344206825, -20.510048567662984]
+                },
+                {
+                  "date": "2026-10-18",
+                  "latent_median_db": -20.58996293618892,
+                  "observed_mean_db": -19.468964847874325,
+                  "conditional_80_db": [-20.645950835244214, -20.522992773214746],
+                  "conditional_95_db": [-20.670190736992957, -20.496821326321655]
+                },
+                {
+                  "date": "2026-11-11",
+                  "latent_median_db": -20.584348509610024,
+                  "observed_mean_db": -20.716993902767143,
+                  "conditional_80_db": [-20.65399400456092, -20.524546861199724],
+                  "conditional_95_db": [-20.692489197128303, -20.498848799129714]
+                }
+              ],
+              "status": "fit_returned",
+              "supported_cells": 1048576
+            }
+          },
+          "calibrated": false,
+          "interpretation": "Conditional empirical-Bayes latent-state distribution at observed dates. The representative regional process uses the fitted pixel covariance. Bands omit parameter and model uncertainty. Residual scale is not measured sensor noise."
+        },
+        "common_cells": 1048576,
+        "elapsed_days": [0.0, 36.0, 60.0, 96.0, 120.0],
+        "observation_noise_db": null,
+        "acquisition_gaps_days": [36.0, 24.0, 36.0, 24.0]
+      },
+      "observation_bracket": ["2026-10-18", "2026-11-11"],
+      "excluded_unusable_dates": []
+    },
+    "aoiSummary": {
+      "reason": null,
+      "definition": "Cells where the target departs from the observed baseline by more than the diagnostic half-width in any polarization; descriptive, not a classification.",
+      "cells_in_area": 1046529,
+      "departing_fraction": 0.3287180766132616,
+      "area_covered_fraction": 0.998,
+      "cells_with_measurement": 1046529,
+      "cells_departing_from_baseline": 344013,
+      "median_target_minus_baseline_db": {
+        "HH": -1.7017879486083984,
+        "HV": -0.21632957458496094
+      }
+    },
+    "layers": [
+      {
+        "id": "display_2026-07-14_HH",
+        "title": "2026-07-14 HH",
+        "kind": "observed",
+        "units": "dB",
+        "colormap": "gray",
+        "bounds": [73.65784953732732, 32.282333136339126, 73.76793038711803, 32.375797943792264],
+        "url": "/api/v1/explorations/exp_761b80c9a2d74538/layers/display_2026-07-14_HH",
+        "legend": null,
+        "valueRange": [-30.0, 0.0]
+      },
+      {
+        "id": "display_2026-07-14_HV",
+        "title": "2026-07-14 HV",
+        "kind": "observed",
+        "units": "dB",
+        "colormap": "gray",
+        "bounds": [73.65784953732732, 32.282333136339126, 73.76793038711803, 32.375797943792264],
+        "url": "/api/v1/explorations/exp_761b80c9a2d74538/layers/display_2026-07-14_HV",
+        "legend": null,
+        "valueRange": [-30.0, 0.0]
+      },
+      {
+        "id": "display_2026-08-19_HH",
+        "title": "2026-08-19 HH",
+        "kind": "observed",
+        "units": "dB",
+        "colormap": "gray",
+        "bounds": [73.65784953732732, 32.282333136339126, 73.76793038711803, 32.375797943792264],
+        "url": "/api/v1/explorations/exp_761b80c9a2d74538/layers/display_2026-08-19_HH",
+        "legend": null,
+        "valueRange": [-30.0, 0.0]
+      },
+      {
+        "id": "display_2026-08-19_HV",
+        "title": "2026-08-19 HV",
+        "kind": "observed",
+        "units": "dB",
+        "colormap": "gray",
+        "bounds": [73.65784953732732, 32.282333136339126, 73.76793038711803, 32.375797943792264],
+        "url": "/api/v1/explorations/exp_761b80c9a2d74538/layers/display_2026-08-19_HV",
+        "legend": null,
+        "valueRange": [-30.0, 0.0]
+      },
+      {
+        "id": "display_2026-09-12_HH",
+        "title": "2026-09-12 HH",
+        "kind": "observed",
+        "units": "dB",
+        "colormap": "gray",
+        "bounds": [73.65784953732732, 32.282333136339126, 73.76793038711803, 32.375797943792264],
+        "url": "/api/v1/explorations/exp_761b80c9a2d74538/layers/display_2026-09-12_HH",
+        "legend": null,
+        "valueRange": [-30.0, 0.0]
+      },
+      {
+        "id": "display_flood_signature_flags_co_pol_brightening",
+        "title": "flood signature flags co pol brightening",
+        "kind": "diagnostic",
+        "units": "diagnostic mask",
+        "colormap": "diagnostic_categories",
+        "bounds": [73.65784953732732, 32.282333136339126, 73.76793038711803, 32.375797943792264],
+        "url": "/api/v1/explorations/exp_761b80c9a2d74538/layers/display_flood_signature_flags_co_pol_brightening",
+        "legend": {
+          "0": "absent",
+          "1": "present"
+        },
+        "valueRange": [0.0, 1.0]
+      }
+    ],
+    "quality": {
+      "revision": "3913b28a7607ab8a7f53bee0",
+      "gridWidth": 1024,
+      "gridHeight": 1024,
+      "maturityMixed": true,
+      "postingMeters": [10.0, 10.0],
+      "windowTruncated": false
+    },
+    "limitations": [
+      "Diagnostic evidence from measured L-band radar backscatter, not a validated classifier.",
+      "Departures are measured against the scene's own observed baseline, which may include change.",
+      "No forecast, probability, cause, area in hectares or displacement is reported."
+    ],
+    "scientificStatus": "diagnostic",
+    "timings": {
+      "total_s": 5.994,
+      "render_s": 12.317,
+      "elapsed_s": 22.372,
+      "measure_s": 5.894,
+      "prefetch_s": 0.067
+    },
+    "isDemo": false
+  },
+  "error": null
+}

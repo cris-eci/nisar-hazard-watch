@@ -10,19 +10,10 @@ import type {
 } from "@/features/cases/cases";
 import { caseBandPasses, type BandPass } from "@/features/cases/demoBand";
 import type { LonLat } from "@/features/frames/frame.types";
-import {
-  formatLonLat,
-  LIVE_CHIP_KM,
-  LIVE_LIMITS,
-  LIVE_LINE,
-  LIVE_REASON,
-  LIVE_SOURCES,
-  type LiveAnswer,
-} from "@/features/live/liveQuestion";
 
 /*
  * What the panel and the sheet show, whether it comes from a measured case (REAL report numbers) or
- * from a live question (DEMO answer on a real frame). `demo` decides every verdict/quality chip.
+ * from a live exploration (the backend's answer). `demo` decides every verdict/quality chip.
  */
 export type Subject = {
   kind: "case" | "live";
@@ -51,8 +42,16 @@ export type Subject = {
   sources: Source[];
   figure: string | undefined;
   crops: Crops | undefined;
+  // Live results: where the target pass sits against the spot's own normal range, per channel.
+  normalRange: NormalRange | undefined;
+  // Live results: the stages the service reported, with their seconds.
+  compute: ComputeStep[] | undefined;
   demo: boolean;
 };
+
+export type NormalRangeChannel = { channel: string; delta: number; halfWidth: number };
+export type NormalRange = { channels: NormalRangeChannel[]; baselinePasses: number };
+export type ComputeStep = { label: string; sub: string };
 
 export const caseSubject = (item: Case): Subject => ({
   kind: "case",
@@ -81,40 +80,7 @@ export const caseSubject = (item: Case): Subject => ({
   sources: item.sources,
   figure: item.figure,
   crops: item.crops,
+  normalRange: undefined,
+  compute: undefined,
   demo: false,
-});
-
-export const liveSubject = (
-  point: LonLat,
-  lens: LensId,
-  frameLabel: string,
-  answer: LiveAnswer,
-): Subject => ({
-  kind: "live",
-  id: "live",
-  name: formatLonLat(point),
-  place: frameLabel,
-  lens,
-  focus: point,
-  chipKm: LIVE_CHIP_KM,
-  target: undefined,
-  when: "Last 6 passes",
-  verdict: answer.verdict,
-  verdictLine: LIVE_LINE[answer.verdict],
-  reason: answer.verdict === "insufficient" ? LIVE_REASON : undefined,
-  passes: answer.passes,
-  stat: undefined,
-  statLine: undefined,
-  groups: [],
-  matched: undefined,
-  witness: undefined,
-  quality: answer.quality,
-  plainLimit: LIVE_LIMITS.plain,
-  techLimit: LIVE_LIMITS.tech,
-  alternatives: LIVE_LIMITS.alternatives,
-  empties: LIVE_LIMITS.empties,
-  sources: LIVE_SOURCES,
-  figure: undefined,
-  crops: undefined,
-  demo: true,
 });

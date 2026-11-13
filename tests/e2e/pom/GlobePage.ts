@@ -4,6 +4,7 @@ import type { Locator, Page } from "@playwright/test";
 
 import { OBSERVATION_PLAN_QUERY_URL } from "@/features/frames/observationPlanApi";
 import { ONBOARDING_KEY } from "@/features/onboarding/onboardingState";
+import { ExplorationMock } from "./explorationMock";
 
 // Frame 47-3 (ascending, HH+HV, over Colombia); its mocked plan lists 39 dates.
 export const LIVE_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };
@@ -45,7 +46,6 @@ export class GlobePage {
   readonly timelineCompare: Locator;
   readonly timelineReadout: Locator;
   readonly dock: Locator;
-  readonly jobChecklist: Locator;
   readonly jobError: Locator;
   readonly planPasses: Locator;
   readonly wholeGlobe: Locator;
@@ -64,6 +64,11 @@ export class GlobePage {
   readonly placeAnalyse: Locator;
   // Every place search the page sent, in order.
   readonly placeRequests: string[] = [];
+  readonly jobModal: Locator;
+  readonly jobRemaining: Locator;
+  readonly jobProgress: Locator;
+  readonly normalRange: Locator;
+  readonly liveLayerDock: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -84,7 +89,6 @@ export class GlobePage {
     this.timelineCompare = page.getByTestId("timeline-compare");
     this.timelineReadout = page.getByTestId("timeline-readout");
     this.dock = page.getByTestId("layer-dock");
-    this.jobChecklist = page.getByTestId("job-checklist");
     this.jobError = page.getByTestId("job-error");
     this.planPasses = page.getByTestId("plan-passes");
     this.wholeGlobe = page.getByTestId("whole-globe");
@@ -101,6 +105,20 @@ export class GlobePage {
     this.placeCard = page.getByTestId("place-card");
     this.placeNoFrame = page.getByTestId("place-no-frame");
     this.placeAnalyse = page.getByTestId("place-analyse");
+    this.jobModal = page.getByTestId("job-modal");
+    this.jobRemaining = page.getByTestId("job-remaining");
+    this.jobProgress = page.getByTestId("job-progress");
+    this.normalRange = page.getByTestId("normal-range");
+    this.liveLayerDock = page.getByTestId("live-layer-dock");
+  }
+
+  // Plays the backend's exploration API (see ExplorationMock); returns it to drive and inspect.
+  async mockExplorations(
+    options: ConstructorParameters<typeof ExplorationMock>[0] = {},
+  ): Promise<ExplorationMock> {
+    const mock = new ExplorationMock(options);
+    await mock.install(this.page);
+    return mock;
   }
 
   placeOption(index: number): Locator {
