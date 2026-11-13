@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<style>
+h1,h2,h3,p{margin:0}
+a{color:#c9b48b;text-decoration:none}
+a:hover{color:#dccaa3}
+@keyframes v8pulse{0%{opacity:.45}50%{opacity:1}100%{opacity:.45}}
+</style>
+</helmet>
+<article ref="{{ rootRef }}" style="box-sizing:border-box;width:100%;font-family:'Albert Sans',system-ui,sans-serif;color:#ebe9e4;display:flex;flex-direction:column;gap:18px;padding:{{ pad }};border-radius:{{ radius }};background:{{ shellBg }};border:{{ shellBd }}">
+  <header data-rv="1" style="display:flex;flex-direction:column;gap:10px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:32px;height:32px;flex:none;box-sizing:border-box;border-radius:50%;background:#0e1a33;border:1.5px solid #c9b48b;display:grid;place-items:center"><svg width="16" height="16" viewBox="0 0 24 24" style="fill:none;stroke:#ebe9e4;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="{{ icon }}"></path></svg></span>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#a9a69e">LENS · {{ lensUpper }}</p>
+        <h3 style="font-size:15px;font-weight:400;color:#d4d2cc;line-height:1.3">{{ question }}</h3>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px">
+      <span style="height:30px;display:inline-flex;align-items:center;gap:8px;padding:0 12px;border-radius:999px;background:rgba(235,233,228,0.07);font-size:14px;font-weight:500"><span data-glyph="1" style="width:10px;height:10px;box-sizing:border-box;transform:{{ v.rot }};border-radius:{{ v.r }};background:{{ v.fill }};border:{{ v.bd }}"></span>{{ v.label }}</span>
+      <span title="{{ prov.src }}" style="padding:2px 7px;border-radius:999px;background:{{ prov.bg }};border:{{ prov.bd }};font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.05em;color:{{ prov.ink }}">{{ prov.label }}</span>
+    </div>
+    <p style="font-size:18px;font-weight:500;letter-spacing:-0.015em;line-height:1.35;text-wrap:pretty">{{ headline }}</p>
+    <sc-if value="{{ hasReasons }}" hint-placeholder-val="{{ false }}">
+      <ul style="margin:0;padding:10px 12px;list-style:none;border-radius:12px;border:1px dashed rgba(235,233,228,0.25);display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{ reasons }}" as="r" hint-placeholder-count="2"><li style="display:flex;gap:8px;font-size:13px;color:#d4d2cc"><span style="font-family:'JetBrains Mono',monospace;color:#8d8a83">—</span>{{ r }}</li></sc-for>
+      </ul>
+    </sc-if>
+  </header>
+
+  <sc-if value="{{ isFlood }}" hint-placeholder-val="{{ true }}">
+    <section data-rv="1" style="display:grid;grid-template-columns:112px minmax(0,1fr);gap:14px;align-items:start">
+      <figure style="margin:0;display:flex;flex-direction:column;gap:5px">
+        <img src="{{ imgRule }}" alt="Cells meeting the flood rule, sample layer" style="width:112px;height:112px;display:block;border-radius:10px;image-rendering:pixelated;background:#62666d">
+        <figcaption title="Chókwè layer standing in until this job publishes its own" style="align-self:flex-start;padding:1px 6px;border-radius:999px;background:rgba(245,158,11,0.18);font-family:'JetBrains Mono',monospace;font-size:9px;color:#fcd34d">DEMO DATA</figcaption>
+      </figure>
+      <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#a9a69e">WHERE THE FLOOD RULE IS MET</p>
+        <p style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap"><span ref="{{ countRef }}" style="font-family:'JetBrains Mono',monospace;font-size:26px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums">5,513</span><span style="font-size:13px;color:#a9a69e">of 16,384 cells</span></p>
+        <div style="position:relative;height:8px;border-radius:2px;background:rgba(235,233,228,0.08)"><div ref="{{ barRef }}" style="position:absolute;left:0;top:0;bottom:0;width:33.6%;border-radius:2px;background:#ebe9e4"></div></div>
+        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:#8d8a83"><span>0%</span><span>33.6%</span><span>100%</span></div>
+        <button onClick="{{ toggleLayer }}" aria-pressed="{{ layerOn }}" style="align-self:flex-start;height:28px;padding:0 11px;border-radius:999px;border:1px solid {{ layerBd }};background:{{ layerBg }};color:{{ layerInk }};font:inherit;font-size:12px;cursor:pointer;white-space:nowrap">{{ layerLabel }}</button>
+      </div>
+      <p style="grid-column:1 / -1;font-size:12.5px;color:#a9a69e;text-wrap:pretty;line-height:1.45">Dark navy cells: HH fell 3 dB or more and HV 1.5 dB or more on 12 Sep, against each cell's own median of 4 earlier passes. Another 960 cells brightened. Cells meeting a rule, not flooded area.</p>
+    </section>
+
+    <section data-rv="1" style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid rgba(235,233,228,0.08)">
+      <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#a9a69e">AT THE PIXEL YOU CLICKED</p>
+      <dc-import name="Band Chart" series="{{ series }}" width="{{ chartW }}" height="150" mode="plain" demo="{{ false }}" show-sentence="{{ false }}" hint-size="100%,190px"></dc-import>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+        <sc-for list="{{ deltas }}" as="d" hint-placeholder-count="2">
+          <div style="padding:9px 11px;border-radius:12px;background:rgba(235,233,228,0.04);display:flex;flex-direction:column;gap:2px">
+            <span style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.05em;color:#a9a69e"><span style="width:12px;height:2px;background:{{ d.color }}"></span>{{ d.k }}</span>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:17px;font-variant-numeric:tabular-nums">{{ d.v }}</span>
+            <span style="font-size:11.5px;color:#8d8a83">{{ d.s }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(111,179,232,0.07)">
+        <span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.05em;color:#6fb3e8;flex:none;padding-top:2px">WHY TWO</span>
+        <p style="font-size:12.5px;color:#c4c1ba;text-wrap:pretty;line-height:1.45">HH mostly bounces off surfaces; HV comes from echoes scattered inside leaves and branches. Calm water mirrors the pulse away, so it darkens both. That is why the rule asks for both.</p>
+      </div>
+    </section>
+
+    <section data-rv="1" style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:rgba(235,233,228,0.035);border:1px solid rgba(235,233,228,0.08)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#c9b48b">SECOND WITNESS · OPERA OPTICAL</p>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:{{ opt.bd }};font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.05em;color:{{ opt.ink }};animation:{{ opt.anim }}">{{ opt.label }}</span>
+      </div>
+      <sc-if value="{{ optPending }}" hint-placeholder-val="{{ false }}">
+        <p style="font-size:13px;color:#a9a69e;text-wrap:pretty;line-height:1.45">Looking for optical snapshots within 4 days of 26 Jul and 12 Sep. The radar result doesn't wait for it.</p>
+        <div style="display:flex;flex-direction:column;gap:7px"><sc-for list="{{ skeleton }}" as="s" hint-placeholder-count="4"><div style="height:12px;width:{{ s }};border-radius:3px;background:rgba(235,233,228,0.07);animation:v8pulse 1.6s ease-in-out infinite"></div></sc-for></div>
+      </sc-if>
+      <sc-if value="{{ optNone }}" hint-placeholder-val="{{ false }}">
+        <p style="font-size:13px;color:#a9a69e;text-wrap:pretty;line-height:1.45">No OPERA snapshot with enough clear cells within 4 days of the radar dates. The radar result stands on its own.</p>
+      </sc-if>
+      <sc-if value="{{ optReady }}" hint-placeholder-val="{{ true }}">
+        <p style="font-size:14px;font-weight:500;text-wrap:pretty;line-height:1.35">Optical images agree: 9 in 10 cells that turned to water also meet the radar rule. Cells that stayed dry almost never do.</p>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#a9a69e;line-height:1.5">DSWx-HLS · 26 JUL 2026 LANDSAT 8 → 13 SEP 2026 SENTINEL-2B</p>
+        <dc-import name="Contrast Bars" groups="{{ groups }}" compact="{{ true }}" mode="plain" hint-size="100%,120px"></dc-import>
+        <div style="display:flex;flex-direction:column;gap:8px;padding-top:6px">
+          <p style="font-size:12.5px;color:#a9a69e;text-wrap:pretty">New-water cells minus matched dry cells, 171 pairs · 95% spatial interval</p>
+          <sc-for list="{{ whiskers }}" as="w" hint-placeholder-count="2">
+            <div style="display:grid;grid-template-columns:28px minmax(0,1fr) 120px;align-items:center;gap:8px">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:{{ w.color }}">{{ w.k }}</span>
+              <svg viewBox="0 0 200 16" preserveAspectRatio="none" style="width:100%;height:16px;display:block"><line x1="0" y1="8" x2="200" y2="8" style="stroke:rgba(235,233,228,0.12)"></line><line x1="{{ w.zero }}" y1="1" x2="{{ w.zero }}" y2="15" style="stroke:rgba(235,233,228,0.45)"></line><line x1="{{ w.lo }}" y1="8" x2="{{ w.hi }}" y2="8" style="stroke:#0072b2;stroke-width:2"></line><line x1="{{ w.lo }}" y1="4" x2="{{ w.lo }}" y2="12" style="stroke:#0072b2;stroke-width:2"></line><line x1="{{ w.hi }}" y1="4" x2="{{ w.hi }}" y2="12" style="stroke:#0072b2;stroke-width:2"></line><circle cx="{{ w.x }}" cy="8" r="4" style="fill:#0072b2;stroke:#fff;stroke-width:1.5"></circle></svg>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#d4d2cc;font-variant-numeric:tabular-nums;text-align:right">{{ w.v }}</span>
+            </div>
+          </sc-for>
+          <div style="display:grid;grid-template-columns:28px minmax(0,1fr) 120px;gap:8px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:#8d8a83"><span></span><span style="display:flex;justify-content:space-between"><span>−10 dB</span><span>0</span></span><span></span></div>
+        </div>
+        <p style="font-size:12.5px;color:#a9a69e;text-wrap:pretty;line-height:1.45">At your pixel's optical cell: not enough clear data to say whether new water appeared.</p>
+      </sc-if>
+    </section>
+
+    <section data-rv="1" style="display:flex;gap:14px;align-items:center;padding-top:16px;border-top:1px solid rgba(235,233,228,0.08)">
+      <svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true" style="flex:none"><circle cx="32" cy="32" r="30" style="fill:rgba(235,233,228,0.05);stroke:rgba(235,233,228,0.35);stroke-dasharray:3 3"></circle><circle cx="32" cy="32" r="13" style="fill:#08101f;stroke:rgba(235,233,228,0.35);stroke-dasharray:3 3"></circle><circle cx="32" cy="32" r="6" style="fill:rgba(201,180,139,0.25);stroke:#c9b48b"></circle></svg>
+      <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#a9a69e">THIS SPOT VS ITS SURROUNDINGS</p>
+        <p style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500"><span style="width:10px;height:10px;box-sizing:border-box;border-radius:50%;border:1.5px dashed #a9a69e"></span>Not enough data</p>
+        <p style="font-size:12.5px;color:#a9a69e;text-wrap:pretty;line-height:1.45">The 60 m patch holds 1 cell on this 80 m grid; the comparison needs 5.</p>
+      </div>
+    </section>
+
+    <section data-rv="1" style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid rgba(235,233,228,0.08)">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#c9b48b">POSSIBLE DRIVERS</p>
+        <span title="Interpretation, not a measurement" style="padding:2px 8px;border-radius:999px;border:1px dashed #c9b48b;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.05em;color:#dccaa3">HYPOTHESIS · NOT A RESULT</span>
+      </div>
+      <p style="font-size:12.5px;color:#a9a69e;text-wrap:pretty">What could make the echo change like this, weighed against the evidence above.</p>
+      <sc-for list="{{ drivers }}" as="h" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:14px;border:1px solid rgba(235,233,228,0.1)">
+          <p style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span style="font-size:14.5px;font-weight:500">{{ h.title }}</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.04em;color:{{ h.fitInk }};white-space:nowrap">{{ h.fit }}</span></p>
+          <p style="display:flex;gap:8px;font-size:12.5px;color:#c4c1ba;line-height:1.45"><span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;color:#8d8a83;width:52px;padding-top:2px">FOR</span><span style="text-wrap:pretty">{{ h.pro }}</span></p>
+          <p style="display:flex;gap:8px;font-size:12.5px;color:#c4c1ba;line-height:1.45"><span style="flex:none;font-family:'JetBrains Mono',monospace;font-size:10px;color:#8d8a83;width:52px;padding-top:2px">AGAINST</span><span style="text-wrap:pretty">{{ h.con }}</span></p>
+        </div>
+      </sc-for>
+      <p style="font-size:12px;color:#8d8a83;text-wrap:pretty">A river gauge, rain record or field report would settle it. Not checked here: wind on water, look angle, speckle, terrain shadow.</p>
+    </section>
+  </sc-if>
+
+  <sc-if value="{{ notFlood }}" hint-placeholder-val="{{ false }}">
+    <section data-rv="1" style="display:flex;flex-direction:column;gap:8px;padding-top:16px;border-top:1px solid rgba(235,233,228,0.08)">
+      <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#a9a69e">WHAT THIS LENS COMPARES</p>
+      <p style="font-size:13.5px;color:#d4d2cc;text-wrap:pretty">{{ rule }}</p>
+      <p style="font-size:12.5px;color:#8d8a83;text-wrap:pretty">{{ otherNote }}</p>
+    </section>
+  </sc-if>
+
+  <button data-rv="1" onClick="{{ more }}" style="height:44px;flex:none;border:0;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;background:#ebe9e4;color:#04070e;font:inherit;font-size:14.5px;font-weight:500;cursor:pointer" style-hover="background:#ffffff">More information<svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+</article>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:400,&quot;height&quot;:1900},&quot;lens&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;flood_wetland&quot;,&quot;vegetation_disturbance&quot;,&quot;wildfire&quot;,&quot;agriculture&quot;],&quot;default&quot;:&quot;flood_wetland&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;optical&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;pending&quot;,&quot;ready&quot;,&quot;unavailable&quot;],&quot;default&quot;:&quot;ready&quot;,&quot;tsType&quot;:&quot;\&quot;pending\&quot; | \&quot;ready\&quot; | \&quot;unavailable\&quot;&quot;},&quot;compact&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;bare&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;static&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;layerOn&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;boolean&quot;},&quot;onLayer&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(on: boolean) =&gt; void&quot;},&quot;onMore&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">
+const VERD = {
+  departure: { label: "Departure observed", rot: "rotate(45deg)", r: "1px", fill: "#c9b48b", bd: "0" },
+  within: { label: "Within its usual range", rot: "none", r: "50%", fill: "transparent", bd: "1.5px solid #ebe9e4" },
+  insufficient: { label: "Not enough data", rot: "none", r: "50%", fill: "transparent", bd: "1.5px dashed #a9a69e" },
+};
+const OTHER = {
+  vegetation_disturbance: { verdict: "within", line: "Both channels stayed inside this spot's usual range on 12 Sep.", note: "Optical loss from OPERA DIST-ALERT-HLS would arrive here, matched against non-disturbed cells." },
+  wildfire: { verdict: "insufficient", line: "This lens needs at least two passes after the baseline. This spot has one.", reasons: ["One assessment pass (12 Sep); needs two or more", "Set a baseline cut-off date before the period of interest"], note: "Counts on how many sampled passes HV stayed below its band, and whether it came back." },
+  agriculture: { verdict: "insufficient", line: "The 60 m patch has too few cells on this grid to compare with its neighbours.", reasons: ["1 cell in the 60 m patch; needs 5", "Radar only: no optical check for this lens"], note: "Compares the median level inside 60 m with matched cells 120–300 m away, pass by pass." },
+};
+const DRIVERS = [
+  { title: "River flooding in the monsoon", fit: "FITS BEST", fitInk: "#dccaa3", pro: "Optical shows 2,702 cells turned to open water between 26 Jul and 13 Sep; 91% of them meet the radar rule. Barh sits on the Ganges and the window covers the monsoon.", con: "No river-gauge or flood-bulletin record was checked." },
+  { title: "Water that was already there", fit: "PARTLY", fitInk: "#a9a69e", pro: "506 cells were water on both optical dates (river channel, ponds).", con: "Only 232 of them meet the rule, and they changed less than the new-water cells." },
+  { title: "Wet soil or crops after rain", fit: "WEAK", fitInk: "#8d8a83", pro: "Rain in the window can darken fields.", con: "Of 1,226 cells that stayed dry in the optical images, 1 meets the rule." },
+];
+const RU = (p) => (p && typeof window !== "undefined" && window.__resources && window.__resources[p.replace(/[^a-z0-9]/gi, "_")]) || p;
+class Component extends DCLogic {
+  state = { D: null, IC: null, layer: true };
+  rootRef = React.createRef(); countRef = React.createRef(); barRef = React.createRef();
+  componentDidMount() {
+    import((typeof window !== "undefined" && window.__resources && window.__resources.v8_data_js) || "./v8-data.js").then((D) => this.setState({ D }, () => this.reveal()));
+    import((typeof window !== "undefined" && window.__resources && window.__resources.v7_cases_js) || "./v7-cases.js").then((m) => this.setState({ IC: m.IC }));
+  }
+  componentDidUpdate(pp) { if (pp.lens !== this.props.lens) this.reveal(); }
+  reveal() {
+    const g = window.gsap, el = this.rootRef.current;
+    if (!g || !el || this.props.static || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    requestAnimationFrame(() => {
+      g.fromTo(el.querySelectorAll("[data-rv]"), { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, stagger: 0.08, ease: "power3.out" });
+      g.fromTo(el.querySelector("[data-glyph]"), { scale: 0 }, { scale: 1, duration: 0.5, delay: 0.15, ease: "back.out(3)" });
+      if (this.barRef.current) g.fromTo(this.barRef.current, { width: "0%" }, { width: "33.6%", duration: 1.1, delay: 0.3, ease: "power2.out" });
+      const c = this.countRef.current;
+      if (c) { const o = { v: 0 }; g.to(o, { v: 5513, duration: 1.1, delay: 0.3, ease: "power2.out", onUpdate: () => { c.textContent = Math.round(o.v).toLocaleString("en-US"); } }); }
+    });
+  }
+  renderVals() {
+    const p = this.props, D = this.state.D, id = p.lens || "flood_wetland", flood = id === "flood_wetland", bare = !!p.bare;
+    const L = D?.LENSES.find((l) => l.id === id) || { label: "", q: "", icon: "flood", rule: "" }, X = D?.LIVE;
+    const o = OTHER[id] || {}, V = VERD[flood ? "within" : o.verdict];
+    const optical = p.optical || "ready", lay = p.layerOn ?? this.state.layer;
+    const wx = (v) => (((v + 10) / 12) * 200).toFixed(1);
+    return {
+      rootRef: this.rootRef, countRef: this.countRef, barRef: this.barRef,
+      pad: bare ? "0" : "20px", radius: bare ? "0" : "24px", shellBg: bare ? "transparent" : "rgba(8,16,31,0.96)", shellBd: bare ? "0" : "1px solid rgba(235,233,228,0.12)",
+      icon: this.state.IC?.[L.icon] || "", lensUpper: L.label.toUpperCase(), question: L.q, v: V,
+      headline: flood ? "No new water at the exact spot you clicked. Around it, a third of the area darkened the way calm new water does." : o.line,
+      hasReasons: !!o.reasons, reasons: o.reasons || [],
+      prov: flood ? { label: "REAL", src: "NISAR-Modeling · flood-lens-evaluation-barh.json", bg: "transparent", bd: "1px solid rgba(235,233,228,0.35)", ink: "#d4d2cc" }
+        : { label: "DEMO DATA", src: "Layout example; this lens has not run on this spot", bg: "rgba(245,158,11,0.18)", bd: "0", ink: "#fcd34d" },
+      isFlood: flood, notFlood: !flood, rule: L.rule, otherNote: o.note || "",
+      series: X ? { dates: X.passes.map((x) => x.d), phase: X.passes.map((x) => x.role), HH: X.point.HH, HV: X.point.HV, median: X.point.median, cell: "80 m" } : null,
+      chartW: p.compact ? 320 : 340,
+      deltas: [{ k: "HH", color: "#e8894a", v: "+1.5 dB", s: "band ±3.0 dB · inside" }, { k: "HV", color: "#6fb3e8", v: "−0.1 dB", s: "band ±3.0 dB · inside" }],
+      layerOn: lay ? "true" : "false", layerLabel: lay ? "On the globe" : "Show on globe", layerBd: lay ? "#c9b48b" : "rgba(235,233,228,0.18)", layerBg: lay ? "rgba(201,180,139,0.12)" : "transparent", layerInk: lay ? "#dccaa3" : "#ebe9e4",
+      toggleLayer: () => { this.setState({ layer: !lay }); p.onLayer?.(!lay); },
+      opt: optical === "pending" ? { label: "PENDING", bd: "1px dashed rgba(235,233,228,0.45)", ink: "#a9a69e", anim: "v8pulse 1.6s ease-in-out infinite" }
+        : optical === "unavailable" ? { label: "UNAVAILABLE", bd: "1px solid rgba(235,233,228,0.2)", ink: "#8d8a83", anim: "none" }
+        : { label: "READY · REAL", bd: "1px solid rgba(235,233,228,0.35)", ink: "#d4d2cc", anim: "none" },
+      optPending: optical === "pending", optNone: optical === "unavailable", optReady: optical === "ready", skeleton: ["90%", "70%", "80%", "55%"],
+      groups: X ? [{ title: "", rows: X.optical.groups }] : [],
+      whiskers: X ? ["HH", "HV"].map((k) => { const [m, lo, hi] = X.optical.matched[k]; return { k, color: k === "HH" ? "#e8894a" : "#6fb3e8", x: wx(m), lo: wx(lo), hi: wx(hi), zero: wx(0), v: `${m.toFixed(1)} (${lo.toFixed(1)}…${hi.toFixed(1)})` }; }) : [],
+      drivers: DRIVERS, imgRule: RU("docs/layers/chokwe-signature_mask.png"),
+      more: () => p.onMore?.(),
+    };
+  }
+}
+</script>
+</body>
+</html>
