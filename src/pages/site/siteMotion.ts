@@ -4,8 +4,8 @@ import Lenis from "lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
-export const prefersReducedMotion = (): boolean =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// One reduced-motion check for the whole app; it lives in the plugin-free motion module.
+export { prefersReducedMotion } from "@/lib/motion";
 
 // Lenis smooth scroll driven by GSAP's ticker, so ScrollTrigger and Lenis share one clock.
 export const startSmoothScroll = (): (() => void) => {
