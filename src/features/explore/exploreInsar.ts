@@ -23,7 +23,7 @@ export const INSAR_SOURCES: Source[] = [
   },
   {
     label: "NISAR-Modeling · InSAR exploration",
-    href: "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
+    href: "https://github.com/nisar-hazard-watch/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
   },
 ];
 

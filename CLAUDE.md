@@ -117,7 +117,7 @@ or hectares).
   (`148,212,156`); it is HH+HV when any of them is L-band cross-pol. `nextPlannedPass` picks the
   earliest pass strictly after today from unsorted input.
 - **Measured cases:** `src/features/cases/cases.ts` (`CASES`, `LENSES`, `OPTICAL`). Every number is
-  copied from the science backend's reports (github.com/Ch0comilo/NISAR-Modeling); layer crops and
+  copied from the science backend's reports (github.com/nisar-hazard-watch/NISAR-Modeling); layer crops and
   report figures are static files in `public/cases/`. Pass timeline dates in `cases.ts` are DEMO
   (12-day spacing) until the backend serves real ones.
 - **Demo values:** the band chart series of the measured cases (`src/features/cases/demoBand.ts`,

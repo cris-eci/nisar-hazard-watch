@@ -5,7 +5,7 @@ import { OPTICAL, type ContrastGroup, type LensId } from "@/features/cases/cases
  * it (design_handoff_v7 SPECS §7); none is computed or rounded here.
  */
 
-const MODELING = "https://github.com/Ch0comilo/NISAR-Modeling/blob/main";
+const MODELING = "https://github.com/nisar-hazard-watch/NISAR-Modeling/blob/main";
 const FLOOD_EVIDENCE = `${MODELING}/docs/FLOOD_EVIDENCE.md`;
 const HOLDOUT = `${MODELING}/docs/EXPLORATION_HOLDOUT.md`;
 

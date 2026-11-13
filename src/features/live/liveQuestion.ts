@@ -48,7 +48,7 @@ export const LENS_ALTERNATIVES: Record<LensId, string[]> = {
 // Left empty on purpose: the API reports none of these (see its `limitations`).
 export const LIVE_EMPTIES = ["Cause", "Probability", "Area in hectares", "Displacement"];
 
-const MODELING = "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs";
+const MODELING = "https://github.com/nisar-hazard-watch/NISAR-Modeling/blob/main/docs";
 
 export const LIVE_SOURCES: Source[] = [
   {

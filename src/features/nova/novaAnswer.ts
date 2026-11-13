@@ -24,7 +24,7 @@ export type NovaContext = {
   mode: ChartMode;
 };
 
-const MODELING = "https://github.com/Ch0comilo/NISAR-Modeling";
+const MODELING = "https://github.com/nisar-hazard-watch/NISAR-Modeling";
 
 const IMPACT = /people|victim|dead|death|affected|damage|cost|injur|casualt|killed|homes|houses/;
 const PROVENANCE = /real|demo|true|fake|simulat/;

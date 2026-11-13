@@ -25,7 +25,7 @@ radar can't tell. No forecasts, no probabilities, no causes.
 **[Live demo](https://nisar-hazard-watch-nine.vercel.app)** ·
 **[Cases](https://nisar-hazard-watch-nine.vercel.app/cases)** ·
 **[Method](https://nisar-hazard-watch-nine.vercel.app/method)** ·
-**[Science backend](https://github.com/Ch0comilo/NISAR-Modeling)**
+**[Science backend](https://github.com/nisar-hazard-watch/NISAR-Modeling)**
 
 </div>
 
@@ -33,7 +33,7 @@ radar can't tell. No forecasts, no probabilities, no causes.
 > **Prototype status (design v7).** The NISAR frames, the satellite passes and every number in the
 > measured cases are **real**: frames and passes come from NASA's NISAR Observation Plan, case
 > numbers and layer images from the science team's reports
-> ([Ch0comilo/NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling)). Some things are still
+> ([nisar-hazard-watch/NISAR-Modeling](https://github.com/nisar-hazard-watch/NISAR-Modeling)). Some things are still
 > **demo**: the per-pass band chart series and the pass timeline dates of the measured cases. A live
 > question on any other land is answered by the backend with measured radar (**Real**, about one to
 > two and a half minutes on a fresh area). Every value carries a **Real** / **Demo** / **To fill** chip in the
@@ -141,7 +141,7 @@ Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 ## Measured cases
 
 All numbers live in `src/features/cases/cases.ts`, copied from the
-[NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling) reports.
+[NISAR-Modeling](https://github.com/nisar-hazard-watch/NISAR-Modeling) reports.
 
 | Case                        | Question             | Verdict                         | Headline                                            |
 | --------------------------- | -------------------- | ------------------------------- | --------------------------------------------------- |
@@ -158,14 +158,14 @@ All numbers live in `src/features/cases/cases.ts`, copied from the
 | NISAR frames (16,663 outlines)           | NASA NISAR Observation Plan, ArcGIS FeatureServer ([`nisar_merged_observation_plans/FeatureServer/0`](https://services7.arcgis.com/WSiUmUhlFx4CtMBB/arcgis/rest/services/nisar_merged_observation_plans/FeatureServer/0)), no API key | Snapshot in `public/data/frames.json` (fetched 2026-10-22), made by `pnpm frames:fetch` (`scripts/fetch-frames.ts`). The browser loads `/data/frames.json` and hit-tests frames locally, so hovering is instant and survives an API outage. |
 | Passes per frame (past and planned)      | Same FeatureServer, one query per track/frame                                                                                                                                                                                         | Fetched live in the browser when a live question runs (`fetchAcquisitions` in `src/features/frames/observationPlanApi.ts`).                                                                                                                 |
 | Basemap                                  | Esri World Imagery (`server.arcgisonline.com`), no key                                                                                                                                                                                | Cesium imagery tiles (`src/features/globe/cesium.ts`); no Cesium ion token.                                                                                                                                                                 |
-| Case numbers, verdicts, quality, sources | [Ch0comilo/NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling) reports (`flood_pilot_summary.json`, `FLOOD_CHARACTERIZATION.md`, `TEAM_HANDOFF.md`, …)                                                                       | Copied into `src/features/cases/cases.ts`; each value's source is in its chip tooltip.                                                                                                                                                      |
+| Case numbers, verdicts, quality, sources | [nisar-hazard-watch/NISAR-Modeling](https://github.com/nisar-hazard-watch/NISAR-Modeling) reports (`flood_pilot_summary.json`, `FLOOD_CHARACTERIZATION.md`, `TEAM_HANDOFF.md`, …)                                                     | Copied into `src/features/cases/cases.ts`; each value's source is in its chip tooltip.                                                                                                                                                      |
 | Case layer crops and report figures      | NISAR-Modeling report figures                                                                                                                                                                                                         | Static files in `public/cases/` (crops) and `public/cases/figures/`.                                                                                                                                                                        |
 | Experimental model metrics (Method)      | [Ch0comilo/NISAR-Models](https://github.com/Ch0comilo/NISAR-Models) model cards                                                                                                                                                       | Copied into `src/features/charts/metrics.ts` and `src/pages/method/methodContent.ts`.                                                                                                                                                       |
 | Landing and footer pictures              | NASA/JPL-Caltech, NASA Visible Earth, NASA HLS via Worldview, Wikimedia Commons                                                                                                                                                       | Static files in `public/landing/` and `public/footer/`, credited on the pages.                                                                                                                                                              |
 
 A live question calls the backend (`POST /api/v1/explorations`, then polling `GET
 /api/v1/explorations/{id}`), which asks the science team's gateway
-([NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling)); place search calls `GET
+([NISAR-Modeling](https://github.com/nisar-hazard-watch/NISAR-Modeling)); place search calls `GET
 /api/v1/places`. Every answer is validated with zod (`src/features/explore/exploreSchemas.ts`)
 before it reaches the UI, and the measured layers are PNGs the backend redirects to.
 
@@ -333,7 +333,7 @@ docs/screenshots/      README pictures
   [Alaska Satellite Facility DAAC](https://search.asf.alaska.edu/).
 - **NASA NISAR Observation Plan** (frames and passes).
 - **NASA JPL OPERA** DSWx-HLS and DIST-ALERT (the optical second witness in the science reports).
-- Science backend and models: [NISAR-Modeling](https://github.com/Ch0comilo/NISAR-Modeling) and
+- Science backend and models: [NISAR-Modeling](https://github.com/nisar-hazard-watch/NISAR-Modeling) and
   [NISAR-Models](https://github.com/Ch0comilo/NISAR-Models).
 - Landing pictures: NISAR's first image of North Dakota and the artist's concept of NISAR
   (NASA/JPL-Caltech); Blue Marble and cloud imagery (NASA Visible Earth), all public domain.
