@@ -11,8 +11,8 @@ NASA-ISRO's NISAR radar sees the ground through cloud and at night. NISAR Hazard
 that place's own normal range, checks it against a second satellite, and says plainly what the
 radar can't tell. No forecasts, no probabilities, no causes.
 
-[![Live demo](https://img.shields.io/badge/live%20demo-open%20the%20explorer-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app)
-[![Method](https://img.shields.io/badge/method-how%20it%20works-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch.vercel.app/method)
+[![Live demo](https://img.shields.io/badge/live%20demo-open%20the%20explorer-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch-nine.vercel.app)
+[![Method](https://img.shields.io/badge/method-how%20it%20works-c9b48b?style=for-the-badge&labelColor=04070e)](https://nisar-hazard-watch-nine.vercel.app/method)
 
 [![CI](https://github.com/nisar-hazard-watch/nisar-hazard-watch/actions/workflows/ci.yml/badge.svg)](https://github.com/nisar-hazard-watch/nisar-hazard-watch/actions/workflows/ci.yml)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
@@ -22,9 +22,9 @@ radar can't tell. No forecasts, no probabilities, no causes.
 ![three.js](https://img.shields.io/badge/three.js-landing%20scene-04070e?logo=threedotjs&logoColor=white)
 ![NASA Space Apps 2026](https://img.shields.io/badge/NASA%20Space%20Apps-2026-0b3d91)
 
-**[Live demo](https://nisar-hazard-watch.vercel.app)** ·
-**[Cases](https://nisar-hazard-watch.vercel.app/cases)** ·
-**[Method](https://nisar-hazard-watch.vercel.app/method)** ·
+**[Live demo](https://nisar-hazard-watch-nine.vercel.app)** ·
+**[Cases](https://nisar-hazard-watch-nine.vercel.app/cases)** ·
+**[Method](https://nisar-hazard-watch-nine.vercel.app/method)** ·
 **[Science backend](https://github.com/Ch0comilo/NISAR-Modeling)**
 
 </div>
@@ -254,9 +254,10 @@ pnpm dev            # http://localhost:5173
 ## Configuration
 
 One optional variable, `VITE_API_BASE_URL`: the backend's origin when it is not served from the
-same one (empty in production). In production Vercel rewrites `/api/*` to the Railway backend
-(`vercel.json`), so the browser only talks to its own origin; in development Vite proxies `/api`
-to `VITE_DEV_API_TARGET` (default `http://localhost:8000`). The Observation Plan and Esri imagery
+same one. Vercel production sets it to the Railway backend, so browsers call it directly and the
+backend's rate limit sees each user's own address (the backend allows the production origin by
+CORS); previews leave it empty and use the `/api/*` rewrite of `vercel.json`, and in development
+Vite proxies `/api` to `VITE_DEV_API_TARGET` (default `http://localhost:8000`). The Observation Plan and Esri imagery
 need no key. Old variables such as `VITE_ENABLED_HAZARDS` or `VITE_ANALYSIS_API_URL` are unused and
 can be removed from any deployment.
 
