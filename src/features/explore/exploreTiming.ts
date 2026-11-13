@@ -40,3 +40,9 @@ export const formatSeconds = (seconds: number): string => {
     ? `${whole} s`
     : `${Math.floor(whole / 60)} min ${String(whole % 60).padStart(2, "0")} s`;
 };
+
+// The compact lens row's clock: "1:15", "0:05", "10:00".
+export const formatClock = (seconds: number): string => {
+  const whole = Math.max(0, Math.floor(seconds));
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+};

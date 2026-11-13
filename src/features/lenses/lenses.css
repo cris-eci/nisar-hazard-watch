@@ -1,0 +1,463 @@
+/*
+ * Lens picker and lens result card (x-l*, SPECS-v8 §5–§6). Tokens from site.css and the explorer;
+ * the card sits inside .x-panel--result (400 px).
+ */
+
+/* Picker: 2 × 2 grid, Or ask, ground motion */
+.x-lpick {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.x-lpick__title {
+  color: var(--gold);
+}
+
+.x-lgrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.x-lbtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(235, 233, 228, 0.14);
+  background: rgba(235, 233, 228, 0.03);
+  color: var(--ink);
+  font-size: 13.5px;
+  text-align: left;
+  line-height: 1.25;
+  cursor: pointer;
+  transition:
+    border-color 200ms,
+    background 200ms;
+}
+
+.x-lbtn svg {
+  flex: none;
+}
+
+.x-lbtn:hover {
+  border-color: rgba(235, 233, 228, 0.4);
+}
+
+.x-lbtn[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: rgba(235, 233, 228, 0.1);
+}
+
+/* The running lens turns gold (§5). */
+.x-lbtn[data-running="true"] {
+  border-color: var(--gold);
+  background: rgba(201, 180, 139, 0.1);
+  color: var(--gold-hover);
+}
+
+.x-lrun {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 180, 139, 0.35);
+  background: rgba(201, 180, 139, 0.06);
+}
+
+.x-lrun__dot {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: x-lrun-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes x-lrun-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.x-lrun__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.x-lrun__title {
+  font-size: 13.5px;
+  color: var(--ink);
+}
+
+.x-lrun__sub {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.x-lask {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.x-lask__title {
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.x-lask__q {
+  display: flex;
+  gap: 6px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.x-lask__q span {
+  color: var(--gold);
+}
+
+.x-lask__q:hover {
+  color: var(--ink);
+}
+
+.x-lground {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(235, 233, 228, 0.22);
+  background: transparent;
+  color: var(--ink-2);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.x-lground:hover,
+.x-lground[aria-pressed="true"] {
+  border-color: rgba(235, 233, 228, 0.5);
+}
+
+.x-lground__note {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* Tabs above a lens result: one scrolling row, so 390 px never overflows the page. */
+/* flex: none, or the panel's scrolling column squeezes the scrollable row to zero height. */
+.x-ltabs {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  margin: 0 -18px;
+  padding: 0 18px;
+}
+
+.x-ltab {
+  height: 32px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(235, 233, 228, 0.16);
+  background: transparent;
+  color: var(--ink);
+  font-size: 12.5px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.x-ltab[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: rgba(201, 180, 139, 0.12);
+}
+
+.x-ltab--ground {
+  border-style: dashed;
+  color: var(--ink-2);
+}
+
+.x-ltab--ground .x-lground__note {
+  font-size: 9.5px;
+}
+
+/* Card */
+.x-lcard {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.x-lcard__head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.x-lcard__title {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.x-lcard__icon {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  color: var(--gold);
+}
+
+.x-lcard__question {
+  margin: 2px 0 0;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--ink-2);
+}
+
+.x-lcard__verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.x-lcard__verdict .x-glyph,
+.x-lsurround__label .x-glyph {
+  margin-top: 0;
+}
+
+.x-lcard__headline {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  text-wrap: pretty;
+}
+
+.x-lcard__reasons {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(235, 233, 228, 0.22);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+
+.x-lcard__reasons li::before {
+  content: "— ";
+  color: var(--faint);
+}
+
+.x-lcard__section,
+.x-lcard__slot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.x-lcard__why {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(111, 179, 232, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+/* Rule block */
+.x-lrule {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+}
+
+.x-lrule__thumb {
+  width: 112px;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+.x-lrule__body {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.x-lrule__thumb + .x-lrule__body {
+  grid-column: 2;
+}
+
+.x-lrule__count {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.x-lrule__n {
+  font-family: var(--mono);
+  font-size: 26px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.x-lrule__of {
+  white-space: pre;
+}
+
+.x-lrule__bar {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(235, 233, 228, 0.1);
+  overflow: hidden;
+}
+
+.x-lrule__bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gold);
+  transform-origin: left;
+  animation: x-lrule-grow 1.1s cubic-bezier(0.33, 1, 0.68, 1) 0.3s both;
+}
+
+@keyframes x-lrule-grow {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.x-lrule__axis {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--faint);
+}
+
+.x-lrule__toggle {
+  align-self: flex-start;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(235, 233, 228, 0.18);
+  background: transparent;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+
+.x-lrule__toggle[aria-pressed="true"] {
+  border-color: var(--gold);
+  background: rgba(201, 180, 139, 0.12);
+  color: var(--gold-hover);
+}
+
+.x-lrule__caption {
+  grid-column: 1 / -1;
+  font-size: 12.5px;
+  color: var(--faint);
+  text-wrap: pretty;
+}
+
+/* Pixel Δ cards */
+.x-ldeltas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.x-ldelta {
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.x-ldelta__k {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted);
+}
+
+.x-ldelta[data-channel="HH"] .x-ldelta__k {
+  color: #e8894a;
+}
+
+.x-ldelta[data-channel="HV"] .x-ldelta__k {
+  color: #6fb3e8;
+}
+
+.x-ldelta__v {
+  font-family: var(--mono);
+  font-size: 18px;
+  color: var(--ink);
+}
+
+.x-ldelta__s {
+  font-size: 11.5px;
+  color: var(--faint);
+}
+
+/* Surroundings */
+.x-lsurround__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.x-lsurround__line {
+  font-size: 13px;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .x-lrun__dot,
+  .x-lrule__bar i {
+    animation: none;
+  }
+}

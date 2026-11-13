@@ -265,6 +265,40 @@ export const STEP_6 = {
   moreInfo: "More information",
 } as const;
 
+// Lens result card (#21): §3 and §6 strings with their numbers filled from the answer, plus the lines
+// Cristian approved on 13 Nov 2026 (surroundings, ground-motion entry). Verbatim where COPY has them.
+export const LENS_CARD = {
+  kicker: (label: string) => `LENS · ${label.toUpperCase()}`,
+  // SPECS-v8 §6: the share of cells meeting the rule, in words.
+  fewCells: "a few cells",
+  aboutATenth: "about a tenth",
+  aQuarter: "a quarter",
+  aThird: "a third",
+  aboutHalf: "about half",
+  most: "most",
+  // §6 caption; "Dark navy cells: " only when the rule thumbnail is on screen to point at.
+  ruleCaption: (thumb: boolean, co: string, cross: string, date: string, n: number, k: number) =>
+    `${thumb ? "Dark navy cells: " : ""}HH fell ${co} dB or more and HV ${cross} dB or more on ${date}, against each cell's own median of ${n} earlier passes. Another ${formatCount(k)} cells brightened. Cells meeting a rule, not flooded area.`,
+  // §3 compact row without "on the {n} passes already read": a lens switch is a new run (decision 5).
+  runningSub: (elapsed: string) => `${elapsed} elapsed`,
+  cancelLens: "Cancel lens",
+  // Decision 2: ground motion stays a visible entry, in the app's existing words.
+  groundMotion: "Did the ground move?",
+  groundMotionNote: "measured, not a verdict",
+  surroundingsSame: "Did not darken more",
+  surroundingsDarker: "Darkened more",
+  surroundingsNotEnough: "Not enough data",
+  surroundingsSameLine: (r: number, a: number, b: number) =>
+    `The ${r} m patch around your pixel did not darken more than matched cells ${a}–${b} m away.`,
+  surroundingsDarkerLine: (r: number, a: number, b: number, co: string, cross: string) =>
+    `The ${r} m patch around your pixel darkened more than matched cells ${a}–${b} m away: by ${co} dB or more in HH and ${cross} dB or more in HV.`,
+  surroundingsCounts: (f: number, c: number, s: number) =>
+    `${formatCount(f)} cells in the patch, compared with ${formatCount(c)} matched cells out of ${formatCount(s)} around it.`,
+  // §6 insufficient template with the patch radius and the plural from the answer.
+  surroundingsInsufficient: (r: number, n: number, posting: string, k: number) =>
+    `The ${r} m patch holds ${formatCount(n)} ${n === 1 ? "cell" : "cells"} on this ${posting} grid; the comparison needs ${formatCount(k)}.`,
+} as const;
+
 // 7 · More information
 export const STEP_7 = {
   kicker: (

@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 
 import { Icon } from "@/features/case-panel/icons";
-import { HazardIcon } from "@/features/cases/HazardIcon";
 import { LENSES, type LensId } from "@/features/cases/cases";
 
 type CasePanelProps = {
@@ -9,19 +8,23 @@ type CasePanelProps = {
   title: string;
   lens: LensId;
   collapsed: boolean;
-  onLens: (lens: LensId) => void;
+  // The lens buttons (LensPicker): the grid, or tabs above a lens result.
+  picker: ReactNode;
+  // A lens result: the panel widens to 400 px (SPECS-v8 §1).
+  result?: boolean;
   onToggle: () => void;
   onClose: () => void;
   children: ReactNode;
 };
 
-// The left panel shell: kicker, title, the five questions, then whatever answers the question.
+// The left panel shell: kicker, title, the lens picker, then whatever answers the question.
 export const CasePanel = ({
   meta,
   title,
   lens,
   collapsed,
-  onLens,
+  picker,
+  result = false,
   onToggle,
   onClose,
   children,
@@ -44,7 +47,11 @@ export const CasePanel = ({
     );
   }
   return (
-    <aside className="x-panel x-glass" aria-label={title} data-testid="case-panel">
+    <aside
+      className={result ? "x-panel x-panel--result x-glass" : "x-panel x-glass"}
+      aria-label={title}
+      data-testid="case-panel"
+    >
       <div className="x-panel__head">
         <div className="x-panel__heading">
           <p className="x-kicker" data-testid="panel-meta">
@@ -75,21 +82,7 @@ export const CasePanel = ({
           <Icon name="close" size={13} />
         </button>
       </div>
-      <div role="group" aria-label="Question" className="x-lenses">
-        {LENSES.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className="x-lens"
-            aria-pressed={item.id === lens}
-            onClick={() => onLens(item.id)}
-            data-testid={`lens-${item.id}`}
-          >
-            <HazardIcon id={item.icon} size={14} />
-            {item.chip}
-          </button>
-        ))}
-      </div>
+      {picker}
       {children}
     </aside>
   );

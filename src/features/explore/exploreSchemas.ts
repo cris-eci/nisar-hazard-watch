@@ -44,6 +44,64 @@ const sceneSchema = z.object({
   configuration: z.string(),
 });
 
+// The lens's evaluation (flood today). Every block is optional and falls back to undefined when it
+// doesn't parse, so one odd block hides its section instead of failing the whole answer.
+const signatureSchema = z.looseObject({
+  state: z.string(),
+  fraction: z.number().nullable().optional(),
+  signature_cells: z.number(),
+  supported_cells: z.number(),
+});
+
+const surroundingSchema = z.looseObject({
+  status: z.string(),
+  reason: z.string().nullable().optional(),
+  focal_cells: z.number().optional(),
+  minimum_cells: z.number().optional(),
+  surrounding_cells: z.number().optional(),
+  focal_radius_m: z.number().optional(),
+  comparison_annulus_m: z.tuple([z.number(), z.number()]).optional(),
+  matches: z
+    .looseObject({ matched_control_pixels: z.number() })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  differential_darkening: z
+    .looseObject({ state: z.string(), reason: z.string().nullable().optional() })
+    .nullable()
+    .optional()
+    .catch(undefined),
+});
+
+const evaluationSchema = z.looseObject({
+  grid: z
+    .looseObject({ pixel_spacing_m: z.array(z.number()) })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  point: z
+    .looseObject({ signature_states: z.record(z.string(), z.string()).optional() })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  grid_signatures: z
+    .looseObject({
+      dual_darkening: signatureSchema.nullable().optional().catch(undefined),
+      co_pol_brightening: signatureSchema.nullable().optional().catch(undefined),
+    })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  signature_policy: z
+    .looseObject({
+      dual_darkening_max_change_db: z.object({ co: z.number(), cross: z.number() }),
+    })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  surrounding_comparison: surroundingSchema.nullable().optional().catch(undefined),
+});
+
 const lensSchema = z.looseObject({
   status: z.string(),
   reason: z.string().nullable().optional(),
@@ -66,6 +124,7 @@ const lensSchema = z.looseObject({
     .nullable()
     .optional(),
   evidence: z.looseObject({ status: z.string() }).optional(),
+  evaluation: evaluationSchema.nullable().optional().catch(undefined),
 });
 
 const aoiSummarySchema = z.looseObject({
@@ -174,3 +233,78 @@ export const isFinal = (status: ExplorationView["status"]): boolean =>
   (FINAL_STATUSES as readonly string[]).includes(status);
 
 export const layerBox = (layer: ExplorationLayer): BBox => layer.bounds;
+
+/*
+ * The lens evaluation as the UI reads it, in camelCase. Backend #11 is moving these keys to
+ * camelCase: when it lands, only the schemas above and this mapping change.
+ */
+export type Signature = {
+  state: string;
+  fraction: number | undefined;
+  signatureCells: number;
+  supportedCells: number;
+};
+
+export type Surroundings = {
+  status: string;
+  differentialState: string | undefined;
+  focalCells: number | undefined;
+  minimumCells: number | undefined;
+  surroundingCells: number | undefined;
+  matchedControlCells: number | undefined;
+  focalRadiusM: number | undefined;
+  annulusM: [number, number] | undefined;
+};
+
+export type LensEvaluation = {
+  targetDate: string | undefined;
+  baselinePasses: number | undefined;
+  pixelSpacingM: number | undefined;
+  // The backend's own reading of each signature at the clicked pixel.
+  pixelDualDarkening: string | undefined;
+  dualDarkening: Signature | undefined;
+  coPolBrightening: Signature | undefined;
+  dualDarkeningMaxChangeDb: { co: number; cross: number } | undefined;
+  surroundings: Surroundings | undefined;
+};
+
+type RawSignature = z.infer<typeof signatureSchema>;
+
+const signatureOf = (raw: RawSignature | null | undefined): Signature | undefined =>
+  raw == null
+    ? undefined
+    : {
+        state: raw.state,
+        fraction: raw.fraction ?? undefined,
+        signatureCells: raw.signature_cells,
+        supportedCells: raw.supported_cells,
+      };
+
+export const lensEvaluationOf = (result: ExplorationResult): LensEvaluation | undefined => {
+  const lens = result.lens;
+  const evaluation = lens?.evaluation;
+  if (lens == null || evaluation == null) return undefined;
+  const around = evaluation.surrounding_comparison;
+  return {
+    targetDate: lens.target_date,
+    baselinePasses: lens.baseline_dates?.length,
+    pixelSpacingM: evaluation.grid?.pixel_spacing_m[0],
+    pixelDualDarkening: evaluation.point?.signature_states?.["dual_darkening"],
+    dualDarkening: signatureOf(evaluation.grid_signatures?.dual_darkening),
+    coPolBrightening: signatureOf(evaluation.grid_signatures?.co_pol_brightening),
+    dualDarkeningMaxChangeDb: evaluation.signature_policy?.dual_darkening_max_change_db,
+    surroundings:
+      around == null
+        ? undefined
+        : {
+            status: around.status,
+            differentialState: around.differential_darkening?.state,
+            focalCells: around.focal_cells,
+            minimumCells: around.minimum_cells,
+            surroundingCells: around.surrounding_cells,
+            matchedControlCells: around.matches?.matched_control_pixels,
+            focalRadiusM: around.focal_radius_m,
+            annulusM: around.comparison_annulus_m,
+          },
+  };
+};
