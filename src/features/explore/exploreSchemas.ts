@@ -102,6 +102,18 @@ const evaluationSchema = z.looseObject({
   surrounding_comparison: surroundingSchema.nullable().optional().catch(undefined),
 });
 
+// Wildfire: how often HV fell below its band, over the grid per assessed pass and at the pixel.
+const crossPolHistorySchema = z.looseObject({
+  status: z.string(),
+  polarization: z.string().optional(),
+  samples: z.array(z.looseObject({ date: z.string(), decline_cells: z.number() })),
+});
+
+const pixelCrossPolHistorySchema = z.looseObject({
+  decline_dates: z.number(),
+  assessed_dates: z.number(),
+});
+
 const lensSchema = z.looseObject({
   status: z.string(),
   reason: z.string().nullable().optional(),
@@ -113,6 +125,7 @@ const lensSchema = z.looseObject({
       status: z.string(),
       target_minus_baseline_db: perChannel,
       diagnostic_half_width_db: perChannel,
+      cross_pol_history: pixelCrossPolHistorySchema.nullable().optional().catch(undefined),
     })
     .nullable()
     .optional(),
@@ -120,6 +133,8 @@ const lensSchema = z.looseObject({
     .looseObject({
       polarizations: z.array(z.string()),
       posting_m: z.number(),
+      common_cells: z.number().optional().catch(undefined),
+      cross_pol_history: crossPolHistorySchema.nullable().optional().catch(undefined),
     })
     .nullable()
     .optional(),
@@ -306,5 +321,32 @@ export const lensEvaluationOf = (result: ExplorationResult): LensEvaluation | un
             focalRadiusM: around.focal_radius_m,
             annulusM: around.comparison_annulus_m,
           },
+  };
+};
+
+// Wildfire's rule evidence: the backend sends it in lens.radar and lens.point, not in evaluation.
+export type CrossPolHistory = {
+  status: string;
+  polarization: string | undefined;
+  commonCells: number | undefined;
+  samples: { date: string; declineCells: number }[];
+  pixelDeclinePasses: number | undefined;
+  pixelAssessedPasses: number | undefined;
+};
+
+export const crossPolHistoryOf = (result: ExplorationResult): CrossPolHistory | undefined => {
+  const history = result.lens?.radar?.cross_pol_history;
+  if (history == null) return undefined;
+  const pixel = result.lens?.point?.cross_pol_history;
+  return {
+    status: history.status,
+    polarization: history.polarization,
+    commonCells: result.lens?.radar?.common_cells,
+    samples: history.samples.map((sample) => ({
+      date: sample.date,
+      declineCells: sample.decline_cells,
+    })),
+    pixelDeclinePasses: pixel?.decline_dates,
+    pixelAssessedPasses: pixel?.assessed_dates,
   };
 };
