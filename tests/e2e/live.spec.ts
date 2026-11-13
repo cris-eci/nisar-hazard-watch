@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 import {
+  agricultureView,
   INSAR_PAIRS,
   insarView,
   noCoverageView,
@@ -81,6 +82,53 @@ test.describe("Explorer: lens buttons and the lens result card", () => {
     // Tabs above the card, 400 px panel.
     await expect(page.getByTestId("lens-tabs")).toBeVisible();
     expect((await globe.panel.boundingBox())?.width).toBe(400);
+  });
+
+  test("the agriculture card on the real Texas answer: the patch against its neighbours, no optical", async ({
+    page,
+  }) => {
+    await globe.mockExplorations({ first: agricultureView() });
+    await globe.goto(`?frame=${LIVE_FRAME.id}&lens=agriculture`);
+
+    const card = page.getByTestId("lens-card");
+    await expect(card).toHaveAttribute("data-lens", "agriculture");
+    const order = await card
+      .locator(":scope > [data-rv]")
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
+    expect(order).toEqual([
+      "lens-head",
+      "lens-slot-extra",
+      "lens-pixel",
+      "lens-why-two",
+      "more-info",
+    ]);
+
+    await expect(card.getByTestId("lens-head")).toContainText("LENS · AGRICULTURE");
+    await expect(globe.verdict).toContainText("Within its usual range");
+    await expect(page.getByTestId("lens-headline")).toHaveText(
+      "No clear difference between this field and its neighbours on 28 Oct 2026.",
+    );
+    await expect(page.getByTestId("lens-rule")).toContainText("WHAT THIS LENS COMPARES");
+    await expect(page.getByTestId("lens-neighbours-counts")).toHaveText(
+      "112 cells in the patch, compared with 112 matched cells out of 2,379 around it.",
+    );
+    const contrasts = page.getByTestId("lens-contrast");
+    await expect(contrasts).toHaveCount(3);
+    await expect(contrasts.nth(0)).toContainText("+0.3 dB");
+    await expect(contrasts.nth(0)).toContainText("No difference beyond ±1 dB");
+    await expect(contrasts.nth(1)).toContainText("Too uncertain to say");
+    await expect(contrasts.nth(2)).toContainText("HV − HH");
+    await expect(page.getByTestId("lens-rule-caption")).toContainText(
+      "Patch cells minus matched cells, 112 pairs · 95% spatial interval",
+    );
+    await expect(page.getByTestId("lens-rule-toggle")).toBeVisible();
+    await expect(page.getByTestId("lens-why-two")).toContainText("Crops change through the season");
+
+    // No optical witness for this lens, no drivers, no area, no demo.
+    await expect(page.getByTestId("lens-slot-witness")).toHaveCount(0);
+    await expect(page.getByTestId("lens-slot-drivers")).toHaveCount(0);
+    await expect(card).not.toContainText(/hectare|probability|caused by/i);
+    await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
   });
 
   test("a question link picks its lens exactly like its button", async ({ page }) => {

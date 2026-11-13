@@ -299,6 +299,28 @@ export const LENS_CARD = {
     `The ${r} m patch holds ${formatCount(n)} ${n === 1 ? "cell" : "cells"} on this ${posting} grid; the comparison needs ${formatCount(k)}.`,
 } as const;
 
+// Agriculture card (#28). `insufficientLine`, `comparesTitle`, `note`, `patchTooSmall` and
+// `radarOnly` are verbatim from `reference/Lens Result v2.dc.html` (OTHER.agriculture). The rest
+// was approved by the team on 13 Nov 2026.
+export const AGRICULTURE_CARD = {
+  insufficientLine: "The 60 m patch has too few cells on this grid to compare with its neighbours.",
+  comparesTitle: "WHAT THIS LENS COMPARES",
+  note: "Compares the median level inside 60 m with matched cells 120–300 m away, pass by pass.",
+  patchTooSmall: (n: number, r: number, k: number) =>
+    `${formatCount(n)} ${n === 1 ? "cell" : "cells"} in the ${r} m patch; needs ${formatCount(k)}`,
+  radarOnly: "Radar only: no optical check for this lens",
+  // Headlines for an evaluated patch, from the per-channel contrast states.
+  likeNeighbours: (date: string) => `This field changed like its neighbours on ${date}.`,
+  unclear: (date: string) =>
+    `No clear difference between this field and its neighbours on ${date}.`,
+  // Per-channel state labels.
+  stateAbsent: (db: string) => `No difference beyond ±${db} dB`,
+  stateInsufficient: "Too uncertain to say",
+  // After STEP_6.whiskerCaption.
+  whiskerCaption: (n: number) =>
+    `Patch cells minus matched cells, ${formatCount(n)} pairs · 95% spatial interval`,
+} as const;
+
 // 7 · More information
 export const STEP_7 = {
   kicker: (
