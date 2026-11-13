@@ -689,13 +689,26 @@
   color: var(--ink-3);
 }
 
+/* Top-bar switches: L | S today, Ascending / Descending (#24) beside it. v8 pill look. */
+.x-switches {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Reserved for #24 and empty until then: it must not add a gap. */
+.x-switches__slot:empty {
+  display: none;
+}
+
 .x-source {
   height: 40px;
   box-sizing: border-box;
   flex: none;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 4px;
   border-radius: 999px;
   background: rgba(8, 16, 31, 0.8);
@@ -704,20 +717,27 @@
 }
 
 .x-source button {
-  width: 32px;
-  height: 32px;
+  height: 30px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   background: transparent;
-  color: var(--muted);
-  font-family: var(--mono);
+  color: var(--ink);
+  font: inherit;
   font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
   cursor: default;
 }
 
 .x-source button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--space);
+}
+
+.x-source button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .x-source button:disabled {
