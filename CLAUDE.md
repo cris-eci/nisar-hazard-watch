@@ -1,7 +1,7 @@
 # CLAUDE.md — globe-ui
 
-Web app for the NASA Space Apps 2026 NISAR challenge (team project), design v7: a **radar evidence
-explorer**. For a place it answers "did the radar echo change beyond this place's own normal
+Web app for the NASA Space Apps 2026 NISAR challenge (team project), design v8 on top of v7: a
+**radar evidence explorer**. For a place it answers "did the radar echo change beyond this place's own normal
 range?", checks it against a second witness (OPERA optical) and says what the radar can't tell. No
 forecasts, probabilities or causes.
 
@@ -17,8 +17,26 @@ Pages (`src/App.tsx` switches on the pathname; no router dependency):
 - `/report?case=<id>` a printable one-page report for a measured case; `/report?exploration=<id>`
   the same for a live answer, fetched from the backend (`src/pages/report/`).
 
-Design source of truth: `design_handoff_v7/` next to this repo (outside git) (`SPECS.md`, `DATA_PROVENANCE.md`). Visual system:
+Design source of truth: `docs/design/` (reading order in `docs/design/README.md`: `v8/` specs, copy
+and provenance on top of `v7/`; its team decisions win over the handoff). Visual system as built:
 `DESIGN.md`.
+
+## v8 foundations
+
+Shared pieces every v8 issue builds on:
+
+- **Copy:** `src/content/copyV8.ts` holds the `COPY-v8.md` strings verbatim (top bar, steps 1–7,
+  chips, `LENS_COPY`), with `{x}` placeholders as small functions (`passOf`, `cellsOf`) and an en-US
+  `formatCount`. Strings that a team decision overrides carry a comment naming it. Never write new
+  copy in a component.
+- **Chips:** `ProvenanceChip` kinds `real`, `realDates`, `demo`, `demoDates`, `todo`, `pending`,
+  `unavailable`, `experimental`, `hypothesis`, `instant`, from the pure table in
+  `src/lib/provenanceChips.ts` (text, testid, default title). Only `real` can be hidden.
+- **Motion:** `src/lib/motion.ts` (GSAP core, no ScrollTrigger/Lenis): `revealBlocks`, `popIn`,
+  `countUp`, `pulse`, each with `reduce` (pass the explorer's `reduceMotion`) and a cleanup; it owns
+  `prefersReducedMotion`, which `siteMotion.ts` re-exports.
+- **Panel width:** `--x-panel-w` on `.explorer` (372 px; `.x-panel--result` 400 px) sizes the panel,
+  start and place cards; the size guide and hint centre on the free globe from it.
 
 ## Stack
 
@@ -150,8 +168,8 @@ validates every answer, and a non-2xx answer (always `application/problem+json`)
 
 - Never invent a number, date, source or link. Numbers come from `cases.ts` or the science team's
   docs, with the source in the chip tooltip.
-- Every DEMO value carries a visible chip (`src/lib/ProvenanceChip.tsx`, `c-prov` classes). DEMO and
-  TO FILL chips can never be hidden; Help → "Show REAL labels" hides only REAL chips.
+- Every DEMO value carries a visible chip (`src/lib/ProvenanceChip.tsx`, `c-prov` classes). DEMO,
+  TO FILL and HYPOTHESIS chips can never be hidden; Help → "Show REAL labels" hides only REAL chips.
 - Shares of a group use a fixed 0–100% axis. "No measurement" is grey `#62666d`, never white. Gaps
   stay gaps. Write "80 m grid" / "40 m grid".
 - A planned pass is a promise, not data: never clickable, never drawn as a measurement.

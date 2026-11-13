@@ -46,6 +46,7 @@ test.describe("Explorer: live exploration", () => {
     await expect(page.getByTestId("panel-stat")).toContainText("32.9%");
     await expect(globe.panel.getByTestId("contrast-bars")).toBeVisible();
     await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.panel.getByTestId("prov-demo-dates")).toHaveCount(0);
     await expect(globe.panelMeta).toContainText(`Live question · ${LIVE_FRAME.title}`);
     await expect(page).toHaveURL(new RegExp(`frame=${LIVE_FRAME.id}`));
     expect(api.posts).toEqual([
@@ -195,6 +196,7 @@ test.describe("Explorer: live exploration", () => {
     await expect(globe.timeline).toBeVisible();
     await expect(globe.timeline.getByTestId("prov-real")).toBeVisible();
     await expect(globe.timeline.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.timeline.getByTestId("prov-demo-dates")).toHaveCount(0);
     await expect(globe.timelinePasses("target")).toHaveCount(1);
     await expect(globe.timelinePasses("base")).toHaveCount(4);
     for (const planned of await globe.timelinePasses("plan").all())
@@ -216,6 +218,7 @@ test.describe("Explorer: live exploration", () => {
     await expect(globe.sheet).toContainText("not a validated classifier");
     await expect(globe.sheet).toContainText("optical evidence was not requested");
     await expect(globe.sheet.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.sheet.getByTestId("prov-demo-dates")).toHaveCount(0);
   });
 
   test("the L | S control sends L and S stays off with its reason", async ({ page }) => {
@@ -293,6 +296,7 @@ test.describe("Explorer: live exploration", () => {
       await expect(page.getByTestId("insar-displacement")).toContainText("Not reported");
       await expect(page.getByTestId("panel-stat")).toContainText("63.3%");
       await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+      await expect(globe.panel.getByTestId("prov-demo-dates")).toHaveCount(0);
       await expect(globe.normalRange).toHaveCount(0);
       await expect(page).toHaveURL(new RegExp(`pair=${SECOND_PAIR}`));
       await expect(page).toHaveURL(/coherence=0\.5/);
@@ -386,6 +390,7 @@ test.describe("Explorer: live exploration", () => {
       await expect(fire).toContainText("separate from the radar");
       await expect(fire.getByTestId("prov-real")).toBeVisible();
       await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+      await expect(globe.panel.getByTestId("prov-demo-dates")).toHaveCount(0);
 
       await globe.moreInfo.click();
       await expect(page.getByRole("link", { name: /FIRMS active fire data/ })).toBeVisible();
@@ -440,6 +445,7 @@ test.describe("Report: live answer", () => {
     await expect(page.getByTestId("report-stat")).toContainText("32.9%");
     await expect(page.getByTestId("report-scenes").getByRole("listitem")).toHaveCount(5);
     await expect(page.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(page.getByTestId("prov-demo-dates")).toHaveCount(0);
   });
 
   test("a wildfire report adds the fire context as its own block, apart from the radar data", async ({
@@ -470,6 +476,7 @@ test.describe("Report: live answer", () => {
     await expect(page.getByTestId("report-summary")).not.toContainText("Verdict:");
     await expect(page.getByTestId("report")).toContainText("Measured, not a verdict");
     await expect(page.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(page.getByTestId("prov-demo-dates")).toHaveCount(0);
   });
 
   test("an answer that does not exist says so and keeps the way back", async ({ page }) => {

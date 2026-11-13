@@ -843,7 +843,11 @@ export const ExplorerPage = () => {
           tools={
             <>
               <AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />
-              <SourceSwitch />
+              <div className="x-switches">
+                <SourceSwitch />
+                {/* #24 puts Ascending / Descending here. */}
+                <span className="x-switches__slot" aria-hidden="true" />
+              </div>
             </>
           }
           helpOpen={helpOpen}

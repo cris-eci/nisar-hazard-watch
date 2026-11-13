@@ -12,6 +12,7 @@ import {
   readoutOf,
   type LaidPass,
 } from "@/features/timeline/timelineLayout";
+import { ProvenanceChip } from "@/lib/ProvenanceChip";
 
 const PLAY_MS = 900;
 // Pixels from the top of the track: bars grow up from just above the radar axis.
@@ -93,9 +94,7 @@ export const PassTimeline = ({ data, demo = true }: PassTimelineProps) => {
           <span className="x-tl__sub">{readout.sub}</span>
         </div>
         {demo ? (
-          <span className="c-prov c-prov--demo" title={SOURCE.timeline} data-testid="prov-demo">
-            Demo dates
-          </span>
+          <ProvenanceChip kind="demoDates" source={SOURCE.timeline} />
         ) : (
           <Prov kind="real" source={SOURCE.liveTimeline} />
         )}
