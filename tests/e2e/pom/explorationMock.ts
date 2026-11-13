@@ -11,6 +11,17 @@ const REAL = JSON.parse(
 const INSAR = JSON.parse(
   readFileSync(new URL("../../fixtures/exploration-kumamoto-insar.json", import.meta.url), "utf8"),
 ) as Record<string, unknown>;
+// A real agriculture answer (Texas), saved by the app's JSON download as { source, exploration }.
+const AGRICULTURE = (
+  JSON.parse(
+    readFileSync(
+      new URL("../../fixtures/exploration-texas-agriculture.json", import.meta.url),
+      "utf8",
+    ),
+  ) as { exploration: Record<string, unknown> }
+).exploration;
+export const agricultureView = (overrides: View = {}): View => ({ ...AGRICULTURE, ...overrides });
+
 export const INSAR_PAIRS = JSON.parse(
   readFileSync(new URL("../../fixtures/insar-pairs-kumamoto.json", import.meta.url), "utf8"),
 ) as { windowStart: string; windowEnd: string; pairs: Array<Record<string, unknown>> };
