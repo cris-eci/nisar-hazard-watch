@@ -4,9 +4,10 @@ import { MAX_VERTICES, MIN_VERTICES } from "@/features/geo/limits";
 import { boundsOf, normalizeLon, unwrapRing } from "@/features/geo/longitude";
 
 // Shared links: ?bbox=west,south,east,north for a rectangle (east below west crosses ±180°) and
-// ?geo=lon,lat_lon,lat_… for a polygon. A point is already a ?frame= link.
+// ?geo=lon,lat_lon,lat_… for a polygon and ?point=lon,lat for an exact point.
 export const BBOX_PARAM = "bbox";
 export const GEO_PARAM = "geo";
+export const POINT_PARAM = "point";
 
 const DECIMALS = 5;
 const VERTEX_SEPARATOR = "_";
@@ -27,6 +28,19 @@ export const areaToParams = (area: Area): Record<string, string> | undefined => 
 
 const isLon = (value: number): boolean => Number.isFinite(value) && Math.abs(value) <= 180;
 const isLat = (value: number): boolean => Number.isFinite(value) && Math.abs(value) <= 90;
+
+export const pointToParams = (point: LonLat): Record<string, string> => ({
+  [POINT_PARAM]: pairOf(point),
+});
+
+const parsePoint = (text: string): Area | undefined => {
+  const parts = text.split(",");
+  if (parts.length !== 2 || parts.some((part) => part.trim() === "")) return undefined;
+  const [lon, lat] = parts.map(Number);
+  return lon !== undefined && lat !== undefined && isLon(lon) && isLat(lat)
+    ? { kind: "point", point: [lon, lat] }
+    : undefined;
+};
 
 const parseBbox = (text: string): Area | undefined => {
   const values = text.split(",").map(Number);
@@ -64,5 +78,7 @@ export const areaFromParams = (params: URLSearchParams): Area | undefined => {
   const bbox = params.get(BBOX_PARAM);
   if (bbox !== null) return parseBbox(bbox);
   const geo = params.get(GEO_PARAM);
-  return geo === null ? undefined : parseGeo(geo);
+  if (geo !== null) return parseGeo(geo);
+  const point = params.get(POINT_PARAM);
+  return point === null ? undefined : parsePoint(point);
 };

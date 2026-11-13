@@ -106,10 +106,11 @@ test.describe("Explorer: choosing an area", () => {
     await expect(page).toHaveURL(new RegExp(`bbox=${BBOX}`));
   });
 
-  test("a link to an area no frame covers says so and keeps the start card", async () => {
+  test("a link outside the frame snapshot still asks the archive", async ({ page }) => {
+    const request = page.waitForRequest((entry) => entry.url().endsWith("/api/v1/explorations"));
     await globe.goto("?bbox=0,0,0.05,0.04");
-    await expect(globe.areaNotice).toHaveText("No NISAR frame covers this area");
-    await expect(globe.startCard).toBeVisible();
+    expect((await request).postDataJSON()).toMatchObject({ geometry: { type: "Polygon" } });
+    await expect(globe.panelMeta).toContainText("Live question · NISAR catalog");
   });
 
   test("the tools are off in the guided tour and the globe does not answer clicks", async ({

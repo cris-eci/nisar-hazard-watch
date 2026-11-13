@@ -214,9 +214,121 @@ test.describe("Explorer: live exploration", () => {
       "Measuring against the normal range",
     );
     await expect(globe.sheet).toContainText("not a validated classifier");
-    await expect(globe.sheet).toContainText("optical evidence was not requested");
+    await expect(globe.sheet).toContainText("Independent optical measurements are unavailable");
     await expect(globe.sheet.getByTestId("prov-demo")).toHaveCount(0);
   });
+
+  for (const mobile of [false, true]) {
+    test(`the measured sheet links views and preserves a rectangular image on ${mobile ? "mobile" : "desktop"}`, async ({
+      page,
+    }, testInfo) => {
+      if (mobile) await page.setViewportSize({ width: 390, height: 844 });
+      const base = succeededView();
+      const result = base.result as Record<string, unknown>;
+      const observations = result.observations as { date: string; status: string }[];
+      const target = observations.at(-1)?.date;
+      const grid = {
+        epsg: 32643,
+        bounds_native: [100000, 200000, 100240, 200160],
+        width: 12,
+        height: 8,
+        pixel_spacing_m: [20, 20],
+      };
+      const bounds = [73.72, 32.31, 73.73, 32.32];
+      const root = `/api/v1/explorations/${String(base.id)}`;
+      const original = {
+        id: `display_${target}_HH`,
+        title: "HH radar return",
+        kind: "observed",
+        units: "dB",
+        crs: "EPSG:4326",
+        grid,
+        bounds,
+        legend: null,
+        colormap: "gray",
+        valueRange: [-30, 0],
+        url: `${root}/layers/original`,
+        dates: [target],
+      };
+      const signature = {
+        ...original,
+        id: "display_flood_signature_flags_dual_darkening",
+        title: "Joint darkening",
+        kind: "diagnostic",
+        units: "diagnostic mask",
+        colormap: "diagnostic_categories",
+        legend: { "0": "absent", "1": "present" },
+        valueRange: [0, 1],
+        url: `${root}/layers/signature`,
+      };
+      await globe.mockExplorations({
+        first: succeededView({
+          result: {
+            ...result,
+            observations: observations.map((row, index) => ({
+              ...row,
+              grid,
+              point_db: { HH: -12 - index, HV: -23 - index },
+              valid_pixel_count_by_pol: { HH: 96, HV: 96 },
+            })),
+            layers: [original, signature],
+            products: { visualizations: [], assets: [], previews: [] },
+          },
+        }),
+      });
+      await page.route("**/layers/signature", (route) =>
+        route.fulfill({
+          contentType: "image/png",
+          // An SVG is unnecessary here: the mock uses a transparent rectangular PNG.
+          body: Buffer.from(
+            "iVBORw0KGgoAAAANSUhEUgAAAAwAAAAICAYAAADN5B7xAAAADklEQVR4nGNgGAWDAQAAAYgAAfJhrFEAAAAASUVORK5CYII=",
+            "base64",
+          ),
+        }),
+      );
+      await page.route("**/analysis", (route) => route.fulfill({ status: 503, json: {} }));
+      await globe.goto(`?frame=${LIVE_FRAME.id}`);
+      await globe.moreInfo.click();
+      const split = globe.sheet.getByTestId("compare-split");
+      await expect(split).toBeVisible();
+      const box = await split.boundingBox();
+      expect(box?.width).toBeGreaterThan(0);
+      expect((box?.width ?? 0) / (box?.height ?? 1)).toBeCloseTo(1.5, 1);
+      await split.focus();
+      await split.press("ArrowRight");
+      await expect(split).toHaveAttribute("aria-valuenow", "55");
+      if (mobile && box) {
+        const session = await page.context().newCDPSession(page);
+        const visible = await split.boundingBox();
+        const x = (visible?.x ?? box.x) + box.width * 0.25;
+        const y = (visible?.y ?? box.y) + box.height * 0.5;
+        await session.send("Input.dispatchTouchEvent", {
+          type: "touchStart",
+          touchPoints: [{ x, y }],
+        });
+        await session.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+        await expect(split).toHaveAttribute("aria-valuenow", "25");
+      }
+      await expect(
+        globe.sheet.getByText("Polarization trajectory", { exact: false }),
+      ).toBeVisible();
+      await page.screenshot({ path: testInfo.outputPath("measured-sheet.png") });
+      const heatmap = globe.sheet.getByRole("region", { name: "Date-by-channel heatmap" });
+      await heatmap.getByRole("button").first().click();
+      await expect(globe.sheet.getByRole("slider", { name: "Acquisition date" })).toHaveAttribute(
+        "aria-valuetext",
+        observations[0]?.date ?? "",
+      );
+      await expect(
+        globe.sheet.getByText("No image is available for this acquisition."),
+      ).toBeVisible();
+      await globe.sheet.getByRole("button", { name: "Run regional analysis" }).click();
+      await expect(globe.sheet.getByRole("alert")).toContainText("Analysis capacity is limited");
+      await expect(
+        globe.sheet.getByRole("button", { name: "Retry regional analysis" }),
+      ).toBeVisible();
+    });
+  }
 
   test("the L | S control sends L and S stays off with its reason", async ({ page }) => {
     await globe.mockExplorations({ first: succeededView() });

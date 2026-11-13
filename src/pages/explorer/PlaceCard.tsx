@@ -6,7 +6,7 @@ import { formatLonLat } from "@/features/live/liveQuestion";
 
 type PlaceCardProps = {
   place: Place;
-  // The NISAR frame under the place, if any; the question needs one.
+  // The observation-plan outline is optional context for the catalog request.
   frame: Frame | undefined;
   onAnalyse: () => void;
   onClose: () => void;
@@ -36,11 +36,8 @@ export const PlaceCard = ({ place, frame, onAnalyse, onClose }: PlaceCardProps) 
     <p className="x-place__meta">{formatLonLat(place.point)}</p>
     {frame === undefined ? (
       <div className="x-problem" role="status" data-testid="place-no-frame">
-        <p className="x-problem__title">No NISAR frame covers this place</p>
-        <p>
-          The radar question needs a NISAR frame over the place. Try another spot or a measured
-          case.
-        </p>
+        <p className="x-problem__title">No frame outline in the map</p>
+        <p>Analyse this area to check the NISAR archive for measurements.</p>
       </div>
     ) : (
       <p className="x-place__frame" data-testid="place-frame">
@@ -50,13 +47,7 @@ export const PlaceCard = ({ place, frame, onAnalyse, onClose }: PlaceCardProps) 
     <p className="x-place__note">
       The radar reads a {AOI_SIDE_KM} km square around this point, drawn on the globe.
     </p>
-    <button
-      type="button"
-      className="x-primary"
-      disabled={frame === undefined}
-      onClick={onAnalyse}
-      data-testid="place-analyse"
-    >
+    <button type="button" className="x-primary" onClick={onAnalyse} data-testid="place-analyse">
       Analyse this area
       <Icon name="arrow" size={14} />
     </button>
