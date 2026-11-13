@@ -6,6 +6,7 @@ import {
   noCoverageView,
   runningView,
   succeededView,
+  wildfireView,
   withFireContext,
 } from "./pom/explorationMock";
 import { GlobePage, LIVE_FRAME } from "./pom/GlobePage";
@@ -542,7 +543,54 @@ test.describe("Explorer: live exploration", () => {
     });
   });
 
-  test.describe("wildfire fire context", () => {
+  test.describe("wildfire card", () => {
+    test("the real Seattle answer: headline, HV rule rows, pixel line and FIRMS as the second witness", async ({
+      page,
+    }) => {
+      await globe.mockExplorations({ first: wildfireView() });
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=wildfire`);
+
+      const card = page.getByTestId("lens-card");
+      await expect(card).toHaveAttribute("data-lens", "wildfire");
+      const order = await card
+        .locator(":scope > [data-rv]")
+        .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
+      expect(order).toEqual([
+        "lens-head",
+        "lens-slot-extra",
+        "lens-pixel",
+        "lens-why-two",
+        "lens-slot-witness",
+        "more-info",
+      ]);
+      await expect(card.getByTestId("lens-head")).toContainText("LENS · WILDFIRE");
+      await expect(page.getByTestId("lens-headline")).toHaveText(
+        "This lens needs at least two passes after the baseline. This spot has one.",
+      );
+      await expect(page.getByTestId("lens-rule")).toContainText("WHAT THIS LENS COMPARES");
+      await expect(page.getByTestId("lens-rule-count")).toHaveText("96,043 of 1,048,312 cells");
+      await expect(page.getByTestId("lens-rule-row")).toContainText(
+        "with HV below its band on 24 Oct 2026",
+      );
+      await expect(page.getByTestId("lens-rule-caption")).toContainText(
+        "At your pixel: HV below its band on 0 of 1 pass after the baseline.",
+      );
+      await expect(page.getByTestId("lens-rule-toggle")).toBeVisible();
+      await expect(page.getByTestId("lens-why-two")).toContainText("Burning removes the canopy");
+
+      const witness = page.getByTestId("lens-witness");
+      await expect(witness).toContainText("SECOND WITNESS · NASA FIRMS");
+      await expect(page.getByTestId("lens-witness-status")).toHaveText("READY · REAL");
+      await expect(witness).toContainText("No active-fire detections between the two passes");
+      await expect(witness).toContainText("does not rule a fire out");
+
+      // FIRMS never feeds the verdict; no burned area, hectares or cause anywhere on the card.
+      // "burned area" only appears negated, like flood's "not flooded area".
+      await expect(card).not.toContainText(/hectare|(?<!not )burned area|caused by|probability/i);
+      await expect(page.getByTestId("lens-slot-drivers")).toHaveCount(0);
+      await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+    });
+
     test("an available context sits apart from the radar verdict, with its dates and the FIRMS source", async ({
       page,
     }) => {
@@ -551,12 +599,12 @@ test.describe("Explorer: live exploration", () => {
 
       await expect(globe.verdict).toHaveAttribute("data-verdict", "within");
       const fire = globe.panel.getByTestId("fire-context");
-      await expect(fire).toContainText("Independent fire context");
+      await expect(page.getByTestId("lens-witness")).toContainText("SECOND WITNESS · NASA FIRMS");
       await expect(fire).toContainText("3 active-fire detections between the two passes");
       await expect(fire).toContainText("2 Nov 2026");
       await expect(fire).toContainText("9.5 MW");
       await expect(fire).toContainText("separate from the radar");
-      await expect(fire.getByTestId("prov-real")).toBeVisible();
+      await expect(page.getByTestId("lens-witness").getByTestId("prov-real")).toBeVisible();
       await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
       await expect(globe.panel.getByTestId("prov-demo-dates")).toHaveCount(0);
 
@@ -585,7 +633,8 @@ test.describe("Explorer: live exploration", () => {
       await expect(fire).toHaveAttribute("data-status", "notConfigured");
       await expect(fire).toContainText("Fire context not configured");
       await expect(fire).toContainText("radar-only");
-      await expect(fire.getByTestId("prov-real")).toHaveCount(0);
+      await expect(globe.panel.getByTestId("lens-witness-status")).toHaveText("UNAVAILABLE");
+      await expect(globe.panel.getByTestId("lens-witness").getByTestId("prov-real")).toHaveCount(0);
       await expect(globe.verdict).toHaveAttribute("data-verdict", "within");
     });
 

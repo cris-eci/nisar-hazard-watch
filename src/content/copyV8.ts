@@ -299,6 +299,21 @@ export const LENS_CARD = {
     `The ${r} m patch holds ${formatCount(n)} ${n === 1 ? "cell" : "cells"} on this ${posting} grid; the comparison needs ${formatCount(k)}.`,
 } as const;
 
+// Wildfire card (#27). `oneAssessmentLine`, `comparesTitle` and `note` are verbatim from
+// `reference/Lens Result v2.dc.html` (OTHER.wildfire, the non-flood section). The rest
+// was approved by the team on 13 Nov 2026; the FIRMS title follows decision 6 and the OPERA title.
+export const WILDFIRE_CARD = {
+  oneAssessmentLine: "This lens needs at least two passes after the baseline. This spot has one.",
+  comparesTitle: "WHAT THIS LENS COMPARES",
+  note: "Counts on how many sampled passes HV stayed below its band, and whether it came back.",
+  declineRow: (date: string) => `with HV below its band on ${date}`,
+  pixelLine: (n: number, m: number) =>
+    `At your pixel: HV below its band on ${n} of ${m} ${m === 1 ? "pass" : "passes"} after the baseline.`,
+  cellsNote: "Cells below a band, not burned area.",
+  // Decision 6: FIRMS in the place of OPERA.
+  witnessTitle: "SECOND WITNESS · NASA FIRMS",
+} as const;
+
 // 7 · More information
 export const STEP_7 = {
   kicker: (
