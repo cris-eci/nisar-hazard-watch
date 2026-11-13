@@ -11,6 +11,17 @@ const REAL = JSON.parse(
 const INSAR = JSON.parse(
   readFileSync(new URL("../../fixtures/exploration-kumamoto-insar.json", import.meta.url), "utf8"),
 ) as Record<string, unknown>;
+// A real wildfire answer (Seattle), saved by the app's JSON download as { source, exploration }.
+const WILDFIRE = (
+  JSON.parse(
+    readFileSync(
+      new URL("../../fixtures/exploration-Seattle-wildfire.json", import.meta.url),
+      "utf8",
+    ),
+  ) as { exploration: Record<string, unknown> }
+).exploration;
+export const wildfireView = (overrides: View = {}): View => ({ ...WILDFIRE, ...overrides });
+
 export const INSAR_PAIRS = JSON.parse(
   readFileSync(new URL("../../fixtures/insar-pairs-kumamoto.json", import.meta.url), "utf8"),
 ) as { windowStart: string; windowEnd: string; pairs: Array<Record<string, unknown>> };
