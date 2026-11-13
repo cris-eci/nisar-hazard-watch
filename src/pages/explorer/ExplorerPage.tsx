@@ -18,7 +18,7 @@ import { captureGlobe, type GlobeStrip } from "@/features/downloads/globeImage";
 import { saveBlob, timelineCsv, timelineJson } from "@/features/downloads/timelineExport";
 import type { Frame, LonLat } from "@/features/frames/frame.types";
 import { findFrameAt, loadFrames } from "@/features/frames/frames";
-import { areaFromParams, areaToParams } from "@/features/geo/areaLink";
+import { areaFromParams, areaToParams, pointToParams } from "@/features/geo/areaLink";
 import {
   draftOf,
   isDrawing,
@@ -89,7 +89,7 @@ type Selection =
   | { kind: "case"; item: Case }
   | {
       kind: "live";
-      frame: Frame;
+      frame: Frame | undefined;
       // Where the question is asked: the clicked point, or the centre of a drawn area.
       point: LonLat;
       area: Area;
@@ -131,7 +131,11 @@ const readParams = () => {
   };
 };
 
-const paramsOf = (selection: Selection | undefined, story: boolean): string => {
+const paramsOf = (
+  selection: Selection | undefined,
+  story: boolean,
+  frame: Frame | undefined,
+): string => {
   if (story) return "story=1";
   if (selection === undefined) return "";
   if (selection.kind === "case") return new URLSearchParams({ case: selection.item.id }).toString();
@@ -141,7 +145,10 @@ const paramsOf = (selection: Selection | undefined, story: boolean): string => {
     coherence: String(selection.insar.threshold),
   };
   const params = new URLSearchParams({
-    ...(areaToParams(selection.area) ?? { frame: selection.frame.id }),
+    ...(areaToParams(selection.area) ?? {
+      ...(frame && { frame: frame.id }),
+      ...pointToParams(selection.point),
+    }),
     ...lens,
     ...pair,
   });
@@ -189,9 +196,22 @@ const speak = (text: string | undefined): void => {
 
 export const ExplorerPage = () => {
   const [initial] = useState(readParams);
-  const [selection, setSelection] = useState<Selection | undefined>(
-    initial.story ? undefined : initial.item && { kind: "case", item: initial.item },
-  );
+  const [selection, setSelection] = useState<Selection | undefined>(() => {
+    if (initial.story) return undefined;
+    if (initial.item) return { kind: "case", item: initial.item };
+    if (initial.area === undefined) return undefined;
+    return {
+      kind: "live",
+      point: centreOf(initial.area),
+      area: initial.area,
+      lens: initial.lens,
+      frame: undefined,
+      fromCase: undefined,
+      insar: initial.insar,
+      run: 0,
+      lensSwitch: false,
+    };
+  });
   const [story, setStory] = useState(initial.story && storyCase() !== undefined);
   const [chapter, setChapter] = useState(0);
   const [playing, setPlaying] = useState(false);
@@ -209,12 +229,11 @@ export const ExplorerPage = () => {
   const [novaOpen, setNovaOpen] = useState(false);
   const [downloadOpen, setDownloadOpen] = useState(false);
   const viewerRef = useRef<Viewer | undefined>(undefined);
-  // A shared ?frame=, ?bbox= or ?geo= link can only open once the frames snapshot is in.
+  // Legacy frame links need the snapshot to derive a coordinate.
   const opensLink = initial.item === undefined && !initial.story;
-  const linkRef = useRef(opensLink ? initial.frameId : null);
-  const areaLinkRef = useRef(opensLink ? initial.area : undefined);
+  const linkRef = useRef(opensLink && initial.area === undefined ? initial.frameId : null);
   const [linkPending, setLinkPending] = useState(
-    opensLink && (initial.frameId !== null || initial.area !== undefined),
+    opensLink && initial.area === undefined && initial.frameId !== null,
   );
   const [draw, setDraw] = useState<DrawState>(() => startTool(undefined));
   const drawRef = useRef(draw);
@@ -235,7 +254,7 @@ export const ExplorerPage = () => {
 
   const ask = useCallback(
     (
-      frame: Frame,
+      frame: Frame | undefined,
       point: LonLat,
       lens: LensId = DEFAULT_LENS,
       fromCase?: Case,
@@ -268,16 +287,7 @@ export const ExplorerPage = () => {
     async (signal: AbortSignal) => {
       const loaded = await loadFrames(signal);
       const linked = linkRef.current;
-      const linkedArea = areaLinkRef.current;
-      if (linkedArea !== undefined) {
-        areaLinkRef.current = undefined;
-        const centre = centreOf(linkedArea);
-        const frame = frameUnder(loaded, centre);
-        if (frame !== undefined)
-          ask(frame, centre, initial.lens, undefined, linkedArea, initial.insar);
-        else setAreaIssue({ kind: "noFrame" });
-        setLinkPending(false);
-      } else if (linked !== null) {
+      if (linked !== null) {
         linkRef.current = null;
         const frame = loaded.find((entry) => entry.id === linked);
         if (frame !== undefined)
@@ -302,13 +312,11 @@ export const ExplorerPage = () => {
     framesRef.current = frames;
   }, [frames]);
 
-  // A drawn area is asked at its centre, on the frame that covers it.
+  // The catalog decides coverage; the frame outline is optional context.
   const askArea = useCallback(
     (area: Area) => {
       const centre = centreOf(area);
-      const frame = frameUnder(framesRef.current, centre);
-      if (frame === undefined) setAreaIssue({ kind: "noFrame" });
-      else ask(frame, centre, DEFAULT_LENS, undefined, area);
+      ask(frameUnder(framesRef.current, centre), centre, DEFAULT_LENS, undefined, area);
     },
     [ask],
   );
@@ -334,7 +342,8 @@ export const ExplorerPage = () => {
         }
       : undefined;
   const exploration = useExploration(request, liveRuns ? runKey : "");
-  const framePlan = useFramePlan(live?.frame, runKey);
+  const liveFrame = live && (live.frame ?? frameUnder(frames, live.point));
+  const framePlan = useFramePlan(liveFrame, runKey);
   const phase = exploration.state.phase;
   const running = phase === "starting" || phase === "running";
   const exploredView =
@@ -376,7 +385,7 @@ export const ExplorerPage = () => {
     [openCase],
   );
   const onGlobeAsk = useCallback(
-    (frame: Frame, point: LonLat) => {
+    (frame: Frame | undefined, point: LonLat) => {
       if (!storyRef.current) ask(frame, point);
     },
     [ask],
@@ -420,9 +429,9 @@ export const ExplorerPage = () => {
   useEffect(() => {
     if (linkPending) return;
     const url = new URL(window.location.href);
-    url.search = paramsOf(selection, story);
+    url.search = paramsOf(selection, story, liveFrame);
     window.history.replaceState(null, "", url);
-  }, [selection, story, linkPending]);
+  }, [selection, story, linkPending, liveFrame]);
 
   useEffect(() => {
     if (onboarding !== undefined) markOnboardingSeen();
@@ -578,7 +587,7 @@ export const ExplorerPage = () => {
     if (selection.kind === "case") {
       if (lens === selection.item.lens) return;
       const frame = frameUnder(frames, selection.item.focus);
-      if (frame !== undefined) ask(frame, selection.item.focus, lens, selection.item);
+      ask(frame, selection.item.focus, lens, selection.item);
       return;
     }
     if (lens === selection.lens) return;
@@ -604,7 +613,7 @@ export const ExplorerPage = () => {
   };
   const measureLivePair = (fromCase: Case) => {
     const frame = frameUnder(frames, fromCase.focus);
-    if (frame !== undefined) ask(frame, fromCase.focus, "insar", fromCase);
+    ask(frame, fromCase.focus, "insar", fromCase);
   };
 
   const item = selection?.kind === "case" ? selection.item : undefined;
@@ -614,7 +623,9 @@ export const ExplorerPage = () => {
       : live !== undefined && phase === "done" && exploredView !== undefined
         ? exploreSubject(exploredView, {
             name: liveName(live),
-            frameLabel: `Track ${live.frame.track} · Frame ${live.frame.frame}`,
+            frameLabel:
+              exploredView.plan?.seriesKey ??
+              (liveFrame ? `Track ${liveFrame.track} · Frame ${liveFrame.frame}` : "NISAR catalog"),
             point: live.point,
           })
         : undefined;
@@ -666,9 +677,7 @@ export const ExplorerPage = () => {
     ? "Not available during the guided tour"
     : unavailable
       ? "The 3D globe isn't available in this browser"
-      : framesState?.status !== "success"
-        ? "Waiting for the NISAR frames"
-        : undefined;
+      : undefined;
 
   const showTimeline = item?.timeline !== undefined && item.pending !== true && !sheetOpen;
   const showLiveTimeline = liveTimeline !== undefined && !sheetOpen;
@@ -956,7 +965,9 @@ export const ExplorerPage = () => {
             meta={
               item !== undefined
                 ? `${item.pending === true ? "Event context" : "Measured case"} · ${item.region}`
-                : `Live question · Track ${live?.frame.track} · Frame ${live?.frame.frame}`
+                : liveFrame
+                  ? `Live question · Track ${liveFrame.track} · Frame ${liveFrame.frame}`
+                  : "Live question · NISAR catalog"
             }
             title={
               item !== undefined
@@ -1096,6 +1107,8 @@ export const ExplorerPage = () => {
         {sheetOpen && subject !== undefined && (
           <MoreInfoSheet
             subject={subject}
+            exploration={subject.kind === "live" ? exploredView : undefined}
+            isArea={live !== undefined && live.area.kind !== "point"}
             mode={mode}
             onMode={setMode}
             onClose={() => setSheetOpen(false)}

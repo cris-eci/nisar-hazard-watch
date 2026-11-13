@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { nativeGridSchema, scienceProductsSchema } from "@/features/explore/scienceProducts";
 
 import type { BBox } from "@/features/frames/frame.types";
 
@@ -31,6 +32,9 @@ const layerSchema = z.object({
   url: z.string(),
   legend: z.record(z.string(), z.string()).nullable(),
   valueRange: z.tuple([z.number(), z.number()]).nullable(),
+  crs: z.string().nullish(),
+  grid: nativeGridSchema.nullish(),
+  dates: z.array(z.string()).nullish(),
 });
 
 const sceneSchema = z.object({
@@ -120,6 +124,7 @@ const lensSchema = z.looseObject({
     .looseObject({
       polarizations: z.array(z.string()),
       posting_m: z.number(),
+      common_cells: z.number().optional(),
     })
     .nullable()
     .optional(),
@@ -141,6 +146,11 @@ const observationSchema = z.looseObject({
   status: z.string(),
   reason: z.string().optional(),
   granule_id: z.string().optional(),
+  granule_title: z.string().optional(),
+  sensing_start_utc: z.string().optional(),
+  grid: nativeGridSchema.optional(),
+  point_db: perChannel.optional(),
+  valid_pixel_count_by_pol: z.record(z.string(), z.number()).optional(),
 });
 
 const insarSchema = z.object({
@@ -195,6 +205,7 @@ const resultSchema = z.object({
   fireContext: fireContextSchema.nullable().optional(),
   // The interferometric pair's measurements (insar lens only).
   insar: insarSchema.nullable().optional(),
+  products: scienceProductsSchema.nullish(),
 });
 
 export const explorationSchema = z.object({

@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { noCoverageView } from "./pom/explorationMock";
 import { GlobePage } from "./pom/GlobePage";
 
 test.describe("Explorer: place search", () => {
@@ -61,7 +62,8 @@ test.describe("Explorer: place search", () => {
     await expect(page).toHaveURL(/frame=84-18/);
   });
 
-  test("a place outside every NISAR frame says so and cannot be analysed", async () => {
+  test("a place outside the frame snapshot can ask the archive", async ({ page }) => {
+    const api = await globe.mockExplorations({ first: noCoverageView() });
     await globe.mockPlaces({ mock: "places-open-ocean" });
     await globe.goto();
     await globe.searchButton.click();
@@ -69,8 +71,11 @@ test.describe("Explorer: place search", () => {
     await globe.searchInput.press("Enter");
     await globe.placeOption(0).click();
 
-    await expect(globe.placeNoFrame).toContainText("No NISAR frame covers this place");
-    await expect(globe.placeAnalyse).toBeDisabled();
+    await expect(globe.placeNoFrame).toContainText("No frame outline in the map");
+    await globe.placeAnalyse.click();
+    await expect(page).toHaveURL(/point=/);
+    await expect(globe.panel).toContainText("No NISAR passes cover this place");
+    expect(api.posts).toHaveLength(1);
   });
 
   test("no match shows an empty state and the globe stays usable", async ({ page }) => {

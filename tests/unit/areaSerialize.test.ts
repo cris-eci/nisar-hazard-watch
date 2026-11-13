@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { LonLat } from "@/features/frames/frame.types";
-import { areaFromParams, areaToParams } from "@/features/geo/areaLink";
+import { areaFromParams, areaToParams, pointToParams } from "@/features/geo/areaLink";
 import type { Area, AreaGeometry } from "@/features/geo/geo.types";
 import { MAX_VERTICES } from "@/features/geo/limits";
 import { parseWkt, toBbox, toGeoJson, toWkt } from "@/features/geo/serialize";
@@ -119,8 +119,10 @@ describe("shared links", () => {
     return params && areaFromParams(new URLSearchParams(params));
   };
 
-  it("has no area link for a point: its frame link already says it", () => {
-    expect(areaToParams({ kind: "point", point: [1, 2] })).toBeUndefined();
+  it("keeps the requested point even when a frame link is present", () => {
+    const params = new URLSearchParams({ frame: "84-18", ...pointToParams([1.23456, 2.34567]) });
+    expect(areaFromParams(params)).toEqual({ kind: "point", point: [1.23456, 2.34567] });
+    expect(areaFromParams(new URLSearchParams("point=,2"))).toBeUndefined();
   });
 
   it("writes a rectangle as ?bbox= and reads it back", () => {

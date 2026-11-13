@@ -10,9 +10,7 @@ import {
 import type { DraftView } from "@/features/globe/drawTools";
 
 export type AreaIssue =
-  | { kind: "tooLarge"; area: Area; km2: number }
-  | { kind: "noFrame" }
-  | { kind: "rejected"; reason: DrawRejection };
+  { kind: "tooLarge"; area: Area; km2: number } | { kind: "rejected"; reason: DrawRejection };
 
 const HOW: Record<DrawTool, string> = {
   point: "Click the globe: the radar reads a 10 × 10 km square around it.",
@@ -95,13 +93,8 @@ export const AreaGuide = ({
         data-testid="area-guide"
       >
         <p className="x-guide__title" data-testid="area-notice">
-          {issue.kind === "noFrame" ? "No NISAR frame covers this area" : REJECTED[issue.reason]}
+          {REJECTED[issue.reason]}
         </p>
-        {issue.kind === "noFrame" && (
-          <p className="x-guide__text">
-            A live question needs a NISAR frame under the centre of the area. Try another spot.
-          </p>
-        )}
         <div className="x-guide__actions">
           <button
             type="button"

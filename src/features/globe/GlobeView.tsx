@@ -71,7 +71,7 @@ type GlobeViewProps = {
   // Bumped by the "Whole globe" button: fly home even when nothing is open.
   homeRequest: number;
   onOpenCase: (item: Case) => void;
-  onAsk: (frame: Frame, point: LonLat) => void;
+  onAsk: (frame: Frame | undefined, point: LonLat) => void;
   // While a tool is on, the globe draws instead of asking; undefined hands the clicks back.
   drawTool: DrawTool | undefined;
   draft: DraftView | undefined;
@@ -220,8 +220,8 @@ export const GlobeView = ({
         return;
       }
       const point = pickLonLat(viewer, position);
-      const frame = point && frameUnder(latest.current.frames, point);
-      if (point !== undefined && frame !== undefined) latest.current.onAsk(frame, point);
+      if (point !== undefined)
+        latest.current.onAsk(frameUnder(latest.current.frames, point), point);
     }, ScreenSpaceEventType.LEFT_CLICK);
     handler.setInputAction(
       () => latest.current.drawTool !== undefined && latest.current.onDraw({ type: "finish" }),

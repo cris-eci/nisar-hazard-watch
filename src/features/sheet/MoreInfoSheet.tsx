@@ -4,6 +4,7 @@ import type { Subject } from "@/features/case-panel/subject";
 import { VerdictGlyph } from "@/features/case-panel/Verdict";
 import { bandSentence, SOURCE, VERDICT, VERDICT_ORDER } from "@/features/case-panel/verdicts";
 import { NormalRangeCard } from "@/features/case-panel/NormalRangeCard";
+import { FireContextCard } from "@/features/case-panel/FireContextCard";
 import { findLens, OPTICAL } from "@/features/cases/cases";
 import { BandChart } from "@/features/charts/BandChart";
 import type { ChartMode } from "@/features/charts/chartTokens";
@@ -12,6 +13,8 @@ import { MatchedWhisker } from "@/features/charts/MatchedWhisker";
 import { jobSteps } from "@/features/live/liveQuestion";
 import { NovaGlyph } from "@/features/nova/NovaGlyph";
 import { CompareSplit } from "@/features/sheet/CompareSplit";
+import { LiveSciencePanel } from "@/features/sheet/LiveSciencePanel";
+import type { ExplorationView } from "@/features/explore/exploreSchemas";
 import { formatDay } from "@/features/timeline/timelineLayout";
 
 const CHANGE_RAMP = "linear-gradient(90deg,#2f6db5,#f2f0eb,#c2473a)";
@@ -32,14 +35,24 @@ type SheetProps = {
   onMode: (mode: ChartMode) => void;
   onClose: () => void;
   onAskNova?: () => void;
+  exploration?: ExplorationView | undefined;
+  isArea?: boolean;
 };
 
 // "More information": the five beats in full, with how it was computed, quality and sources.
-export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: SheetProps) => {
+export const MoreInfoSheet = ({
+  subject,
+  mode,
+  onMode,
+  onClose,
+  onAskNova,
+  exploration,
+  isArea,
+}: SheetProps) => {
   const lens = findLens(subject.lens);
   const tech = mode === "technical";
   const [lon, lat] = subject.focus;
-  const verdictProv = subject.demo ? SOURCE.liveVerdict : SOURCE.caseVerdict;
+  const verdictProv = subject.kind === "live" ? SOURCE.liveVerdict : SOURCE.caseVerdict;
   return (
     <div className="x-sheet" role="dialog" aria-label="More information" data-testid="sheet">
       <header className="x-sheet__head">
@@ -49,7 +62,11 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
           </p>
           <h2 className="x-sheet__title">
             What the radar measured{" "}
-            {subject.kind === "case" ? `at ${subject.name}` : "at your point"}
+            {subject.kind === "case"
+              ? `at ${subject.name}`
+              : isArea
+                ? "in your area"
+                : "at your point"}
           </h2>
         </div>
         <div role="group" aria-label="Reading level" className="x-switch">
@@ -78,6 +95,9 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
 
       <div className="x-sheet__body">
         <div className="x-sheet__main">
+          {subject.kind === "live" && exploration !== undefined && (
+            <LiveSciencePanel key={exploration.id} view={exploration} subject={subject} />
+          )}
           <section className="x-sheet__section">
             <p className="x-sheet__kicker">01 · The question</p>
             <div className="x-cards">
@@ -85,7 +105,7 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
                 k="Where"
                 v={subject.name}
                 s={
-                  subject.chipKm === undefined
+                  subject.kind === "live" || subject.chipKm === undefined
                     ? subject.place
                     : `${subject.place} · ${subject.chipKm} km area`
                 }
@@ -93,7 +113,11 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
               <Fact
                 k="When"
                 v={subject.target === undefined ? subject.when : formatDay(subject.target)}
-                s="target pass against earlier passes"
+                s={
+                  subject.lens === "insar"
+                    ? "Reference and secondary acquisition"
+                    : "Target pass against earlier passes"
+                }
               />
               <Fact k="Question" v={lens?.chip ?? ""} s={lens?.compares ?? ""} />
             </div>
@@ -185,46 +209,59 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
             )}
           </section>
 
-          <section className="x-sheet__section">
-            <p className="x-sheet__kicker x-kicker--split">
-              <span>03 · The verdict, in plain words</span>
-              <Prov kind={subject.demo ? "demo" : "real"} source={verdictProv} />
-            </p>
-            <div className="x-verdicts">
-              {VERDICT_ORDER.map((verdict) => {
-                const on = verdict === subject.verdict;
-                return (
-                  <div
-                    key={verdict}
-                    className="x-verdicts__card"
-                    data-on={on}
-                    data-testid={`sheet-verdict-${verdict}`}
-                  >
-                    <VerdictGlyph verdict={verdict} />
-                    <p className="x-verdicts__label">{VERDICT[verdict].label}</p>
-                    <p className="x-verdicts__sub">
-                      {on ? subject.verdictLine : VERDICT[verdict].sub}
-                    </p>
-                    {tech && on && <p className="x-mono-sm">{VERDICT[verdict].state}</p>}
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+          {subject.lens !== "insar" && (
+            <section className="x-sheet__section">
+              <p className="x-sheet__kicker x-kicker--split">
+                <span>
+                  {subject.kind === "live"
+                    ? "How the point compares with its baseline"
+                    : "03 · The verdict, in plain words"}
+                </span>
+                <Prov kind={subject.demo ? "demo" : "real"} source={verdictProv} />
+              </p>
+              <div className="x-verdicts">
+                {VERDICT_ORDER.map((verdict) => {
+                  const on = verdict === subject.verdict;
+                  return (
+                    <div
+                      key={verdict}
+                      className="x-verdicts__card"
+                      data-on={on}
+                      data-testid={`sheet-verdict-${verdict}`}
+                    >
+                      <VerdictGlyph verdict={verdict} />
+                      <p className="x-verdicts__label">{VERDICT[verdict].label}</p>
+                      <p className="x-verdicts__sub">
+                        {on ? subject.verdictLine : VERDICT[verdict].sub}
+                      </p>
+                      {tech && on && <p className="x-mono-sm">{VERDICT[verdict].state}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           <section className="x-sheet__section">
             <p className="x-sheet__kicker">04 · The second witness</p>
-            {subject.witness === undefined ? (
+            {subject.fireContext !== undefined && <FireContextCard context={subject.fireContext} />}
+            {subject.witness === undefined && subject.fireContext === undefined ? (
               <p className="x-muted">
-                {subject.kind === "live"
-                  ? "No second witness: optical evidence was not requested for this question."
-                  : "No second witness yet: the optical stage runs after the radar."}
+                {exploration?.result?.lens?.evidence?.status === "optical_comparison_available"
+                  ? "Independent optical comparison is available in the measured result."
+                  : subject.kind === "live" && exploration?.result?.lens?.evidence === undefined
+                    ? "No second witness: optical evidence was not requested for this question."
+                    : subject.kind === "live"
+                      ? "Independent optical measurements are unavailable for this result."
+                      : "No second witness yet: the optical stage runs after the radar."}
               </p>
             ) : (
-              <p className="x-witness">
-                <span>{subject.witness.label}</span>
-                <span>{subject.witness.note}</span>
-              </p>
+              subject.witness !== undefined && (
+                <p className="x-witness">
+                  <span>{subject.witness.label}</span>
+                  <span>{subject.witness.note}</span>
+                </p>
+              )
             )}
             {subject.groups.length > 0 && (
               <div className="x-inset x-inset--stack">
@@ -351,7 +388,7 @@ export const MoreInfoSheet = ({ subject, mode, onMode, onClose, onAskNova }: She
               <span>Evidence and quality</span>
               <Prov
                 kind={subject.demo ? "demo" : "real"}
-                source={subject.demo ? SOURCE.liveQuality : SOURCE.caseQuality}
+                source={subject.kind === "live" ? SOURCE.liveQuality : SOURCE.caseQuality}
               />
             </p>
             <dl className="x-evidence">
