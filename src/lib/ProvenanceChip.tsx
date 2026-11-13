@@ -1,22 +1,27 @@
 import "@/features/charts/charts.css";
 
-export type Provenance = "real" | "demo" | "todo";
+import { chipTitle, CHIPS, isChipHidden, type Provenance } from "@/lib/provenanceChips";
 
-const LABEL: Record<Provenance, string> = { real: "Real", demo: "Demo", todo: "To fill" };
+export type { Provenance } from "@/lib/provenanceChips";
 
 type ProvenanceChipProps = {
   kind: Provenance;
   // Where the value comes from; shown on hover so anyone can check it.
   source?: string;
-  // REAL chips can be hidden for a cleaner video; DEMO and TO FILL always show.
+  // REAL chips can be hidden for a cleaner video; every other kind always shows.
   hideReal?: boolean;
 };
 
 export const ProvenanceChip = ({ kind, source, hideReal = false }: ProvenanceChipProps) => {
-  if (kind === "real" && hideReal) return null;
+  if (isChipHidden(kind, hideReal)) return null;
+  const chip = CHIPS[kind];
   return (
-    <span className={`c-prov c-prov--${kind}`} title={source} data-testid={`prov-${kind}`}>
-      {kind === "demo" ? "Demo data" : LABEL[kind]}
+    <span
+      className={`c-prov c-prov--${chip.look}`}
+      title={chipTitle(kind, source)}
+      data-testid={chip.testId}
+    >
+      {chip.text}
     </span>
   );
 };

@@ -314,6 +314,36 @@
   color: #8a5a00;
 }
 
+.r-sheet .c-prov--pending,
+.r-sheet .c-prov--unavailable,
+.r-sheet .c-prov--experimental {
+  border-color: rgba(20, 22, 27, 0.45);
+  color: var(--r-muted);
+}
+
+.r-sheet .c-prov--hypothesis {
+  color: #6b5a33;
+}
+
+.r-sheet .c-prov--instant {
+  color: #6b5a33;
+}
+
+.r-dark .c-prov--pending,
+.r-dark .c-prov--unavailable,
+.r-dark .c-prov--experimental {
+  border-color: rgba(235, 233, 228, 0.35);
+  color: #d4d2cc;
+}
+
+.r-dark .c-prov--hypothesis {
+  color: #dccaa3;
+}
+
+.r-dark .c-prov--instant {
+  color: #c9b48b;
+}
+
 .r-dark .c-prov--real {
   border-color: rgba(235, 233, 228, 0.35);
   color: #d4d2cc;

@@ -83,7 +83,7 @@ test.describe("Explorer: measured cases", () => {
   test("the timeline compares baseline and target; planned passes aren't clickable", async () => {
     await globe.goto("?case=qadirabad");
     await expect(globe.timeline).toContainText("Planned · a promise, not data");
-    await expect(globe.timeline.getByTestId("prov-demo")).toHaveText("Demo dates");
+    await expect(globe.timeline.getByTestId("prov-demo-dates")).toHaveText("DEMO DATES");
     await expect(globe.timelinePasses("plan")).toHaveCount(2);
     for (const planned of await globe.timelinePasses("plan").all())
       await expect(planned).toBeDisabled();
@@ -161,6 +161,7 @@ test.describe("Explorer: live questions", () => {
     await expect(globe.verdict).toBeVisible();
     await expect(globe.verdict.getByTestId("prov-real")).toBeVisible();
     await expect(globe.verdict.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.verdict.getByTestId("prov-demo-dates")).toHaveCount(0);
     await expect(page).toHaveURL(new RegExp(`frame=${LIVE_FRAME.id}`));
   });
 
