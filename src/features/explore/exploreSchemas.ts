@@ -73,6 +73,22 @@ const surroundingSchema = z.looseObject({
     .catch(undefined),
 });
 
+const neighborhoodSchema = z.looseObject({
+  status: z.string(),
+  focal_radius_m: z.number().optional(),
+  comparison_annulus_m: z.tuple([z.number(), z.number()]).optional(),
+  focal_cells: z.number().optional(),
+  comparison_cells: z.number().optional(),
+});
+
+const targetContrastSchema = z.looseObject({
+  state: z.string(),
+  reason: z.string().nullable().optional(),
+  positive_pixels: z.number().optional(),
+  mean_contrast_db: z.number(),
+  spatial_resampling_95_interval_db: z.tuple([z.number(), z.number()]).nullable().optional(),
+});
+
 const evaluationSchema = z.looseObject({
   grid: z
     .looseObject({ pixel_spacing_m: z.array(z.number()) })
@@ -100,6 +116,26 @@ const evaluationSchema = z.looseObject({
     .optional()
     .catch(undefined),
   surrounding_comparison: surroundingSchema.nullable().optional().catch(undefined),
+  // Agriculture: the 60 m patch against matched cells 120–300 m away, per channel.
+  neighborhood: neighborhoodSchema.nullable().optional().catch(undefined),
+  matches: z
+    .looseObject({ matched_control_pixels: z.number(), matched_fraction: z.number().optional() })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  policy: z
+    .looseObject({
+      minimum_cells: z.number().optional(),
+      material_contrast_db: z.number().optional(),
+    })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  target_contrasts: z
+    .record(z.string(), targetContrastSchema.nullable().catch(null))
+    .nullable()
+    .optional()
+    .catch(undefined),
 });
 
 const lensSchema = z.looseObject({
@@ -266,6 +302,29 @@ export type LensEvaluation = {
   coPolBrightening: Signature | undefined;
   dualDarkeningMaxChangeDb: { co: number; cross: number } | undefined;
   surroundings: Surroundings | undefined;
+  neighbours: Neighbours | undefined;
+};
+
+export type ChannelContrast = {
+  channel: string;
+  // absent_on_sampled_support, insufficient_data, … as the backend names them.
+  state: string;
+  reason: string | undefined;
+  meanDb: number;
+  interval95Db: [number, number] | undefined;
+};
+
+// Agriculture: the focal patch against baseline-matched cells around it.
+export type Neighbours = {
+  status: string;
+  radiusM: number | undefined;
+  annulusM: [number, number] | undefined;
+  focalCells: number | undefined;
+  comparisonCells: number | undefined;
+  matchedControlCells: number | undefined;
+  minimumCells: number | undefined;
+  materialContrastDb: number | undefined;
+  contrasts: ChannelContrast[];
 };
 
 type RawSignature = z.infer<typeof signatureSchema>;
@@ -285,7 +344,34 @@ export const lensEvaluationOf = (result: ExplorationResult): LensEvaluation | un
   const evaluation = lens?.evaluation;
   if (lens == null || evaluation == null) return undefined;
   const around = evaluation.surrounding_comparison;
+  const near = evaluation.neighborhood;
   return {
+    neighbours:
+      near == null
+        ? undefined
+        : {
+            status: near.status,
+            radiusM: near.focal_radius_m,
+            annulusM: near.comparison_annulus_m,
+            focalCells: near.focal_cells,
+            comparisonCells: near.comparison_cells,
+            matchedControlCells: evaluation.matches?.matched_control_pixels,
+            minimumCells: evaluation.policy?.minimum_cells,
+            materialContrastDb: evaluation.policy?.material_contrast_db,
+            contrasts: Object.entries(evaluation.target_contrasts ?? {}).flatMap(([channel, c]) =>
+              c == null
+                ? []
+                : [
+                    {
+                      channel,
+                      state: c.state,
+                      reason: c.reason ?? undefined,
+                      meanDb: c.mean_contrast_db,
+                      interval95Db: c.spatial_resampling_95_interval_db ?? undefined,
+                    },
+                  ],
+            ),
+          },
     targetDate: lens.target_date,
     baselinePasses: lens.baseline_dates?.length,
     pixelSpacingM: evaluation.grid?.pixel_spacing_m[0],
