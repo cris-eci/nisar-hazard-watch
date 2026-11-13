@@ -126,11 +126,11 @@ Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/explorer-start.jpg" alt="Explorer start card listing the measured cases over the globe with case markers"></td>
-    <td width="50%"><img src="docs/screenshots/explorer-live.jpg" alt="A live question on track 47, frame 3 and the frame's real passes from the Observation Plan"></td>
+    <td width="50%"><img src="docs/screenshots/explorer-live.jpg" alt="A live question on track 47, frame 3: the radar's answer from the backend, the target pass against its normal range and a measured layer on the globe"></td>
   </tr>
   <tr>
     <td align="center"><b>What did the radar see?</b><br><sub>The start card and case markers</sub></td>
-    <td align="center"><b>A live question</b><br><sub>The frame's real passes</sub></td>
+    <td align="center"><b>A live question</b><br><sub>A measured answer from the backend</sub></td>
   </tr>
 </table>
 
