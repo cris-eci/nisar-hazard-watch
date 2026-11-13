@@ -35,6 +35,16 @@ test.describe("Explorer: measured cases", () => {
     await expect(page).toHaveURL(/\?case=qadirabad$/);
   });
 
+  test("the panel is 372 px wide, 400 px on the lens result", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await globe.goto("?case=qadirabad");
+    await expect(globe.panel).toBeVisible();
+    expect((await globe.panel.boundingBox())?.width).toBe(372);
+    // No component sets the result width yet (#21 does); the class alone must widen it.
+    await globe.panel.evaluate((panel) => panel.classList.add("x-panel--result"));
+    expect((await globe.panel.boundingBox())?.width).toBe(400);
+  });
+
   test("the layer dock drapes only real crops; HV waits for the API", async () => {
     await globe.goto("?case=qadirabad");
     await expect(globe.dock).toBeVisible();
