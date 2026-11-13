@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+h1,h2,h3,p{margin:0}
+a{color:#c9b48b;text-decoration:none}
+a:hover{color:#dccaa3}
+@keyframes v8spin{to{transform:rotate(360deg)}}
+@keyframes v8pulse{0%{opacity:.45}50%{opacity:1}100%{opacity:.45}}
+</style>
+</helmet>
+<div style="box-sizing:border-box;width:100%;font-family:'Albert Sans',system-ui,sans-serif;color:#ebe9e4;padding:{{ pad }};border-radius:{{ radius }};background:{{ shellBg }};border:{{ shellBd }}">
+  <sc-if value="{{ compact }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:rgba(201,180,139,0.08);border:1px solid rgba(201,180,139,0.28)">
+      <span style="width:18px;height:18px;flex:none;box-sizing:border-box;border-radius:50%;border:2px solid rgba(201,180,139,0.25);border-top-color:#c9b48b;animation:v8spin 900ms linear infinite"></span>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+        <p style="font-size:14px;font-weight:500">Running the {{ lensLabel }} lens</p>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:#a9a69e;font-variant-numeric:tabular-nums">{{ clock }} elapsed · on the 5 passes already read</p>
+      </div>
+      <button onClick="{{ cancel }}" aria-label="Cancel lens" style="width:32px;height:32px;flex:none;border-radius:50%;border:1px solid rgba(235,233,228,0.16);background:transparent;color:#ebe9e4;display:grid;place-items:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+    </div>
+  </sc-if>
+  <sc-if value="{{ full }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:18px">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#a9a69e">LIVE ANALYSIS · {{ place }}</p>
+        <h2 style="font-size:22px;letter-spacing:-0.03em;line-height:1.15">Reading NISAR passes for this spot</h2>
+      </div>
+      <div role="timer" aria-label="Elapsed time" style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px">
+          <p style="font-family:'JetBrains Mono',monospace;font-size:34px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;line-height:1">{{ clock }}</p>
+          <p style="font-size:13px;color:#a9a69e;text-align:right">usually 1–4 min<br>plus any queue</p>
+        </div>
+        <div style="position:relative;height:8px;border-radius:999px;background:rgba(235,233,228,0.08)">
+          <div style="position:absolute;top:0;bottom:0;left:20%;width:60%;border-radius:999px;background:rgba(201,180,139,0.18)"></div>
+          <div style="position:absolute;top:0;bottom:0;left:0;width:{{ barPct }};border-radius:999px;background:#c9b48b;transition:width 900ms linear"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;color:#8d8a83"><span>0</span><span>1 MIN</span><span>2</span><span>3</span><span>4 MIN</span><span>5</span></div>
+      </div>
+      <sc-if value="{{ hasQueue }}" hint-placeholder-val="{{ false }}">
+        <p style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(235,233,228,0.05);font-size:13.5px;color:#d4d2cc"><span style="font-family:'JetBrains Mono',monospace;font-size:18px;color:#ebe9e4">#{{ queue }}</span>One analysis is ahead of yours. Yours starts as soon as it ends.</p>
+      </sc-if>
+      <ol style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px">
+        <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+          <li style="display:flex;align-items:flex-start;gap:10px">
+            <span style="width:18px;height:18px;flex:none;margin-top:1px;box-sizing:border-box;border-radius:50%;border:{{ s.ring }};background:{{ s.fill }};display:grid;place-items:center;animation:{{ s.anim }}"><svg width="10" height="10" viewBox="0 0 24 24" style="fill:none;stroke:#16120a;stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;opacity:{{ s.tick }}"><path d="M5 12l5 5 9-10"></path></svg></span>
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span style="font-size:14px;color:{{ s.ink }}">{{ s.label }}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#8d8a83">{{ s.sub }}</span>
+            </div>
+          </li>
+        </sc-for>
+      </ol>
+      <section aria-label="Did you know?" style="display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid rgba(235,233,228,0.08)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:#c9b48b">DID YOU KNOW? · {{ factN }}</p>
+          <div style="display:flex;gap:6px">
+            <button onClick="{{ prev }}" aria-label="Previous fact" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(235,233,228,0.16);background:transparent;color:#ebe9e4;display:grid;place-items:center;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M15 5l-7 7 7 7"></path></svg></button>
+            <button onClick="{{ next }}" aria-label="Next fact" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(235,233,228,0.16);background:transparent;color:#ebe9e4;display:grid;place-items:center;cursor:pointer"><svg width="12" height="12" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round"><path d="M9 5l7 7-7 7"></path></svg></button>
+          </div>
+        </div>
+        <img src="{{ fact.img }}" alt="{{ fact.title }}" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:14px;display:block;background:#0e1930;image-rendering:{{ fact.render }}">
+        <p style="font-size:15px;font-weight:500">{{ fact.title }}</p>
+        <p style="font-size:13.5px;color:#a9a69e;text-wrap:pretty;line-height:1.45;min-height:3.9em">{{ fact.text }}</p>
+        <div style="display:flex;gap:6px">
+          <sc-for list="{{ dots }}" as="d" hint-placeholder-count="5"><span style="width:{{ d.w }};height:4px;border-radius:2px;background:{{ d.bg }};transition:width 200ms"></span></sc-for>
+        </div>
+      </section>
+      <button onClick="{{ cancel }}" style="height:44px;border-radius:999px;border:1px solid rgba(235,233,228,0.18);background:transparent;color:#ebe9e4;font:inherit;font-size:14.5px;font-weight:500;cursor:pointer" style-hover="background:rgba(235,233,228,0.06)">Cancel analysis</button>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:372,&quot;height&quot;:860},&quot;compact&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;elapsed&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:72,&quot;tsType&quot;:&quot;number&quot;,&quot;unit&quot;:&quot;s&quot;},&quot;step&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:null,&quot;min&quot;:0,&quot;max&quot;:3,&quot;tsType&quot;:&quot;number&quot;},&quot;arrived&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:null,&quot;min&quot;:0,&quot;max&quot;:5,&quot;tsType&quot;:&quot;number&quot;},&quot;queue&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:null,&quot;tsType&quot;:&quot;number | null&quot;},&quot;fact&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:0,&quot;min&quot;:0,&quot;max&quot;:4,&quot;tsType&quot;:&quot;number&quot;},&quot;live&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;bare&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;place&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Barh, Bihar&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;lensLabel&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;flood &amp; wetland&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onCancel&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;() =&gt; void&quot;}}">class Component extends DCLogic {
+  state = { D: null, t: null, f: null };
+  componentDidMount() {
+    import((typeof window !== "undefined" && window.__resources && window.__resources.v8_data_js) || "./v8-data.js").then((D) => this.setState({ D }));
+    if (this.props.live) this.iv = setInterval(() => this.setState((s) => {
+      const t = (s.t ?? this.props.elapsed ?? 0) + 1;
+      return { t, f: t % 7 === 0 ? ((s.f ?? this.props.fact ?? 0) + 1) % 5 : s.f };
+    }), 1000);
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  renderVals() {
+    const p = this.props, D = this.state.D, compact = !!p.compact, bare = !!p.bare;
+    const t = this.state.t ?? p.elapsed ?? (compact ? 18 : 72), f = this.state.f ?? p.fact ?? 0;
+    const step = p.step ?? (t < 15 ? 0 : t < 140 ? 1 : t < 190 ? 2 : 3), arrived = p.arrived ?? Math.min(5, Math.max(0, Math.floor((t - 15) / 25)));
+    const clock = `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`;
+    const F = D?.FACTS || [], fact = F[f] || { img: "", title: "", text: "" };
+    const steps = (D?.STEPS || []).map((s, i) => {
+      const done = i < step, now = i === step;
+      return { label: s.label, sub: done ? s.done : now ? (i === 1 ? `${arrived} of 5 read · each appears on the timeline` : "in progress") : "waiting", ink: done || now ? "#ebe9e4" : "#8d8a83",
+        ring: done ? "0" : now ? "1.5px solid #c9b48b" : "1.5px dashed rgba(235,233,228,0.3)", fill: done ? "#c9b48b" : "transparent", tick: done ? 1 : 0, anim: now ? "v8pulse 1.6s ease-in-out infinite" : "none" };
+    });
+    const go = (d) => this.setState({ f: (f + d + F.length) % Math.max(F.length, 1) });
+    return {
+      compact, full: !compact, pad: bare ? "0" : compact ? "12px" : "22px", radius: bare ? "0" : "24px",
+      shellBg: bare ? "transparent" : "rgba(8,16,31,0.96)", shellBd: bare ? "0" : "1px solid rgba(235,233,228,0.12)",
+      place: (p.place || "Barh, Bihar").toUpperCase(), lensLabel: p.lensLabel || "flood & wetland", clock,
+      barPct: `${Math.min(100, (t / 300) * 100).toFixed(1)}%`, hasQueue: p.queue != null && p.queue > 0, queue: p.queue ?? 0, steps,
+      fact: { ...fact, render: fact.pixel ? "pixelated" : "auto" }, factN: `${f + 1} OF ${F.length || 5}`,
+      dots: F.map((_, i) => ({ w: i === f ? "18px" : "6px", bg: i === f ? "#c9b48b" : "rgba(235,233,228,0.25)" })),
+      prev: () => go(-1), next: () => go(1), cancel: () => p.onCancel?.(),
+    };
+  }
+}</script>
+</body>
+</html>

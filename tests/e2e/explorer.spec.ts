@@ -35,6 +35,16 @@ test.describe("Explorer: measured cases", () => {
     await expect(page).toHaveURL(/\?case=qadirabad$/);
   });
 
+  test("the panel is 372 px wide, 400 px on the lens result", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await globe.goto("?case=qadirabad");
+    await expect(globe.panel).toBeVisible();
+    expect((await globe.panel.boundingBox())?.width).toBe(372);
+    // No component sets the result width yet (#21 does); the class alone must widen it.
+    await globe.panel.evaluate((panel) => panel.classList.add("x-panel--result"));
+    expect((await globe.panel.boundingBox())?.width).toBe(400);
+  });
+
   test("the layer dock drapes only real crops; HV waits for the API", async () => {
     await globe.goto("?case=qadirabad");
     await expect(globe.dock).toBeVisible();
@@ -83,7 +93,7 @@ test.describe("Explorer: measured cases", () => {
   test("the timeline compares baseline and target; planned passes aren't clickable", async () => {
     await globe.goto("?case=qadirabad");
     await expect(globe.timeline).toContainText("Planned · a promise, not data");
-    await expect(globe.timeline.getByTestId("prov-demo")).toHaveText("Demo dates");
+    await expect(globe.timeline.getByTestId("prov-demo-dates")).toHaveText("DEMO DATES");
     await expect(globe.timelinePasses("plan")).toHaveCount(2);
     for (const planned of await globe.timelinePasses("plan").all())
       await expect(planned).toBeDisabled();
@@ -161,6 +171,7 @@ test.describe("Explorer: live questions", () => {
     await expect(globe.verdict).toBeVisible();
     await expect(globe.verdict.getByTestId("prov-real")).toBeVisible();
     await expect(globe.verdict.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.verdict.getByTestId("prov-demo-dates")).toHaveCount(0);
     await expect(page).toHaveURL(new RegExp(`frame=${LIVE_FRAME.id}`));
   });
 

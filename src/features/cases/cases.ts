@@ -1,7 +1,7 @@
 import type { LonLat } from "@/features/frames/frame.types";
 
 /*
- * Measured cases from the science backend (github.com/Ch0comilo/NISAR-Modeling). Every number here
+ * Measured cases from the science backend (github.com/nisar-hazard-watch/NISAR-Modeling). Every number here
  * is copied from its reports; DATA_PROVENANCE in design_handoff_v7 says where each one comes from.
  * Pass dates on the timeline are DEMO (12-day spacing) until the backend serves the real ones.
  */
@@ -125,7 +125,7 @@ export const OPTICAL = {
 } as const;
 
 const EMPTY_FLOOD = ["Flood depth", "Probability", "Cause", "Validated extent"];
-const MODELING = "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs";
+const MODELING = "https://github.com/nisar-hazard-watch/NISAR-Modeling/blob/main/docs";
 
 const pass = (date: string, kind: PassKind, outsidePct?: number): TimelinePass =>
   outsidePct === undefined ? { date, kind } : { date, kind, outsidePct };

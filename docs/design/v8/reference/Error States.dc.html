@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@300;400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+h1,h2,h3,p{margin:0}
+a{color:#c9b48b;text-decoration:none}
+a:hover{color:#dccaa3}
+</style>
+</helmet>
+<div style="box-sizing:border-box;width:100%;font-family:'Albert Sans',system-ui,sans-serif;color:#ebe9e4;display:grid;grid-template-columns:{{ cols }};gap:16px;padding:{{ outerPad }};background:{{ outerBg }}">
+  <sc-for list="{{ cards }}" as="e" hint-placeholder-count="1">
+    <section role="{{ e.role }}" style="box-sizing:border-box;display:flex;flex-direction:column;gap:12px;padding:20px;border-radius:24px;background:rgba(8,16,31,0.96);border:1px solid rgba(235,233,228,0.12)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="width:30px;height:30px;flex:none;box-sizing:border-box;border-radius:50%;border:{{ e.ring }};display:grid;place-items:center;color:{{ e.ink }}"><svg width="14" height="14" viewBox="0 0 24 24" style="fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="{{ e.d }}"></path></svg></span>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.06em;color:{{ e.ink }}">{{ e.cat }}</p>
+      </div>
+      <h3 style="font-size:19px;letter-spacing:-0.02em;line-height:1.2">{{ e.title }}</h3>
+      <p style="font-size:13.5px;color:#a9a69e;text-wrap:pretty;line-height:1.45">{{ e.body }}</p>
+      <sc-if value="{{ e.cases }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <sc-for list="{{ known }}" as="k" hint-placeholder-count="5"><button onClick="{{ k.pick }}" style="display:flex;align-items:center;gap:10px;padding:7px 8px;border:0;border-radius:12px;background:transparent;color:#ebe9e4;font:inherit;text-align:left;cursor:pointer" style-hover="background:rgba(235,233,228,0.06)"><span style="width:24px;height:24px;flex:none;box-sizing:border-box;border-radius:50%;background:#0e1a33;border:{{ k.ring }};display:grid;place-items:center"><svg width="12" height="12" viewBox="0 0 24 24" style="fill:none;stroke:#ebe9e4;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round"><path d="{{ k.d }}"></path></svg></span><span style="flex:1;font-size:13.5px">{{ k.name }}</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#8d8a83">INSTANT</span></button></sc-for>
+        </div>
+      </sc-if>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:4px">
+        <button onClick="{{ e.onPrimary }}" style="height:40px;padding:0 16px;border:0;border-radius:999px;background:#ebe9e4;color:#04070e;font:inherit;font-size:14px;font-weight:500;cursor:pointer" style-hover="background:#ffffff">{{ e.primary }}</button>
+        <sc-if value="{{ e.hasSecondary }}" hint-placeholder-val="{{ true }}"><button onClick="{{ e.onSecondary }}" style="height:40px;padding:0 16px;border-radius:999px;border:1px solid rgba(235,233,228,0.18);background:transparent;color:#ebe9e4;font:inherit;font-size:14px;cursor:pointer" style-hover="background:rgba(235,233,228,0.06)">{{ e.secondary }}</button></sc-if>
+      </div>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:900},&quot;kind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;all&quot;,&quot;quota_low&quot;,&quot;quota_out&quot;,&quot;queue_full&quot;,&quot;timeout&quot;,&quot;restarted&quot;,&quot;no_data&quot;,&quot;partial&quot;],&quot;default&quot;:&quot;all&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onAction&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(id: string, which: 'primary' | 'secondary') =&gt; void&quot;},&quot;onCase&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(caseId: string) =&gt; void&quot;}}">
+const TONE = {
+  info: { ink: "#dccaa3", ring: "1.5px solid #c9b48b", d: "M12 8v5M12 16.5h.01M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" },
+  block: { ink: "#dccaa3", ring: "1.5px solid #c9b48b", d: "M12 7v5l3 2M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" },
+  wait: { ink: "#d4d2cc", ring: "1.5px dashed rgba(235,233,228,0.5)", d: "M4 7h16M4 12h10M4 17h6" },
+  error: { ink: "#ebe9e4", ring: "1.5px solid rgba(235,233,228,0.5)", d: "M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4" },
+  empty: { ink: "#a9a69e", ring: "1.5px dashed #a9a69e", d: "M5 19L19 5" },
+  warn: { ink: "#fcd34d", ring: "1.5px solid rgba(252,211,77,0.6)", d: "M12 4l9 16H3zM12 10v4M12 17h.01" },
+};
+class Component extends DCLogic {
+  state = { D: null, IC: null };
+  componentDidMount() {
+    import((typeof window !== "undefined" && window.__resources && window.__resources.v8_data_js) || "./v8-data.js").then((D) => this.setState({ D }));
+    import((typeof window !== "undefined" && window.__resources && window.__resources.v7_cases_js) || "./v7-cases.js").then((m) => this.setState({ IC: m.IC }));
+  }
+  renderVals() {
+    const p = this.props, D = this.state.D, kind = p.kind || "all", one = kind !== "all";
+    const list = (D?.ERRORS || []).filter((e) => !one || e.id === kind);
+    return {
+      cols: one ? "minmax(0,1fr)" : "repeat(auto-fill,minmax(300px,1fr))", outerPad: one ? "0" : "24px", outerBg: one ? "transparent" : "#04070e",
+      cards: list.map((e) => ({ ...e, ...TONE[e.tone], cat: e.cat.toUpperCase(), role: e.tone === "info" ? "status" : "alert", cases: !!e.cases, hasSecondary: !!e.secondary, secondary: e.secondary || "",
+        onPrimary: () => p.onAction?.(e.id, "primary"), onSecondary: () => p.onAction?.(e.id, "secondary") })),
+      known: (D?.KNOWN || []).map((k) => ({ name: `${k.name}, ${k.country}`, d: this.state.IC?.[k.icon] || "", ring: k.dashed ? "1.5px dashed rgba(235,233,228,0.6)" : "1.5px solid rgba(235,233,228,0.6)", pick: () => p.onCase?.(k.id) })),
+    };
+  }
+}
+</script>
+</body>
+</html>

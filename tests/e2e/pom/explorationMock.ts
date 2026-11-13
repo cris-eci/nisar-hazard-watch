@@ -74,6 +74,8 @@ type Options = {
   final?: View;
   // The answer to the POST itself; the default is the running job.
   first?: View;
+  // One answer per POST, in order (a lens switch is a second POST); later POSTs reuse `first`.
+  answers?: View[];
 };
 
 // Plays the backend's exploration API: POST starts, GET polls, DELETE cancels.
@@ -84,10 +86,12 @@ export class ExplorationMock {
   private finished = false;
   private readonly options: Options;
   private problems: Problem[];
+  private answers: View[];
 
   constructor(options: Options) {
     this.options = options;
     this.problems = [...(options.startProblems ?? [])];
+    this.answers = [...(options.answers ?? [])];
     // A first answer that is already final means every later GET returns the final answer too.
     this.finished = options.first?.["status"] === "succeeded";
   }
@@ -115,7 +119,9 @@ export class ExplorationMock {
           contentType: "application/problem+json",
           body: JSON.stringify({ title: "Problem", ...problem }),
         });
-      const first = this.options.first ?? running;
+      const first = this.answers.shift() ?? this.options.first ?? running;
+      // Each run is final or not from its own first answer, so a switch after a result can run.
+      if (this.options.answers !== undefined) this.finished = first["status"] === "succeeded";
       return route.fulfill({ status: first["status"] === "succeeded" ? 200 : 202, json: first });
     }
     if (request.method() === "DELETE") {

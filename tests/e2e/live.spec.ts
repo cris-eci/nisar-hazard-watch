@@ -25,6 +25,173 @@ const FIRE_AVAILABLE = {
   note: "Independent thermal evidence, separate from the radar.",
 };
 
+const CARD_ORDER = [
+  "lens-head",
+  "lens-slot-extra",
+  "lens-pixel",
+  "lens-why-two",
+  "lens-surroundings",
+  "more-info",
+];
+
+test.describe("Explorer: lens buttons and the lens result card", () => {
+  let globe: GlobePage;
+
+  test.beforeEach(async ({ page }) => {
+    globe = new GlobePage(page);
+    await globe.skipOnboarding();
+    await globe.mockObservationPlan();
+  });
+
+  test("the flood card reads in the binding order, from the answer's own fields", async ({
+    page,
+  }) => {
+    await globe.mockExplorations({ first: succeededView() });
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+
+    const card = page.getByTestId("lens-card");
+    await expect(card).toBeVisible();
+    const order = await card
+      .locator(":scope > [data-rv]")
+      .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
+    expect(order).toEqual(CARD_ORDER);
+    await expect(page.getByTestId("lens-slot-witness")).toHaveCount(0);
+    await expect(page.getByTestId("lens-slot-drivers")).toHaveCount(0);
+
+    await expect(card.getByTestId("lens-head")).toContainText("LENS · FLOOD & WETLAND");
+    await expect(card.getByTestId("lens-head")).toContainText("Did water appear here?");
+    await expect(globe.verdict).toContainText("Within its usual range");
+    await expect(page.getByTestId("lens-headline")).toHaveText(
+      "No new water at the exact spot you clicked. Around it, about a tenth of the area darkened the way calm new water does.",
+    );
+    await expect(page.getByTestId("lens-rule-count")).toHaveText("208,344 of 1,048,576 cells");
+    await expect(page.getByTestId("lens-rule-caption")).toHaveText(
+      "HH fell 3 dB or more and HV 1.5 dB or more on 11 Nov 2026, against each cell's own median of 4 earlier passes. Another 128,837 cells brightened. Cells meeting a rule, not flooded area.",
+    );
+    await expect(page.getByTestId("lens-rule-thumb")).toHaveCount(0);
+    await expect(page.getByTestId("lens-rule-toggle")).toHaveCount(0);
+    await expect(page.getByTestId("lens-delta-HH")).toContainText("−1.2 dB");
+    await expect(page.getByTestId("lens-delta-HH")).toContainText("band ±3.0 dB · inside");
+    await expect(page.getByTestId("lens-delta-HV")).toContainText("−0.8 dB");
+    await expect(page.getByTestId("lens-delta-HV")).toContainText("band ±5.8 dB · inside");
+    await expect(page.getByTestId("lens-surroundings")).toContainText(
+      "The 60 m patch around your pixel did not darken more than matched cells 120–300 m away. 115 cells in the patch, compared with 115 matched cells out of 2,376 around it.",
+    );
+    await expect(page.getByTestId("lens-reasons")).toHaveCount(0);
+    // Tabs above the card, 400 px panel.
+    await expect(page.getByTestId("lens-tabs")).toBeVisible();
+    expect((await globe.panel.boundingBox())?.width).toBe(400);
+  });
+
+  test("a question link picks its lens exactly like its button", async ({ page }) => {
+    const api = await globe.mockExplorations({
+      answers: [runningView(), runningView({ lens: "vegetation_disturbance" })],
+    });
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+    await page.getByTestId("job-keep").click();
+
+    await page.getByTestId("lens-ask-vegetation_disturbance").click();
+    await expect(globe.lens("vegetation_disturbance")).toHaveAttribute("aria-pressed", "true");
+    await expect(page).toHaveURL(/lens=vegetation_disturbance/);
+    const byLink = page.url();
+    expect(api.posts.at(-1)).toMatchObject({ lens: "vegetation_disturbance" });
+
+    await page.getByTestId("lens-ask-flood_wetland").click();
+    const floodByLink = page.url();
+    await page.getByTestId("lens-vegetation_disturbance").click();
+    await expect(page).toHaveURL(byLink);
+    expect(api.posts.at(-1)).toMatchObject({ lens: "vegetation_disturbance" });
+    await page.getByTestId("lens-flood_wetland").click();
+    await expect(page).toHaveURL(floodByLink);
+  });
+
+  test("a lens switch runs in the compact row; the modal is only for the area's first run", async ({
+    page,
+  }) => {
+    const api = await globe.mockExplorations({
+      answers: [
+        withFireContext("wildfire", FIRE_AVAILABLE),
+        runningView({ elapsedSeconds: 75, etaSeconds: 120 }),
+      ],
+      running: runningView({ elapsedSeconds: 75, etaSeconds: 120 }),
+    });
+    await globe.goto(`?frame=${LIVE_FRAME.id}&lens=wildfire`);
+    await expect(page.getByTestId("lens-card")).toBeVisible();
+    // Wildfire's second witness (FIRMS) arrives through the witness slot.
+    await expect(page.getByTestId("lens-slot-witness").getByTestId("fire-context")).toBeVisible();
+
+    // Date.now stands still, so the row shows the server's elapsed time exactly.
+    await page.clock.setFixedTime(new Date("2026-11-13T12:00:00Z"));
+    await globe.lens("flood_wetland").click();
+
+    const row = page.getByTestId("lens-running");
+    await expect(row).toContainText("Running the Flood & wetland lens");
+    await expect(page.getByTestId("lens-running-elapsed")).toHaveText("1:15 elapsed");
+    await expect(globe.lens("flood_wetland")).toHaveAttribute("data-running", "true");
+    await expect(globe.jobModal).toBeHidden();
+    await expect(globe.jobProgress).toHaveCount(0);
+    // The other lenses stay usable.
+    await expect(globe.lens("agriculture")).toBeEnabled();
+
+    await page.clock.resume();
+    api.complete();
+    await expect(page.getByTestId("lens-headline")).toContainText("No new water", {
+      timeout: 15_000,
+    });
+    await expect(row).toBeHidden();
+  });
+
+  test("Cancel in the compact row stops the lens run", async ({ page }) => {
+    const api = await globe.mockExplorations({
+      answers: [succeededView(), runningView({ lens: "agriculture" })],
+    });
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+    await expect(page.getByTestId("lens-card")).toBeVisible();
+    await globe.lens("agriculture").click();
+    await page.getByTestId("lens-running-cancel").click();
+    await expect(globe.jobError).toContainText("Request cancelled");
+    expect(api.cancelled).toBe(true);
+  });
+
+  test("ground motion stays a visible entry, marked as a measurement, and opens the pair picker", async ({
+    page,
+  }) => {
+    await globe.mockExplorations({ first: succeededView() });
+    await globe.mockInsarPairs();
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+
+    await expect(globe.lens("insar")).toContainText("measured, not a verdict");
+    await globe.lens("insar").click();
+    await expect(page.getByTestId("pair-picker")).toBeVisible();
+    await expect(globe.lens("insar")).toHaveAttribute("aria-pressed", "true");
+  });
+
+  test("a lens with no verdict lists its reasons in plain words, never the code", async ({
+    page,
+  }) => {
+    const real = succeededView();
+    const result = real["result"] as Record<string, unknown>;
+    const lens = result["lens"] as Record<string, unknown>;
+    await globe.mockExplorations({
+      first: {
+        ...real,
+        result: {
+          ...result,
+          lens: { ...lens, status: "insufficient_data", reason: "pixel_masked", point: null },
+        },
+      },
+    });
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+
+    await expect(globe.verdict).toContainText("Not enough data");
+    await expect(page.getByTestId("lens-reasons")).toContainText(
+      "The clicked pixel has no usable value on at least one pass.",
+    );
+    await expect(page.getByTestId("lens-reasons")).not.toContainText("pixel_masked");
+    await expect(page.getByTestId("lens-pixel")).toHaveCount(0);
+  });
+});
+
 test.describe("Explorer: live exploration", () => {
   let globe: GlobePage;
 
@@ -43,9 +210,8 @@ test.describe("Explorer: live exploration", () => {
     await expect(globe.verdict).toHaveAttribute("data-verdict", "within");
     await expect(globe.normalRange).toContainText("−1.2 dB");
     await expect(globe.normalRange).toContainText("−0.8 dB");
-    await expect(page.getByTestId("panel-stat")).toContainText("32.9%");
-    await expect(globe.panel.getByTestId("contrast-bars")).toBeVisible();
     await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.panel.getByTestId("prov-demo-dates")).toHaveCount(0);
     await expect(globe.panelMeta).toContainText(`Live question · ${LIVE_FRAME.title}`);
     await expect(page).toHaveURL(new RegExp(`frame=${LIVE_FRAME.id}`));
     expect(api.posts).toEqual([
@@ -195,6 +361,7 @@ test.describe("Explorer: live exploration", () => {
     await expect(globe.timeline).toBeVisible();
     await expect(globe.timeline.getByTestId("prov-real")).toBeVisible();
     await expect(globe.timeline.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.timeline.getByTestId("prov-demo-dates")).toHaveCount(0);
     await expect(globe.timelinePasses("target")).toHaveCount(1);
     await expect(globe.timelinePasses("base")).toHaveCount(4);
     for (const planned of await globe.timelinePasses("plan").all())
@@ -210,12 +377,16 @@ test.describe("Explorer: live exploration", () => {
 
     await expect(globe.sheet).toContainText("What the radar measured at your point");
     await expect(globe.sheet.getByTestId("normal-range")).toBeVisible();
+    // The whole-area share (any channel) and its bars live here, not in the lens card.
+    await expect(globe.sheet).toContainText("32.9%");
+    await expect(globe.sheet.getByTestId("contrast-bars")).toBeVisible();
     await expect(page.getByTestId("sheet-compute")).toContainText(
       "Measuring against the normal range",
     );
     await expect(globe.sheet).toContainText("not a validated classifier");
     await expect(globe.sheet).toContainText("Independent optical measurements are unavailable");
     await expect(globe.sheet.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(globe.sheet.getByTestId("prov-demo-dates")).toHaveCount(0);
   });
 
   for (const mobile of [false, true]) {
@@ -405,6 +576,7 @@ test.describe("Explorer: live exploration", () => {
       await expect(page.getByTestId("insar-displacement")).toContainText("Not reported");
       await expect(page.getByTestId("panel-stat")).toContainText("63.3%");
       await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+      await expect(globe.panel.getByTestId("prov-demo-dates")).toHaveCount(0);
       await expect(globe.normalRange).toHaveCount(0);
       await expect(page).toHaveURL(new RegExp(`pair=${SECOND_PAIR}`));
       await expect(page).toHaveURL(/coherence=0\.5/);
@@ -498,6 +670,7 @@ test.describe("Explorer: live exploration", () => {
       await expect(fire).toContainText("separate from the radar");
       await expect(fire.getByTestId("prov-real")).toBeVisible();
       await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+      await expect(globe.panel.getByTestId("prov-demo-dates")).toHaveCount(0);
 
       await globe.moreInfo.click();
       await expect(page.getByRole("link", { name: /FIRMS active fire data/ })).toBeVisible();
@@ -552,6 +725,7 @@ test.describe("Report: live answer", () => {
     await expect(page.getByTestId("report-stat")).toContainText("32.9%");
     await expect(page.getByTestId("report-scenes").getByRole("listitem")).toHaveCount(5);
     await expect(page.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(page.getByTestId("prov-demo-dates")).toHaveCount(0);
   });
 
   test("a wildfire report adds the fire context as its own block, apart from the radar data", async ({
@@ -582,6 +756,7 @@ test.describe("Report: live answer", () => {
     await expect(page.getByTestId("report-summary")).not.toContainText("Verdict:");
     await expect(page.getByTestId("report")).toContainText("Measured, not a verdict");
     await expect(page.getByTestId("prov-demo")).toHaveCount(0);
+    await expect(page.getByTestId("prov-demo-dates")).toHaveCount(0);
   });
 
   test("an answer that does not exist says so and keeps the way back", async ({ page }) => {

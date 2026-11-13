@@ -1,10 +1,12 @@
 /*
  * Explorer v7 (x-*): the globe fills the screen and glass cards float over it. Tokens follow the
- * handoff (SPECS §6): panel 360, dock 256, timeline ≤ 680, overlay inset 16. Gold is UI only.
+ * handoff (SPECS §6) with v8's panel: 372 (400 on the lens result), dock 256, timeline ≤ 680,
+ * overlay inset 16. Gold is UI only.
  */
 
 .explorer {
   --inset: 16px;
+  --x-panel-w: 372px;
   --glass-bg: rgba(8, 16, 31, 0.9);
   --line: rgba(235, 233, 228, 0.12);
   --fill: rgba(235, 233, 228, 0.04);
@@ -453,7 +455,7 @@
   left: var(--inset);
   top: 72px;
   z-index: 8;
-  width: 372px;
+  width: var(--x-panel-w);
   max-width: calc(100vw - 32px);
   box-sizing: border-box;
   padding: 20px;
@@ -687,13 +689,26 @@
   color: var(--ink-3);
 }
 
+/* Top-bar switches: L | S today, Ascending / Descending (#24) beside it. v8 pill look. */
+.x-switches {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Reserved for #24 and empty until then: it must not add a gap. */
+.x-switches__slot:empty {
+  display: none;
+}
+
 .x-source {
   height: 40px;
   box-sizing: border-box;
   flex: none;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   padding: 4px;
   border-radius: 999px;
   background: rgba(8, 16, 31, 0.8);
@@ -702,20 +717,27 @@
 }
 
 .x-source button {
-  width: 32px;
-  height: 32px;
+  height: 30px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   background: transparent;
-  color: var(--muted);
-  font-family: var(--mono);
+  color: var(--ink);
+  font: inherit;
   font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
   cursor: default;
 }
 
 .x-source button[aria-pressed="true"] {
   background: var(--ink);
   color: var(--space);
+}
+
+.x-source button:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 .x-source button:disabled {
@@ -727,7 +749,7 @@
 .x-guide {
   position: absolute;
   top: 64px;
-  left: calc(50% + 196px);
+  left: calc(50% + (var(--x-panel-w) + 2 * var(--inset)) / 2);
   transform: translateX(-50%);
   z-index: 12;
   width: min(440px, calc(100vw - 32px));
@@ -901,7 +923,7 @@
   left: var(--inset);
   top: 72px;
   z-index: 8;
-  width: 372px;
+  width: var(--x-panel-w);
   max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 96px);
   overflow: auto;
@@ -1032,7 +1054,7 @@
 
 .x-hint {
   position: absolute;
-  left: calc(50% + 196px);
+  left: calc(50% + (var(--x-panel-w) + 2 * var(--inset)) / 2);
   bottom: 24px;
   z-index: 6;
   transform: translateX(-50%);
@@ -1075,12 +1097,16 @@
 }
 
 /* Panel */
+.x-panel--result {
+  --x-panel-w: 400px;
+}
+
 .x-panel {
   position: absolute;
   left: var(--inset);
   top: 72px;
   z-index: 9;
-  width: 360px;
+  width: var(--x-panel-w);
   max-width: calc(100vw - 32px);
   max-height: calc(100dvh - 88px);
   overflow: auto;
@@ -1136,40 +1162,6 @@
   width: 38px;
   height: 38px;
   color: var(--ink);
-}
-
-.x-lenses {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.x-lens {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 11px 0 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(235, 233, 228, 0.16);
-  background: transparent;
-  color: var(--ink-2);
-  font-size: 13px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition:
-    background 200ms,
-    color 200ms;
-}
-
-.x-lens:hover {
-  background: rgba(235, 233, 228, 0.06);
-}
-
-.x-lens[aria-pressed="true"] {
-  border-color: var(--ink);
-  background: var(--ink);
-  color: var(--space);
 }
 
 .x-edge {

@@ -2,6 +2,7 @@ import "@/pages/site/site.css";
 import "@/features/charts/charts.css";
 import "@/pages/explorer/explorer.css";
 import "@/pages/explorer/story.css";
+import "@/features/lenses/lenses.css";
 
 import type { Viewer } from "cesium";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -47,6 +48,9 @@ import { useExploration } from "@/features/explore/useExploration";
 import { JobModal } from "@/features/live/JobModal";
 import { formatLonLat, gridMetres, LIVE_CHIP_KM } from "@/features/live/liveQuestion";
 import { LiveProblem, LiveProgress } from "@/features/live/LiveStatus";
+import { LensPicker, type LensRun } from "@/features/lenses/LensPicker";
+import { LensResultCard } from "@/features/lenses/LensResultCard";
+import { isCardLens } from "@/features/lenses/lensSlots";
 import { PlanState } from "@/features/live/LiveSummary";
 import { useFramePlan } from "@/features/live/useFramePlan";
 import { NovaChat } from "@/features/nova/NovaChat";
@@ -95,6 +99,8 @@ type Selection =
       // Ground motion measures one pair, chosen first from the picker.
       insar: InsarChoice | undefined;
       run: number;
+      // A lens switch on the same area waits in the compact row; the first run of an area gets the modal.
+      lensSwitch: boolean;
     };
 
 const DEFAULT_LENS: LensId = "flood_wetland";
@@ -203,6 +209,7 @@ export const ExplorerPage = () => {
       fromCase: undefined,
       insar: initial.insar,
       run: 0,
+      lensSwitch: false,
     };
   });
   const [story, setStory] = useState(initial.story && storyCase() !== undefined);
@@ -253,6 +260,7 @@ export const ExplorerPage = () => {
       fromCase?: Case,
       area?: Area,
       insar?: InsarChoice,
+      lensSwitch = false,
     ) => {
       setSelection((previous) => ({
         kind: "live",
@@ -263,6 +271,7 @@ export const ExplorerPage = () => {
         fromCase,
         insar,
         run: previous?.kind === "live" ? previous.run + 1 : 0,
+        lensSwitch,
       }));
       setAreaIssue(undefined);
       setPlace(undefined);
@@ -344,7 +353,8 @@ export const ExplorerPage = () => {
   const receivedAt = exploration.state.phase === "running" ? exploration.state.receivedAt : 0;
   // The wait modal can be closed while the job runs; it stays closed for that run.
   const [modalClosedFor, setModalClosedFor] = useState("");
-  const modalOpen = liveRuns && running && modalClosedFor !== runKey && !story;
+  const modalOpen =
+    liveRuns && running && modalClosedFor !== runKey && !story && live?.lensSwitch !== true;
   const layers = useMemo(
     () => (phase === "done" && exploredView !== undefined ? liveLayers(exploredView) : []),
     [phase, exploredView],
@@ -585,7 +595,15 @@ export const ExplorerPage = () => {
       openCase(selection.fromCase);
       return;
     }
-    ask(selection.frame, selection.point, lens, selection.fromCase, selection.area);
+    ask(
+      selection.frame,
+      selection.point,
+      lens,
+      selection.fromCase,
+      selection.area,
+      undefined,
+      true,
+    );
   };
 
   // The pair is chosen after the lens: the choice starts the run and goes into the shared link.
@@ -611,6 +629,13 @@ export const ExplorerPage = () => {
             point: live.point,
           })
         : undefined;
+  // Live answers of the four lenses read as the v8 lens result; cases and ground motion keep v7.
+  const showLensCard =
+    subject?.kind === "live" && exploredView !== undefined && isCardLens(subject.lens);
+  const lensRun: LensRun | undefined =
+    live !== undefined && live.lensSwitch && liveRuns && running && isCardLens(live.lens)
+      ? { lens: live.lens, view: exploredView, receivedAt }
+      : undefined;
   const liveTimeline = useMemo(
     () =>
       phase === "done" && exploredView !== undefined
@@ -851,7 +876,11 @@ export const ExplorerPage = () => {
           tools={
             <>
               <AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />
-              <SourceSwitch />
+              <div className="x-switches">
+                <SourceSwitch />
+                {/* #24 puts Ascending / Descending here. */}
+                <span className="x-switches__slot" aria-hidden="true" />
+              </div>
             </>
           }
           helpOpen={helpOpen}
@@ -949,12 +978,32 @@ export const ExplorerPage = () => {
             }
             lens={item?.lens ?? live?.lens ?? DEFAULT_LENS}
             collapsed={collapsed || sheetOpen}
-            onLens={chooseLens}
+            result={showLensCard}
+            picker={
+              <LensPicker
+                lens={item?.lens ?? live?.lens ?? DEFAULT_LENS}
+                tabs={showLensCard}
+                running={lensRun}
+                onLens={chooseLens}
+                onCancel={() => void exploration.cancel()}
+              />
+            }
             onToggle={() => (sheetOpen ? setSheetOpen(false) : setCollapsed(!collapsed))}
             onClose={close}
           >
             {item?.pending === true && <PendingSummary item={item} />}
-            {subject !== undefined && (
+            {showLensCard && subject !== undefined && exploredView !== undefined && (
+              <LensResultCard
+                subject={subject}
+                view={exploredView}
+                layers={layers}
+                shownLayerId={layerId}
+                onShowLayer={(id) => setLayerChoice({ runKey, id })}
+                reduce={reduceMotion}
+                onMore={() => setSheetOpen(true)}
+              />
+            )}
+            {subject !== undefined && !showLensCard && (
               <ResultSummary subject={subject} mode={mode} onMore={() => setSheetOpen(true)} />
             )}
             {item !== undefined && item.pending !== true && item.lens === "insar" && (
@@ -975,7 +1024,7 @@ export const ExplorerPage = () => {
                 onPickCase={close}
               />
             )}
-            {liveRuns && running && !modalOpen && (
+            {liveRuns && running && !modalOpen && live?.lensSwitch !== true && (
               <LiveProgress
                 view={exploredView}
                 receivedAt={receivedAt}
