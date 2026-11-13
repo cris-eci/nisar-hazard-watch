@@ -50,7 +50,10 @@ const FOOTER_COLUMNS: FooterColumn[] = [
   {
     title: "EVIDENCE",
     items: [
-      { label: "NISAR-Modeling reports", href: "https://github.com/Ch0comilo/NISAR-Modeling" },
+      {
+        label: "NISAR-Modeling reports",
+        href: "https://github.com/nisar-hazard-watch/NISAR-Modeling",
+      },
       { label: "NISAR-Models model cards", href: MODELS_REPO },
       {
         label: "OPERA DSWx-HLS · PO.DAAC",

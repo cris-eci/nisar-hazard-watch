@@ -82,7 +82,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
         label: "OPERA products",
         href: "https://www.jpl.nasa.gov/go/opera/products/dist-product-suite/",
       },
-      { label: "Science backend", href: "https://github.com/Ch0comilo/NISAR-Modeling" },
+      { label: "Science backend", href: "https://github.com/nisar-hazard-watch/NISAR-Modeling" },
     ],
   },
   {
@@ -91,7 +91,7 @@ const FOOTER_COLUMNS: FooterColumn[] = [
       { label: "Source code", href: "https://github.com/nisar-hazard-watch/nisar-hazard-watch" },
       {
         label: "API contract",
-        href: "https://github.com/Ch0comilo/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
+        href: "https://github.com/nisar-hazard-watch/NISAR-Modeling/blob/main/docs/EXPLORE_API.md",
       },
       { label: "NISAR mission", href: "https://science.nasa.gov/mission/nisar/" },
       { label: "CesiumJS", href: "https://cesium.com/platform/cesiumjs/" },
