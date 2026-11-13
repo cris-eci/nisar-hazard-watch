@@ -19,14 +19,21 @@ decisions win over the handoff:
 
 1. **One API path.** The frontend talks only to the backend (`/api/v1`, Railway). Every `/v2` field the
    specs name is relayed by the backend; ask in the backend repo when one is missing.
-2. **Ground motion.** The InSAR pair measurement stays, presented the v8 way: no lens button; the dock's
-   Coherence row opens the pair picker; coherence 0–1, cividis; never centimetres.
+2. **Ground motion stays a visible entry** next to the four lenses ("Did the ground move?"), marked as a
+   measurement, not a verdict. It opens the pair picker; the dock's Coherence row opens it too. Coherence 0–1,
+   cividis; never centimetres.
 3. **Area tools stay.** Point, rectangle and polygon remain, restyled to v8 (dashed gold footprint, dark
    border on light ground).
-4. **No L | S switch.** Ascending / Descending takes its place; S-band is out of scope.
+4. **L | S stays disabled** ("coming soon"), as decided on 12 Nov, restyled to v8; Ascending / Descending sits
+   next to it. S-band is out of scope.
 5. **Lens before the job, for now.** "Analyze this spot" runs the selected lens and the raw passes come
    with the answer; switching lens is a new short wait (as step 5 already shows).
 6. **Wildfire's second witness is NASA FIRMS**, in the place of the OPERA section.
 7. **Possible drivers** ship for flood only, always with HYPOTHESIS · NOT A RESULT; other lenses wait for
    their thresholds.
-8. **Limits come from the backend.** Never hardcode a daily number (the handoff was drawn for 12/day).
+8. **Limits come from the backend.** Never hardcode a daily number (the handoff was drawn for 12/day). The
+   waiting bar shades the backend's own estimate (`etaSeconds`), not a fixed 1–4 min band.
+9. **Keep what's already live.** Shared links (`?bbox=`, `?geo=`, `&pair=`, `&lens=`), the live report
+   (`/report?exploration=`), downloads, "Keep exploring" and background polling aren't drawn in the handoff;
+   the restyle keeps them. Until per-date point values reach the frontend, the pixel block keeps
+   `NormalRangeCard` instead of a demo band chart, and the facts carousel keeps each fact's source.
