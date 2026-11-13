@@ -713,3 +713,38 @@
 .c-fire[data-status="notConfigured"] .c-fire__headline {
   color: var(--muted);
 }
+
+/* What an InSAR pair measured (live ground-motion results) */
+.c-insar__facts {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 12px;
+  margin: 2px 0 0;
+  font-size: 12.5px;
+}
+
+.c-insar__facts div {
+  display: contents;
+}
+
+.c-insar__facts dt {
+  color: var(--muted);
+}
+
+.c-insar__facts dd {
+  margin: 0;
+  font-family: var(--mono);
+  text-align: right;
+  color: var(--ink-3);
+}
+
+.c-insar__displacement {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--faint);
+}
+
+.c-insar__displacement strong {
+  color: var(--gold);
+  font-weight: 500;
+}

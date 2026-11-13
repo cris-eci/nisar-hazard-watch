@@ -2,6 +2,7 @@ import type { Subject, NormalRange } from "@/features/case-panel/subject";
 import type { ContrastGroup, LensId, QualityItem, Verdict } from "@/features/cases/cases";
 import { formatPercent } from "@/features/cases/cases";
 import { fireContextOf } from "@/features/explore/exploreFire";
+import { insarParts } from "@/features/explore/exploreInsar";
 import type {
   ExplorationResult,
   ExplorationStage,
@@ -194,7 +195,9 @@ export const exploreSubject = (view: ExplorationView, context: Context): Subject
     crops: undefined,
     normalRange: normalRangeOf(result),
     fireContext,
+    insar: undefined,
     compute: computeOf(view),
     demo: result.isDemo,
+    ...insarParts(view, result),
   };
 };

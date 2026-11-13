@@ -2,7 +2,15 @@ import { Prov } from "@/features/case-panel/Prov";
 import { SOURCE } from "@/features/case-panel/verdicts";
 import { LAYER_GROUPS, layerTitle, type LiveLayer } from "@/features/explore/exploreLayers";
 
-const GRAY_RAMP = "linear-gradient(90deg,#000,#fff)";
+// Approximations of the palettes the backend renders (matplotlib), so the legend matches the map.
+const RAMPS: Record<string, string> = {
+  gray: "linear-gradient(90deg,#000,#fff)",
+  cividis: "linear-gradient(90deg,#00224e,#35456c,#666970,#948e77,#c8b866,#fee838)",
+  twilight:
+    "linear-gradient(90deg,#e2d9e2,#8bb0c9,#5f6bb5,#4a2d86,#2f1437,#82305f,#c4684d,#d9b09a,#e2d9e2)",
+};
+const CYCLIC_NOTE =
+  "The colours repeat every 2π: this is wrapped phase, a pattern of fringes, not a distance.";
 
 type LiveLayerDockProps = {
   layers: LiveLayer[];
@@ -12,10 +20,15 @@ type LiveLayerDockProps = {
   onOpacity: (opacity: number) => void;
 };
 
-const rangeText = ({ valueRange, units }: LiveLayer): string | undefined =>
-  valueRange === null
-    ? undefined
-    : `${valueRange.map((value) => String(value).replace("-", "−")).join(" to ")} ${units}`.trim();
+const ROUNDING = 100;
+
+const rangeText = ({ valueRange, units, kind }: LiveLayer): string | undefined => {
+  if (valueRange === null) return undefined;
+  // The wrapped phase spans one full turn; the backend's raw 3.1415926536 reads better as π.
+  if (kind === "phase") return "−π to +π rad";
+  const rounded = valueRange.map((value) => String(Math.round(value * ROUNDING) / ROUNDING));
+  return `${rounded.join(" to ").replaceAll("-", "−")} ${units}`.trim();
+};
 
 // The layers this exploration produced, one on the globe at a time.
 export const LiveLayerDock = ({
@@ -60,11 +73,18 @@ export const LiveLayerDock = ({
       </div>
       {selected !== undefined && (
         <div className="x-dock__legend">
-          {selected.colormap === "gray" && (
-            <span className="x-dock__ramp" style={{ background: GRAY_RAMP }} />
+          {RAMPS[selected.colormap] !== undefined && (
+            <span className="x-dock__ramp" style={{ background: RAMPS[selected.colormap] ?? "" }} />
           )}
           {rangeText(selected) !== undefined && (
-            <p className="x-dock__scale">{rangeText(selected)}</p>
+            <p className="x-dock__scale" data-testid="layer-scale">
+              {rangeText(selected)}
+            </p>
+          )}
+          {selected.kind === "phase" && (
+            <p className="x-dock__scale" data-testid="phase-note">
+              {CYCLIC_NOTE}
+            </p>
           )}
           {selected.legend !== null && (
             <ul className="x-layers__legend" data-testid="layer-legend">

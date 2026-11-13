@@ -3,12 +3,13 @@ import type { AreaGeometry } from "@/features/geo/geo.types";
 import { explorationSchema, type ExplorationView } from "@/features/explore/exploreSchemas";
 import { apiRequest } from "@/lib/api/apiClient";
 
-// The backend's lenses; InSAR needs a pair and arrives with its own flow.
+// The backend's lenses. InSAR needs a pair chosen first, so its question starts from the picker.
 export const LIVE_LENSES: readonly LensId[] = [
   "flood_wetland",
   "vegetation_disturbance",
   "wildfire",
   "agriculture",
+  "insar",
 ];
 
 export const isLiveLens = (lens: LensId): boolean => LIVE_LENSES.includes(lens);
@@ -19,6 +20,9 @@ export type ExplorationRequest = {
   geometry: AreaGeometry;
   source: "L";
   opticalEvidence?: boolean;
+  // The insar lens only: a GUNW pair from the pair list and the coherence below which no phase shows.
+  pairId?: string;
+  coherenceThreshold?: number;
 };
 
 export const startExploration = (

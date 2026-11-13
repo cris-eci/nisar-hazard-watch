@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-import { noCoverageView, runningView, succeededView, withFireContext } from "./pom/explorationMock";
+import {
+  INSAR_PAIRS,
+  insarView,
+  noCoverageView,
+  runningView,
+  succeededView,
+  withFireContext,
+} from "./pom/explorationMock";
 import { GlobePage, LIVE_FRAME } from "./pom/GlobePage";
 
 const FIRE_AVAILABLE = {
@@ -223,16 +230,6 @@ test.describe("Explorer: live exploration", () => {
     );
   });
 
-  test("the ground-motion lens has no live question yet and says so", async ({ page }) => {
-    await globe.mockExplorations({ first: succeededView() });
-    await globe.goto(`?frame=${LIVE_FRAME.id}`);
-    await expect(globe.verdict).toBeVisible();
-
-    await globe.lens("insar").click();
-
-    await expect(page.getByTestId("job-unsupported")).toContainText("needs a pair of passes");
-  });
-
   test("the downloads carry the real answer: JSON and one CSV row per scene", async ({ page }) => {
     await globe.mockExplorations({ first: succeededView() });
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
@@ -248,6 +245,129 @@ test.describe("Explorer: live exploration", () => {
     const csv = page.waitForEvent("download");
     await page.getByTestId("download-csv").click();
     expect((await csv).suggestedFilename()).toMatch(/-passes\.csv$/);
+  });
+
+  test.describe("ground motion (InSAR pair)", () => {
+    const NEWEST_PAIR = String(INSAR_PAIRS.pairs[0]?.["pairId"]);
+    const SECOND_PAIR = String(INSAR_PAIRS.pairs[1]?.["pairId"]);
+
+    test("the lens lists the pairs over the spot and asks nothing of the radar until one is chosen", async ({
+      page,
+    }) => {
+      const api = await globe.mockExplorations({ first: succeededView() });
+      await globe.mockInsarPairs();
+      await globe.goto(`?frame=${LIVE_FRAME.id}`);
+      await expect(globe.verdict).toBeVisible();
+      api.posts.length = 0;
+
+      await globe.lens("insar").click();
+
+      await expect(globe.pairPicker).toBeVisible();
+      await expect(page.locator('[data-testid^="pair-option-"]')).toHaveCount(
+        INSAR_PAIRS.pairs.length,
+      );
+      await expect(page.getByTestId(`pair-option-${NEWEST_PAIR}`)).toBeChecked();
+      await expect(globe.pairPicker).toContainText("20 Oct 2026");
+      expect(globe.pairRequests).toHaveLength(1);
+      expect(api.posts).toEqual([]);
+    });
+
+    test("measuring a pair sends it with the threshold; the answer is a measurement with no verdict and no displacement", async ({
+      page,
+    }) => {
+      const api = await globe.mockExplorations({ first: insarView() });
+      await globe.mockInsarPairs();
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=insar`);
+      await globe.pairPicker.waitFor();
+
+      await page.getByTestId(`pair-option-${SECOND_PAIR}`).check();
+      await page.getByTestId("coherence-threshold").fill("0.5");
+      await expect(page.getByTestId("coherence-value")).toHaveText("0.50");
+      await globe.pairMeasure.click();
+
+      await expect(globe.verdict).toHaveAttribute("data-verdict", "measured");
+      await expect(globe.verdict).toContainText("Measured, not a verdict");
+      await expect(globe.insarCard).toContainText("Median coherence");
+      await expect(globe.insarCard).toContainText("0.43");
+      await expect(globe.insarCard).toContainText("Wrapped phase at the point");
+      await expect(page.getByTestId("insar-displacement")).toContainText("Not reported");
+      await expect(page.getByTestId("panel-stat")).toContainText("63.3%");
+      await expect(globe.panel.getByTestId("prov-demo")).toHaveCount(0);
+      await expect(globe.normalRange).toHaveCount(0);
+      await expect(page).toHaveURL(new RegExp(`pair=${SECOND_PAIR}`));
+      await expect(page).toHaveURL(/coherence=0\.5/);
+      expect(api.posts).toEqual([
+        {
+          lens: "insar",
+          geometry: { type: "Point", coordinates: expect.any(Array) },
+          source: "L",
+          pairId: SECOND_PAIR,
+          coherenceThreshold: 0.5,
+        },
+      ]);
+    });
+
+    test("the globe offers the coherence and the wrapped phase, and the phase says its colours repeat", async ({
+      page,
+    }) => {
+      await globe.mockExplorations({ first: insarView() });
+      await globe.mockInsarPairs();
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=insar&pair=${NEWEST_PAIR}`);
+      await expect(globe.verdict).toBeVisible();
+
+      await expect(globe.liveLayerDock).toContainText("Interferometric coherence");
+      await expect(globe.liveLayerDock).toContainText("Wrapped phase");
+      await page.getByTestId("layer-option-display_wrapped_phase_rad_wrapped_phase_rad").click();
+
+      await expect(page.getByTestId("phase-note")).toContainText("repeat every 2π");
+      await expect(page.getByTestId("layer-scale")).toHaveText("−π to +π rad");
+    });
+
+    test("a shared link with the pair measures straight away, without the picker", async () => {
+      const api = await globe.mockExplorations({ first: insarView() });
+      await globe.mockInsarPairs();
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=insar&pair=${NEWEST_PAIR}&coherence=0.6`);
+
+      await expect(globe.verdict).toHaveAttribute("data-verdict", "measured");
+      await expect(globe.pairPicker).toHaveCount(0);
+      expect(globe.pairRequests).toEqual([]);
+      expect(api.posts).toEqual([
+        expect.objectContaining({ lens: "insar", pairId: NEWEST_PAIR, coherenceThreshold: 0.6 }),
+      ]);
+    });
+
+    test("a spot with no pair says so and keeps the way back; a catalog outage can be retried", async ({
+      page,
+    }) => {
+      await globe.mockExplorations({ first: succeededView() });
+      await globe.mockInsarPairs({ failures: 1 });
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=insar`);
+
+      await expect(globe.jobError).toBeVisible();
+      await page.getByRole("button", { name: "Try again" }).click();
+      await expect(globe.pairPicker).toBeVisible();
+    });
+
+    test("no pair over the spot is explained, not left blank", async ({ page }) => {
+      await globe.mockExplorations({ first: succeededView() });
+      await globe.mockInsarPairs({ empty: true });
+      await globe.goto(`?frame=${LIVE_FRAME.id}&lens=insar`);
+
+      await expect(page.getByTestId("pairs-empty")).toContainText("No NISAR pair covers this spot");
+      await expect(globe.pairPicker).toHaveCount(0);
+    });
+
+    test("the Kumamoto case offers to measure a live pair at its spot", async ({ page }) => {
+      await globe.mockExplorations({ first: insarView() });
+      await globe.mockInsarPairs();
+      await globe.goto("?case=kumamoto");
+      await expect(globe.verdict).toBeVisible();
+
+      await page.getByTestId("measure-live-pair").click();
+
+      await expect(globe.pairPicker).toBeVisible();
+      await expect(globe.panelMeta).toContainText("Live question");
+    });
   });
 
   test.describe("wildfire fire context", () => {
@@ -334,6 +454,22 @@ test.describe("Report: live answer", () => {
     await expect(fire).toContainText("3 active-fire detections between the two passes");
     await expect(page.getByTestId("report")).toContainText("Independent fire context");
     await expect(page.getByTestId("report-summary")).toContainText("separate from the radar");
+  });
+
+  test("a ground-motion report shows what the pair measured and never calls it a verdict", async ({
+    page,
+  }) => {
+    const globe = new GlobePage(page);
+    const answer = insarView();
+    await globe.mockExplorations({ first: answer, final: answer });
+    await page.goto("/report?exploration=exp_0bb9bf27928a4959");
+
+    await expect(page.getByTestId("insar-card")).toContainText("Median coherence");
+    await expect(page.getByTestId("insar-displacement")).toContainText("Not reported");
+    await expect(page.getByTestId("report-summary")).toContainText("No displacement is reported");
+    await expect(page.getByTestId("report-summary")).not.toContainText("Verdict:");
+    await expect(page.getByTestId("report")).toContainText("Measured, not a verdict");
+    await expect(page.getByTestId("prov-demo")).toHaveCount(0);
   });
 
   test("an answer that does not exist says so and keeps the way back", async ({ page }) => {

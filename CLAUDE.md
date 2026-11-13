@@ -83,6 +83,16 @@ PNG at a time (the backend answers `/api/v1/explorations/{id}/layers/{layerId}` 
 the gateway, which must allow our origin in its CORS list). `SourceSwitch` shows L | S; S is
 disabled ("coming soon") and every request sends `source: "L"`.
 
+Ground motion (the `insar` lens) measures one interferometric pair, so it asks for the pair first:
+`src/features/insar/` holds the pair list client (`GET /api/v1/insar/pairs`), `InsarPairPicker`
+(radio list of pairs, newest first, plus the coherence threshold slider 0.1 to 0.9) and
+`insarLink.ts` (`&pair=<granule>[&coherence=<n>]` in a shared link measures straight away). Nothing
+is asked of the radar until a pair is chosen (`needsPair` in `ExplorerPage`). The answer has no
+verdict, so the subject's verdict is `measured` ("Measured, not a verdict"); `InsarCard` shows what
+the pair measured and always states "Displacement: not reported" because the phase is wrapped and
+uncorrected. Layers are `coherence` (opens first) and `phase` (cyclic palette, legend says the
+colours repeat every 2π). The Kumamoto case offers "Measure a live NISAR pair here".
+
 Wildfire: the backend adds `result.fireContext` (NASA FIRMS active-fire detections between the
 baseline and target passes) apart from the radar `lens`. `exploreFire.ts` maps it to a
 `FireContextView` and `FireContextCard` shows it as "Independent fire context" under the radar

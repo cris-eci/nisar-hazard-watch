@@ -7,6 +7,14 @@ const REAL = JSON.parse(
   readFileSync(new URL("../../fixtures/exploration-qadirabad.json", import.meta.url), "utf8"),
 ) as Record<string, unknown>;
 
+// A real answer for ground motion (Kumamoto, one GUNW pair) and the pair list that offered it.
+const INSAR = JSON.parse(
+  readFileSync(new URL("../../fixtures/exploration-kumamoto-insar.json", import.meta.url), "utf8"),
+) as Record<string, unknown>;
+export const INSAR_PAIRS = JSON.parse(
+  readFileSync(new URL("../../fixtures/insar-pairs-kumamoto.json", import.meta.url), "utf8"),
+) as { windowStart: string; windowEnd: string; pairs: Array<Record<string, unknown>> };
+
 // A 1 × 1 transparent PNG, so the globe has an image to drape without a real backend.
 const PIXEL = Buffer.from(
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
@@ -21,6 +29,8 @@ export const succeededView = (overrides: View = {}): View => ({ ...REAL, ...over
 // A finished answer for the given lens that also carries the backend's independent fire context.
 export const withFireContext = (lens: string, fireContext: View): View =>
   succeededView({ lens, result: { ...(REAL["result"] as View), fireContext } });
+
+export const insarView = (overrides: View = {}): View => ({ ...INSAR, ...overrides });
 
 export const runningView = (overrides: View = {}): View => ({
   ...REAL,

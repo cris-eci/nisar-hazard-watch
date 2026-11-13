@@ -4,7 +4,7 @@ import type { Locator, Page } from "@playwright/test";
 
 import { OBSERVATION_PLAN_QUERY_URL } from "@/features/frames/observationPlanApi";
 import { ONBOARDING_KEY } from "@/features/onboarding/onboardingState";
-import { ExplorationMock } from "./explorationMock";
+import { ExplorationMock, INSAR_PAIRS } from "./explorationMock";
 
 // Frame 47-3 (ascending, HH+HV, over Colombia); its mocked plan lists 39 dates.
 export const LIVE_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };
@@ -69,6 +69,11 @@ export class GlobePage {
   readonly jobProgress: Locator;
   readonly normalRange: Locator;
   readonly liveLayerDock: Locator;
+  readonly pairPicker: Locator;
+  readonly pairMeasure: Locator;
+  readonly insarCard: Locator;
+  // Every pair list the page asked for, in order.
+  readonly pairRequests: string[] = [];
 
   constructor(page: Page) {
     this.page = page;
@@ -110,6 +115,9 @@ export class GlobePage {
     this.jobProgress = page.getByTestId("job-progress");
     this.normalRange = page.getByTestId("normal-range");
     this.liveLayerDock = page.getByTestId("live-layer-dock");
+    this.pairPicker = page.getByTestId("pair-picker");
+    this.pairMeasure = page.getByTestId("pair-measure");
+    this.insarCard = page.getByTestId("insar-card");
   }
 
   // Plays the backend's exploration API (see ExplorationMock); returns it to drive and inspect.
@@ -119,6 +127,27 @@ export class GlobePage {
     const mock = new ExplorationMock(options);
     await mock.install(this.page);
     return mock;
+  }
+
+  // Answers every pair list with the real recorded one, an empty one, or `failures` 502s first.
+  async mockInsarPairs({ empty = false, failures = 0 } = {}): Promise<void> {
+    await this.page.route("**/api/v1/insar/pairs**", (route) => {
+      this.pairRequests.push(route.request().url());
+      if (this.pairRequests.length <= failures)
+        return route.fulfill({
+          status: 502,
+          contentType: "application/problem+json",
+          body: JSON.stringify({
+            title: "Scene catalog unavailable",
+            detail: "the GUNW pair catalog is unavailable",
+            reasonCode: "UPSTREAM_CATALOG_ERROR",
+            status: 502,
+          }),
+        });
+      return route.fulfill({
+        json: empty ? { ...INSAR_PAIRS, pairs: [] } : INSAR_PAIRS,
+      });
+    });
   }
 
   placeOption(index: number): Locator {
