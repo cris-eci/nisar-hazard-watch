@@ -300,20 +300,17 @@ export const LENS_CARD = {
 } as const;
 
 // Wildfire card (#27). `oneAssessmentLine`, `comparesTitle` and `note` are verbatim from
-// `reference/Lens Result v2.dc.html` (OTHER.wildfire, the non-flood section). The rest is
-// PROPOSED, pending the team's approval: the FIRMS title follows decision 6 and the OPERA title.
+// `reference/Lens Result v2.dc.html` (OTHER.wildfire, the non-flood section). The rest
+// was approved by the team on 13 Nov 2026; the FIRMS title follows decision 6 and the OPERA title.
 export const WILDFIRE_CARD = {
   oneAssessmentLine: "This lens needs at least two passes after the baseline. This spot has one.",
   comparesTitle: "WHAT THIS LENS COMPARES",
   note: "Counts on how many sampled passes HV stayed below its band, and whether it came back.",
-  // PROPOSED
   declineRow: (date: string) => `with HV below its band on ${date}`,
-  // PROPOSED
   pixelLine: (n: number, m: number) =>
     `At your pixel: HV below its band on ${n} of ${m} ${m === 1 ? "pass" : "passes"} after the baseline.`,
-  // PROPOSED
   cellsNote: "Cells below a band, not burned area.",
-  // PROPOSED (decision 6: FIRMS in the place of OPERA)
+  // Decision 6: FIRMS in the place of OPERA.
   witnessTitle: "SECOND WITNESS · NASA FIRMS",
 } as const;
 
