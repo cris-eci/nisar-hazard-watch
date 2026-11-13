@@ -18,6 +18,10 @@ type View = Record<string, unknown>;
 
 export const succeededView = (overrides: View = {}): View => ({ ...REAL, ...overrides });
 
+// A finished answer for the given lens that also carries the backend's independent fire context.
+export const withFireContext = (lens: string, fireContext: View): View =>
+  succeededView({ lens, result: { ...(REAL["result"] as View), fireContext } });
+
 export const runningView = (overrides: View = {}): View => ({
   ...REAL,
   status: "running",

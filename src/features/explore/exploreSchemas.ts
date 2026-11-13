@@ -84,6 +84,21 @@ const observationSchema = z.looseObject({
   granule_id: z.string().optional(),
 });
 
+const fireContextSchema = z.object({
+  status: z.enum(["available", "unavailable", "notConfigured"]),
+  source: z.string(),
+  windowStart: z.string().nullable(),
+  windowEnd: z.string().nullable(),
+  detections: z.number().nullable(),
+  lowConfidenceExcluded: z.number().nullable(),
+  firstDetection: z.string().nullable(),
+  lastDetection: z.string().nullable(),
+  peakFrpMw: z.number().nullable(),
+  satellites: z.array(z.string()),
+  products: z.array(z.string()),
+  note: z.string(),
+});
+
 const resultSchema = z.object({
   geometry: z.record(z.string(), z.unknown()),
   areaKm2: z.number(),
@@ -99,6 +114,8 @@ const resultSchema = z.object({
   scientificStatus: z.string(),
   timings: z.record(z.string(), z.number()),
   isDemo: z.boolean(),
+  // Independent evidence (wildfire lens only), never part of the radar `lens`.
+  fireContext: fireContextSchema.nullable().optional(),
 });
 
 export const explorationSchema = z.object({
@@ -128,6 +145,7 @@ export const explorationSchema = z.object({
 
 export type ExplorationView = z.infer<typeof explorationSchema>;
 export type ExplorationResult = NonNullable<ExplorationView["result"]>;
+export type FireContext = NonNullable<ExplorationResult["fireContext"]>;
 export type ExplorationLayer = ExplorationResult["layers"][number];
 export type ExplorationStage = ExplorationView["stages"][number];
 

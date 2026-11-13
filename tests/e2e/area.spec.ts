@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { succeededView } from "./pom/explorationMock";
 import { GlobePage, LIVE_FRAME } from "./pom/GlobePage";
 
 // Inside frame 47-3 (Colombia), so the question finds its frame without a measured case.
@@ -12,6 +13,8 @@ test.describe("Explorer: choosing an area", () => {
     globe = new GlobePage(page);
     await globe.skipOnboarding();
     await globe.mockObservationPlan();
+    // A live question reaches the exploration API; mock it so a real backend on :8000 cannot interfere.
+    await globe.mockExplorations({ first: succeededView() });
   });
 
   test("a rectangle of the right size asks the radar about that area", async ({ page }) => {

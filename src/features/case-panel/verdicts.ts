@@ -55,6 +55,8 @@ export const SOURCE = {
   liveQuality: "Exploration API → plan, observations and aoiSummary of this run",
   liveRange:
     "Exploration API → result.lens.point.target_minus_baseline_db and diagnostic_half_width_db",
+  liveFire:
+    "Exploration API → result.fireContext: NASA FIRMS VIIRS active-fire detections inside the area between the two radar passes. Independent of the radar",
   liveTimeline:
     "Dates of the scenes the service read (ASF catalog) and the passes still to come from NASA's NISAR Observation Plan",
   steps: "Steps mirror the backend pipeline (EXPLORE_API.md)",

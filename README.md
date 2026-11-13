@@ -111,7 +111,9 @@ Shareable explorer links: `/explore?case=qadirabad` opens a measured case;
   passes are fetched live from the Observation Plan and the radar answer comes from the backend: a
   progress window with a countdown and NASA facts, then the verdict, the target pass against the
   normal range, the whole-area bars, the quality strip, the measured layers on the globe and the
-  real pass dates. "Keep exploring" lets the job run in the background; the L | S switch shows S
+  real pass dates. On the wildfire lens an "Independent fire context" block from NASA FIRMS sits
+  apart from the radar (counts and dates of active-fire detections, never a cause or a burned
+  area), and says so when it is missing. "Keep exploring" lets the job run in the background; the L | S switch shows S
   as coming soon.
 - **Guided tour / Explore switch:** the guided story on the Chenab flood (see below).
 - **Nova:** the round button bottom right opens a chat that explains what is on screen (rule-based,

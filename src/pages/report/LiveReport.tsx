@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { FireContextCard } from "@/features/case-panel/FireContextCard";
 import { NormalRangeCard } from "@/features/case-panel/NormalRangeCard";
 import { SOURCE, VERDICT } from "@/features/case-panel/verdicts";
 import { findLens, type LensId } from "@/features/cases/cases";
@@ -131,7 +132,7 @@ export const LiveReport = ({ id }: { id: string }) => {
             <span>Not AI-written · check every number against the data blocks</span>
           </p>
           <p className="r-summary__text">
-            {`${subject.name} (${subject.place}) was asked “${lens?.chip ?? subject.lens}” Verdict: ${VERDICT[subject.verdict].label}. ${subject.verdictLine}${subject.stat === undefined ? "" : ` ${subject.stat} ${subject.statLine ?? ""}`} ${subject.plainLimit}`}
+            {`${subject.name} (${subject.place}) was asked “${lens?.chip ?? subject.lens}” Verdict: ${VERDICT[subject.verdict].label}. ${subject.verdictLine}${subject.stat === undefined ? "" : ` ${subject.stat} ${subject.statLine ?? ""}`} ${subject.plainLimit}${subject.fireContext?.status === "available" ? ` Fire context, separate from the radar (NASA FIRMS): ${subject.fireContext.headline}.` : ""}`}
           </p>
         </section>
 
@@ -176,6 +177,18 @@ export const LiveReport = ({ id }: { id: string }) => {
             <p className="r-line" data-testid="report-stat">
               <strong>{subject.stat}</strong> {subject.statLine}
             </p>
+          </section>
+        )}
+
+        {subject.fireContext !== undefined && (
+          <section className="r-block r-keep">
+            <p className="r-kicker r-kicker--split">
+              <span>Independent fire context · separate from the radar</span>
+              {subject.fireContext.status === "available" && (
+                <ProvenanceChip kind="real" source={SOURCE.liveFire} />
+              )}
+            </p>
+            <FireContextCard context={subject.fireContext} heading={false} />
           </section>
         )}
 

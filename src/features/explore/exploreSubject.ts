@@ -1,6 +1,7 @@
 import type { Subject, NormalRange } from "@/features/case-panel/subject";
 import type { ContrastGroup, LensId, QualityItem, Verdict } from "@/features/cases/cases";
 import { formatPercent } from "@/features/cases/cases";
+import { fireContextOf } from "@/features/explore/exploreFire";
 import type {
   ExplorationResult,
   ExplorationStage,
@@ -15,6 +16,11 @@ import {
   LIVE_REASON,
   LIVE_SOURCES,
 } from "@/features/live/liveQuestion";
+
+const FIRMS_SOURCE = {
+  label: "NASA · FIRMS active fire data (VIIRS)",
+  href: "https://firms.modaps.eosdis.nasa.gov/",
+};
 import { formatDay } from "@/features/timeline/timelineLayout";
 
 const VERDICT_OF_STATE: Record<string, Verdict> = {
@@ -147,6 +153,7 @@ export const exploreSubject = (view: ExplorationView, context: Context): Subject
   const reason = result.lens?.reason;
   const target = result.lens?.target_date;
   const [plain = "", ...rest] = result.limitations;
+  const fireContext = fireContextOf(result);
   return {
     kind: "live",
     id: view.id,
@@ -182,10 +189,11 @@ export const exploreSubject = (view: ExplorationView, context: Context): Subject
     techLimit: rest.join(" "),
     alternatives: LENS_ALTERNATIVES[lens] ?? [],
     empties: LIVE_EMPTIES,
-    sources: LIVE_SOURCES,
+    sources: fireContext === undefined ? LIVE_SOURCES : [...LIVE_SOURCES, FIRMS_SOURCE],
     figure: undefined,
     crops: undefined,
     normalRange: normalRangeOf(result),
+    fireContext,
     compute: computeOf(view),
     demo: result.isDemo,
   };

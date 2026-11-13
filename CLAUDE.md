@@ -83,6 +83,13 @@ PNG at a time (the backend answers `/api/v1/explorations/{id}/layers/{layerId}` 
 the gateway, which must allow our origin in its CORS list). `SourceSwitch` shows L | S; S is
 disabled ("coming soon") and every request sends `source: "L"`.
 
+Wildfire: the backend adds `result.fireContext` (NASA FIRMS active-fire detections between the
+baseline and target passes) apart from the radar `lens`. `exploreFire.ts` maps it to a
+`FireContextView` and `FireContextCard` shows it as "Independent fire context" under the radar
+blocks and as its own block in the live report; it never feeds the verdict. `available` shows
+counts, dates and the brightest reading with a REAL chip, `unavailable` and `notConfigured` show
+the backend's radar-only note and no chip. No cause and no burned area are ever shown.
+
 Honest labelling: a live result carries `REAL` chips only; nothing in it is demo. The answer has no
 per-date point series, so `NormalRangeCard` (target minus baseline against the diagnostic
 half-width) replaces the band chart. Labels never say more than the API did (no cause, probability
