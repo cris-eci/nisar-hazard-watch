@@ -1,0 +1,1208 @@
+{
+  "source": "NISAR Hazard Watch exploration computed by the backend on NISAR L-band scenes. Diagnostic evidence, not a validated classifier; no cause, probability, hectares or displacement is reported.",
+  "exploration": {
+    "id": "exp_69490c432c96467e",
+    "status": "succeeded",
+    "stage": "done",
+    "lens": "agriculture",
+    "source": "L",
+    "cache": "miss",
+    "etaSeconds": 140,
+    "etaRemainingSeconds": null,
+    "elapsedSeconds": 234.5,
+    "stages": [
+      {
+        "name": "planning",
+        "state": "done",
+        "seconds": 0.5,
+        "budgetSeconds": 2
+      },
+      {
+        "name": "reading",
+        "state": "done",
+        "seconds": 198.241,
+        "budgetSeconds": 105
+      },
+      {
+        "name": "analysing",
+        "state": "done",
+        "seconds": 9.6,
+        "budgetSeconds": 15
+      },
+      {
+        "name": "rendering",
+        "state": "done",
+        "seconds": 15.228,
+        "budgetSeconds": 15
+      }
+    ],
+    "progress": {
+      "scenesRead": 5,
+      "scenesTotal": 5
+    },
+    "plan": {
+      "status": "ready",
+      "seriesKey": "062_A_018_4005_DHDH",
+      "dates": ["2026-06-30", "2026-07-24", "2026-08-29", "2026-09-22", "2026-10-28"],
+      "maturityMixed": true,
+      "notes": []
+    },
+    "result": {
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-98.08280809761999, 32.020688927492515],
+            [-97.97438885903787, 32.01985849634205],
+            [-97.97335740361866, 32.11222604073163],
+            [-98.08188563972878, 32.11305943669168],
+            [-98.08280809761999, 32.020688927492515]
+          ]
+        ]
+      },
+      "areaKm2": 104.92,
+      "windowStart": "2026-06-14",
+      "windowEnd": "2026-11-13",
+      "scenes": [
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_024_062_A_018_4005_DHDH_A_20260630T114437_20260630T114514_P05023_N_F_J_001",
+          "acquiredAt": "2026-06-30T11:44:37Z",
+          "track": 62,
+          "direction": "A",
+          "frame": 18,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_026_062_A_018_4005_DHDH_A_20260724T114436_20260724T114513_P05023_N_F_J_001",
+          "acquiredAt": "2026-07-24T11:44:36Z",
+          "track": 62,
+          "direction": "A",
+          "frame": 18,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_029_062_A_018_4005_DHDH_A_20260829T114435_20260829T114512_P05023_N_F_J_001",
+          "acquiredAt": "2026-08-29T11:44:35Z",
+          "track": 62,
+          "direction": "A",
+          "frame": 18,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_031_062_A_018_4005_DHDH_A_20260922T114435_20260922T114509_P05023_N_F_J_001",
+          "acquiredAt": "2026-09-22T11:44:35Z",
+          "track": 62,
+          "direction": "A",
+          "frame": 18,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_034_062_A_018_4005_DHDH_A_20261028T114435_20261028T114512_P05036_N_F_J_001",
+          "acquiredAt": "2026-10-28T11:44:35Z",
+          "track": 62,
+          "direction": "A",
+          "frame": 18,
+          "mode": "DHDH",
+          "maturity": "validated",
+          "configuration": "PR"
+        }
+      ],
+      "observations": [
+        {
+          "date": "2026-06-30",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_024_062_A_018_4005_DHDH_A_20260630T114437_20260630T114514_P05023_N_F_J_001"
+        },
+        {
+          "date": "2026-07-24",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_026_062_A_018_4005_DHDH_A_20260724T114436_20260724T114513_P05023_N_F_J_001"
+        },
+        {
+          "date": "2026-08-29",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_029_062_A_018_4005_DHDH_A_20260829T114435_20260829T114512_P05023_N_F_J_001"
+        },
+        {
+          "date": "2026-09-22",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_031_062_A_018_4005_DHDH_A_20260922T114435_20260922T114509_P05023_N_F_J_001"
+        },
+        {
+          "date": "2026-10-28",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_034_062_A_018_4005_DHDH_A_20261028T114435_20261028T114512_P05036_N_F_J_001"
+        }
+      ],
+      "lens": {
+        "status": "evaluated",
+        "reason": null,
+        "target_date": "2026-10-28",
+        "baseline_dates": ["2026-06-30", "2026-07-24", "2026-08-29", "2026-09-22"],
+        "assessment_dates": ["2026-10-28"],
+        "point": {
+          "status": "within_observed_baseline",
+          "target_minus_baseline_db": {
+            "HH": -2.767458438873291,
+            "HV": 1.3733129501342773
+          },
+          "diagnostic_half_width_db": {
+            "HH": 3,
+            "HV": 3
+          }
+        },
+        "radar": {
+          "polarizations": ["HH", "HV"],
+          "posting_m": 10,
+          "grid_cells": 1048576,
+          "common_cells": 1048576,
+          "comparator": "Target minus median of the prior measured dates",
+          "diagnostic_half_width_db": "max(3, 3 × max(1.4826 × MAD, 1))",
+          "cells": 1048576,
+          "median_target_minus_baseline_db": {
+            "HH": 0.025151371955871582,
+            "HV": -0.05542159080505371
+          },
+          "mad_departure_cells": 176255,
+          "grid": {
+            "epsg": 32614,
+            "bounds_native": [586620, 3543050, 596860, 3553290],
+            "pixel_spacing_m": [10, 10],
+            "width": 1024,
+            "height": 1024
+          },
+          "layer": {
+            "role": "target_minus_observed_baseline_db",
+            "dates": ["2026-10-28"],
+            "polarizations": ["HH", "HV"],
+            "units": "dB",
+            "href": null
+          },
+          "layers": [
+            {
+              "role": "agriculture_populations",
+              "href": "/v2/jobs/3ce0aac54deb4b7ca4cc5a544c7e9849/layers/agriculture_populations.tif",
+              "units": "population flag",
+              "bands": ["focal_supported", "matched_focal", "matched_control"],
+              "resampling": "nearest",
+              "sha256": "46e6a2bfcbc135c1a9ee105d7ce5222e329330c0603525a409f5fb9a18a4b54a"
+            },
+            {
+              "role": "agriculture_step_interval",
+              "href": "/v2/jobs/3ce0aac54deb4b7ca4cc5a544c7e9849/layers/agriculture_step_interval.tif",
+              "units": "observed interval code",
+              "bands": ["HH", "HV", "HV_over_HH"],
+              "resampling": "nearest",
+              "sha256": "81d1d15deda2cf92be9eaf22596654a84e674905475c0504e545eb7423a396eb"
+            },
+            {
+              "role": "agriculture_step_magnitude_db",
+              "href": null,
+              "units": "dB",
+              "bands": ["HH", "HV", "HV_over_HH"],
+              "resampling": "average",
+              "sha256": "a9b907536ff45f914207d038c5840a16e5f1a7f7612ac9ec5d23b2cb14a9459e"
+            }
+          ]
+        },
+        "evidence": {
+          "status": "unavailable"
+        },
+        "evaluation": {
+          "grid": {
+            "pixel_spacing_m": [10, 10],
+            "epsg": 32614,
+            "width": 1024,
+            "height": 1024
+          },
+          "point": {
+            "selection": "requested_point",
+            "inside_grid": true,
+            "x": 591746.7029080121,
+            "y": 3548164.513146765,
+            "row": 512,
+            "column": 512,
+            "fixed_common_support": true
+          },
+          "contract_version": "1.0",
+          "policy_id": "explore_agriculture_observations_v1",
+          "status": "evaluated",
+          "reason": null,
+          "target_date": "2026-10-28",
+          "baseline_dates": ["2026-06-30", "2026-07-24", "2026-08-29", "2026-09-22"],
+          "assessment_dates": ["2026-10-28"],
+          "support": {
+            "dates": ["2026-06-30", "2026-07-24", "2026-08-29", "2026-09-22", "2026-10-28"],
+            "common_cells": 1048576,
+            "common_mask_sha256": "ee78cd29d3a534713b36e6ff6fa3668c8a8f851a542d5eb2401c25ca4e057d02"
+          },
+          "channels": ["HH", "HV", "HV_over_HH"],
+          "policy": {
+            "focal_radius_m": 60,
+            "comparison_annulus_m": [120, 300],
+            "minimum_cells": 5,
+            "minimum_common_fraction": 0.5,
+            "minimum_matched_fraction": 0.5,
+            "baseline_match_tolerance_db": 2,
+            "maximum_control_candidates": 128,
+            "material_contrast_db": 1,
+            "cell_step_threshold_db": 1,
+            "synchrony_fraction": 0.6,
+            "spatial_block_pixels": 8,
+            "minimum_blocks_per_group": 4,
+            "bootstrap_draws": 400,
+            "minimum_assessment_intervals_for_synchrony": 2,
+            "step_tie_break": "earliest_observed_interval"
+          },
+          "neighborhood": {
+            "status": "evaluated",
+            "focal_radius_m": 60,
+            "comparison_annulus_m": [120, 300],
+            "focal_cells": 112,
+            "comparison_cells": 2379,
+            "focal_grid_cells": 112,
+            "comparison_grid_cells": 2379
+          },
+          "matches": {
+            "positive_pixels": 112,
+            "matched_control_pixels": 112,
+            "matched_positive_pixels": 112,
+            "matched_fraction": 1,
+            "baseline_mean_positive_minus_control_db_by_channel": [
+              0.008506829185145242, -0.04289583223206656
+            ],
+            "criterion": "unique baseline co-/cross-pol levels within declared dB tolerance; at most 128 nearest candidates; contrast uses matched positives only; not causal matching on all confounders"
+          },
+          "series": [
+            {
+              "date": "2026-06-30",
+              "channels": {
+                "HH": {
+                  "focal_mean_db": -9.862821719476155,
+                  "control_mean_db": -9.855761140584946,
+                  "focal_minus_control_db": -0.007060578891209701,
+                  "contrast_shift_from_baseline_db": -0.03289168807012732
+                },
+                "HV": {
+                  "focal_mean_db": -15.584273781095233,
+                  "control_mean_db": -15.438999278204781,
+                  "focal_minus_control_db": -0.14527450289045163,
+                  "contrast_shift_from_baseline_db": -0.11057897976466613
+                },
+                "HV_over_HH": {
+                  "focal_mean_db": -5.721452061619077,
+                  "control_mean_db": -5.583238137619836,
+                  "focal_minus_control_db": -0.13821392399924104,
+                  "contrast_shift_from_baseline_db": -0.0025293358734672644
+                }
+              }
+            },
+            {
+              "date": "2026-07-24",
+              "channels": {
+                "HH": {
+                  "focal_mean_db": -9.927891422595296,
+                  "control_mean_db": -9.68911299109459,
+                  "focal_minus_control_db": -0.2387784315007071,
+                  "contrast_shift_from_baseline_db": -0.2646095406796247
+                },
+                "HV": {
+                  "focal_mean_db": -15.737506074564797,
+                  "control_mean_db": -15.319353371858597,
+                  "focal_minus_control_db": -0.4181527027062,
+                  "contrast_shift_from_baseline_db": -0.3834571795804145
+                },
+                "HV_over_HH": {
+                  "focal_mean_db": -5.809614651969501,
+                  "control_mean_db": -5.630240380764008,
+                  "focal_minus_control_db": -0.17937427120549376,
+                  "contrast_shift_from_baseline_db": -0.04368968307971999
+                }
+              }
+            },
+            {
+              "date": "2026-08-29",
+              "channels": {
+                "HH": {
+                  "focal_mean_db": -10.093119631920542,
+                  "control_mean_db": -10.320802052106176,
+                  "focal_minus_control_db": 0.22768242018563356,
+                  "contrast_shift_from_baseline_db": 0.20185131100671594
+                },
+                "HV": {
+                  "focal_mean_db": -15.569279066153936,
+                  "control_mean_db": -15.663806234087263,
+                  "focal_minus_control_db": 0.09452716793332705,
+                  "contrast_shift_from_baseline_db": 0.12922269105911255
+                },
+                "HV_over_HH": {
+                  "focal_mean_db": -5.476159434233393,
+                  "control_mean_db": -5.343004181981087,
+                  "focal_minus_control_db": -0.1331552522523065,
+                  "contrast_shift_from_baseline_db": 0.0025293358734672644
+                }
+              }
+            },
+            {
+              "date": "2026-09-22",
+              "channels": {
+                "HH": {
+                  "focal_mean_db": -8.541220730968885,
+                  "control_mean_db": -8.59994352821793,
+                  "focal_minus_control_db": 0.058722797249044945,
+                  "contrast_shift_from_baseline_db": 0.03289168807012732
+                },
+                "HV": {
+                  "focal_mean_db": -15.100781504596982,
+                  "control_mean_db": -15.176664961235863,
+                  "focal_minus_control_db": 0.07588345663888063,
+                  "contrast_shift_from_baseline_db": 0.11057897976466613
+                },
+                "HV_over_HH": {
+                  "focal_mean_db": -6.559560773628099,
+                  "control_mean_db": -6.576721433017935,
+                  "focal_minus_control_db": 0.017160659389836574,
+                  "contrast_shift_from_baseline_db": 0.15284524751561035
+                }
+              }
+            },
+            {
+              "date": "2026-10-28",
+              "channels": {
+                "HH": {
+                  "focal_mean_db": -9.673983049179826,
+                  "control_mean_db": -9.98882490822247,
+                  "focal_minus_control_db": 0.3148418590426445,
+                  "contrast_shift_from_baseline_db": 0.2890107498637269
+                },
+                "HV": {
+                  "focal_mean_db": -16.01677402428218,
+                  "control_mean_db": -15.092327049800328,
+                  "focal_minus_control_db": -0.9244469744818531,
+                  "contrast_shift_from_baseline_db": -0.8897514513560676
+                },
+                "HV_over_HH": {
+                  "focal_mean_db": -6.342790975102356,
+                  "control_mean_db": -5.103502141577857,
+                  "focal_minus_control_db": -1.2392888335244994,
+                  "contrast_shift_from_baseline_db": -1.1036042453987256
+                }
+              }
+            }
+          ],
+          "target_contrasts": {
+            "HH": {
+              "status": "conditional_spatial_resampling",
+              "positive_pixels": 112,
+              "control_pixels": 112,
+              "positive_mean_db": -0.05406190135649273,
+              "control_mean_db": -0.36039693121399197,
+              "positive_median_db": 0.054322004318237305,
+              "control_median_db": -0.27269798517227173,
+              "mean_contrast_db": 0.3063350298574992,
+              "spatial_resampling_95_interval_db": [-0.4842744162526659, 0.9994532571324986],
+              "positive_blocks": 4,
+              "control_blocks": 38,
+              "valid_resampling_draws": 391,
+              "interval_limit": "Conditional resampling of fixed spatial blocks; spatial independence, measurement errors, reference errors and causal identification are not established",
+              "state": "absent_on_sampled_support",
+              "reason": null,
+              "definition": "Mean cellwise target-minus-baseline change in matched focal cells minus matched controls."
+            },
+            "HV": {
+              "status": "conditional_spatial_resampling",
+              "positive_pixels": 112,
+              "control_pixels": 112,
+              "positive_mean_db": -0.5223828277417591,
+              "control_mean_db": 0.3591683145080294,
+              "positive_median_db": -0.4907209873199463,
+              "control_median_db": 0.31128835678100586,
+              "mean_contrast_db": -0.8815511422497886,
+              "spatial_resampling_95_interval_db": [-1.591512948919905, -0.37721108321104724],
+              "positive_blocks": 4,
+              "control_blocks": 38,
+              "valid_resampling_draws": 391,
+              "interval_limit": "Conditional resampling of fixed spatial blocks; spatial independence, measurement errors, reference errors and causal identification are not established",
+              "state": "insufficient_data",
+              "reason": "interval_overlaps_material_contrast_bound",
+              "definition": "Mean cellwise target-minus-baseline change in matched focal cells minus matched controls."
+            },
+            "HV_over_HH": {
+              "status": "conditional_spatial_resampling",
+              "positive_pixels": 112,
+              "control_pixels": 112,
+              "positive_mean_db": -0.5042751420821462,
+              "control_mean_db": 0.6976337219987597,
+              "positive_median_db": -0.3924853801727295,
+              "control_median_db": 0.7379505634307861,
+              "mean_contrast_db": -1.201908864080906,
+              "spatial_resampling_95_interval_db": [-2.0881000610512412, -0.3730662498992903],
+              "positive_blocks": 4,
+              "control_blocks": 38,
+              "valid_resampling_draws": 391,
+              "interval_limit": "Conditional resampling of fixed spatial blocks; spatial independence, measurement errors, reference errors and causal identification are not established",
+              "state": "insufficient_data",
+              "reason": "interval_overlaps_material_contrast_bound",
+              "definition": "Mean cellwise target-minus-baseline change in matched focal cells minus matched controls."
+            }
+          },
+          "steps": {
+            "HH": {
+              "intervals": [
+                {
+                  "code": 1,
+                  "dates": ["2026-06-30", "2026-07-24"],
+                  "interval_days": 24,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": -0.2317178526094974,
+                  "focal_mean_step_db": -0.06506970311914095,
+                  "spatial_95_interval_db": [-0.64531042567494, 0.2392549632569434],
+                  "state": "absent_on_sampled_support",
+                  "reason": null,
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 2,
+                  "dates": ["2026-07-24", "2026-08-29"],
+                  "interval_days": 36,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": 0.46646085168634066,
+                  "focal_mean_step_db": -0.16522820932524596,
+                  "spatial_95_interval_db": [-0.09360731053965354, 1.064132009211702],
+                  "state": "insufficient_data",
+                  "reason": "interval_overlaps_material_contrast_bound",
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 3,
+                  "dates": ["2026-08-29", "2026-09-22"],
+                  "interval_days": 24,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": -0.16895962293658862,
+                  "focal_mean_step_db": 1.5518989009516577,
+                  "spatial_95_interval_db": [-1.0758147098982715, 1.1347695776955744],
+                  "state": "insufficient_data",
+                  "reason": "interval_overlaps_material_contrast_bound",
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 4,
+                  "dates": ["2026-09-22", "2026-10-28"],
+                  "interval_days": 36,
+                  "ends_in_assessment": true,
+                  "focal_minus_control_step_db": 0.25611906179359956,
+                  "focal_mean_step_db": -1.1327623182109416,
+                  "spatial_95_interval_db": [-0.7390092691818162, 0.9707980776110465],
+                  "state": "absent_on_sampled_support",
+                  "reason": null,
+                  "bootstrap_largest_assessment_fraction": 1
+                }
+              ],
+              "largest_observed_interval_code": null,
+              "largest_assessment_interval_code": null,
+              "bootstrap_material_step_draws": 14,
+              "synchrony_interval_code": 4,
+              "exact_event_date_estimated": false,
+              "synchrony": {
+                "state": "insufficient_data",
+                "reason": "fewer_than_two_assessment_intervals",
+                "focal_cells": 112,
+                "synchronous_cells": 56,
+                "fraction": 0.5,
+                "spatial_95_interval": null,
+                "conditioning": "Largest focal-mean assessment bracket held fixed. Contrast-step selection sensitivity is reported separately.",
+                "blocks": 4
+              }
+            },
+            "HV": {
+              "intervals": [
+                {
+                  "code": 1,
+                  "dates": ["2026-06-30", "2026-07-24"],
+                  "interval_days": 24,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": -0.27287819981574835,
+                  "focal_mean_step_db": -0.15323229346956424,
+                  "spatial_95_interval_db": [-0.8224830797726326, 0.17907070680063608],
+                  "state": "absent_on_sampled_support",
+                  "reason": null,
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 2,
+                  "dates": ["2026-07-24", "2026-08-29"],
+                  "interval_days": 36,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": 0.512679870639527,
+                  "focal_mean_step_db": 0.16822700841086125,
+                  "spatial_95_interval_db": [-0.00843192763926437, 0.9600952114790027],
+                  "state": "absent_on_sampled_support",
+                  "reason": null,
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 3,
+                  "dates": ["2026-08-29", "2026-09-22"],
+                  "interval_days": 24,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": -0.01864371129444642,
+                  "focal_mean_step_db": 0.4684975615569531,
+                  "spatial_95_interval_db": [-0.47031031159793724, 0.43036674281752996],
+                  "state": "absent_on_sampled_support",
+                  "reason": null,
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 4,
+                  "dates": ["2026-09-22", "2026-10-28"],
+                  "interval_days": 36,
+                  "ends_in_assessment": true,
+                  "focal_minus_control_step_db": -1.0003304311207337,
+                  "focal_mean_step_db": -0.915992519685199,
+                  "spatial_95_interval_db": [-1.7524070286543032, -0.4333519336616476],
+                  "state": "insufficient_data",
+                  "reason": "interval_overlaps_material_contrast_bound",
+                  "bootstrap_largest_assessment_fraction": 1
+                }
+              ],
+              "largest_observed_interval_code": 4,
+              "largest_assessment_interval_code": 4,
+              "bootstrap_material_step_draws": 182,
+              "synchrony_interval_code": null,
+              "exact_event_date_estimated": false,
+              "synchrony": {
+                "state": "insufficient_data",
+                "reason": "fewer_than_two_assessment_intervals",
+                "focal_cells": 112,
+                "synchronous_cells": 0,
+                "fraction": 0,
+                "spatial_95_interval": null,
+                "conditioning": "Largest focal-mean assessment bracket held fixed. Contrast-step selection sensitivity is reported separately.",
+                "blocks": 4
+              }
+            },
+            "HV_over_HH": {
+              "intervals": [
+                {
+                  "code": 1,
+                  "dates": ["2026-06-30", "2026-07-24"],
+                  "interval_days": 24,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": -0.04116034720625272,
+                  "focal_mean_step_db": -0.08816259035042417,
+                  "spatial_95_interval_db": [-0.9127756675571048, 0.7098822977691925],
+                  "state": "absent_on_sampled_support",
+                  "reason": null,
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 2,
+                  "dates": ["2026-07-24", "2026-08-29"],
+                  "interval_days": 36,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": 0.04621901895318725,
+                  "focal_mean_step_db": 0.3334552177361081,
+                  "spatial_95_interval_db": [-0.8560427011030394, 0.8692072026645536],
+                  "state": "absent_on_sampled_support",
+                  "reason": null,
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 3,
+                  "dates": ["2026-08-29", "2026-09-22"],
+                  "interval_days": 24,
+                  "ends_in_assessment": false,
+                  "focal_minus_control_step_db": 0.15031591164214309,
+                  "focal_mean_step_db": -1.0834013393947055,
+                  "spatial_95_interval_db": [-1.2525200263076555, 0.9532000154337341],
+                  "state": "insufficient_data",
+                  "reason": "interval_overlaps_material_contrast_bound",
+                  "bootstrap_largest_assessment_fraction": null
+                },
+                {
+                  "code": 4,
+                  "dates": ["2026-09-22", "2026-10-28"],
+                  "interval_days": 36,
+                  "ends_in_assessment": true,
+                  "focal_minus_control_step_db": -1.256449492914336,
+                  "focal_mean_step_db": 0.21676979852574263,
+                  "spatial_95_interval_db": [-2.4315601451749096, -0.08140882375428227],
+                  "state": "insufficient_data",
+                  "reason": "interval_overlaps_material_contrast_bound",
+                  "bootstrap_largest_assessment_fraction": 1
+                }
+              ],
+              "largest_observed_interval_code": 4,
+              "largest_assessment_interval_code": 4,
+              "bootstrap_material_step_draws": 255,
+              "synchrony_interval_code": null,
+              "exact_event_date_estimated": false,
+              "synchrony": {
+                "state": "insufficient_data",
+                "reason": "fewer_than_two_assessment_intervals",
+                "focal_cells": 112,
+                "synchronous_cells": 0,
+                "fraction": 0,
+                "spatial_95_interval": null,
+                "conditioning": "Largest focal-mean assessment bracket held fixed. Contrast-step selection sensitivity is reported separately.",
+                "blocks": 4
+              }
+            }
+          },
+          "uncertainty": {
+            "observation": {
+              "status": "unavailable",
+              "reason": "Sensor and speckle uncertainty are unestimated."
+            },
+            "spatial": {
+              "positive_blocks": 4,
+              "control_blocks": 38,
+              "valid_draws": 391,
+              "status": "available",
+              "reason": null,
+              "block_size_m": [80, 80],
+              "scope": "Conditional resampling of fixed spatial blocks with complete channel histories.",
+              "limitations": "Block independence, sensor errors, reference errors and selection-adjusted intervals are unestimated."
+            },
+            "model": {
+              "status": "unavailable",
+              "reason": "No crop or management model is fitted."
+            }
+          },
+          "independent_evidence": {
+            "status": "insufficient_data",
+            "reason": "dated_parcel_or_management_reference_not_supplied",
+            "needed": [
+              "Dated harvest, tillage or irrigation records for the focal area.",
+              "Parcel boundaries, crop context and dated optical vegetation observations."
+            ]
+          },
+          "confounders": [
+            {
+              "id": "rain_or_soil_moisture",
+              "status": "unavailable"
+            },
+            {
+              "id": "irrigation",
+              "status": "unavailable"
+            },
+            {
+              "id": "freeze_thaw",
+              "status": "unavailable"
+            },
+            {
+              "id": "mixed_parcels",
+              "status": "unavailable"
+            },
+            {
+              "id": "incidence_and_track",
+              "status": "unavailable"
+            },
+            {
+              "id": "speckle_and_noise",
+              "status": "unavailable"
+            },
+            {
+              "id": "layover_or_shadow",
+              "status": "unavailable"
+            }
+          ],
+          "questions": [
+            "Did the focal patch change differently from baseline-matched surrounding cells?",
+            "Which observed interval contains the strongest focal-minus-control step?",
+            "Did focal cells change together within that sampled interval?"
+          ],
+          "phenomenon_class": null,
+          "phenomenon_probability": null,
+          "causal_attribution": null,
+          "displacement_cm": null
+        },
+        "id": "agriculture",
+        "version": "1.0",
+        "observation_bracket": ["2026-09-22", "2026-10-28"],
+        "temporal_analysis": {
+          "dates": ["2026-06-30", "2026-07-24", "2026-08-29", "2026-09-22", "2026-10-28"],
+          "elapsed_days": [0, 24, 60, 84, 120],
+          "acquisition_gaps_days": [24, 36, 24, 36],
+          "common_cells": 1048576,
+          "spectral": {
+            "status": "insufficient_temporal_support",
+            "reason": "Need at least six observed dates"
+          },
+          "stochastic": {
+            "status": "experimental",
+            "channels": {
+              "HH": {
+                "status": "fit_returned",
+                "supported_cells": 1048576,
+                "series": [
+                  {
+                    "date": "2026-06-30",
+                    "observed_mean_db": -11.791387601652497,
+                    "latent_median_db": -11.758532358169905,
+                    "conditional_80_db": [-11.815183903887123, -11.683036568352081],
+                    "conditional_95_db": [-11.86734146818991, -11.643847071373958]
+                  },
+                  {
+                    "date": "2026-07-24",
+                    "observed_mean_db": -11.67753266592823,
+                    "latent_median_db": -11.760863491842734,
+                    "conditional_80_db": [-11.82378293527874, -11.696982228673255],
+                    "conditional_95_db": [-11.845534847766661, -11.671552609328751]
+                  },
+                  {
+                    "date": "2026-08-29",
+                    "observed_mean_db": -12.22583318879431,
+                    "latent_median_db": -11.758248138015215,
+                    "conditional_80_db": [-11.83730814106275, -11.70068231308311],
+                    "conditional_95_db": [-11.862451366816135, -11.68019422223181]
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "observed_mean_db": -11.32056130418232,
+                    "latent_median_db": -11.751109483600484,
+                    "conditional_80_db": [-11.810406394648153, -11.690776659639964],
+                    "conditional_95_db": [-11.860982963689723, -11.667919912639196]
+                  },
+                  {
+                    "date": "2026-10-28",
+                    "observed_mean_db": -11.75074618904974,
+                    "latent_median_db": -11.749934665877124,
+                    "conditional_80_db": [-11.810675431849589, -11.695813127303422],
+                    "conditional_95_db": [-11.847429409748756, -11.660310946554354]
+                  }
+                ]
+              },
+              "HV": {
+                "status": "fit_returned",
+                "supported_cells": 1048576,
+                "series": [
+                  {
+                    "date": "2026-06-30",
+                    "observed_mean_db": -16.875200602219778,
+                    "latent_median_db": -16.861135677861185,
+                    "conditional_80_db": [-16.91959003926931, -16.794095615054115],
+                    "conditional_95_db": [-16.954868607886983, -16.75800381355288]
+                  },
+                  {
+                    "date": "2026-07-24",
+                    "observed_mean_db": -16.83838438776251,
+                    "latent_median_db": -16.851490895148707,
+                    "conditional_80_db": [-16.91700436264144, -16.78507245657785],
+                    "conditional_95_db": [-16.949505139720568, -16.76214114764326]
+                  },
+                  {
+                    "date": "2026-08-29",
+                    "observed_mean_db": -16.968395228072836,
+                    "latent_median_db": -16.859214893505452,
+                    "conditional_80_db": [-16.939044975706828, -16.799782068160617],
+                    "conditional_95_db": [-16.975337393020368, -16.77853599304528]
+                  },
+                  {
+                    "date": "2026-09-22",
+                    "observed_mean_db": -16.710180055299357,
+                    "latent_median_db": -16.866755216274747,
+                    "conditional_80_db": [-16.917541753603714, -16.81265084662897],
+                    "conditional_95_db": [-16.946716316879535, -16.775910538307116]
+                  },
+                  {
+                    "date": "2026-10-28",
+                    "observed_mean_db": -16.920661040533865,
+                    "latent_median_db": -16.869076682449908,
+                    "conditional_80_db": [-16.936211504593615, -16.793943127480933],
+                    "conditional_95_db": [-16.96251081977676, -16.77446124006201]
+                  }
+                ]
+              }
+            },
+            "calibrated": false,
+            "interpretation": "Conditional empirical-Bayes latent-state distribution at observed dates. The representative regional process uses the fitted pixel covariance. Bands omit parameter and model uncertainty. Residual scale is not measured sensor noise."
+          },
+          "observation_noise_db": null
+        },
+        "agriculture": {
+          "status": "evaluated",
+          "focal_radius_m": 60,
+          "comparison_annulus_m": [120, 300],
+          "focal_cells": 112,
+          "comparison_cells": 2379,
+          "focal_grid_cells": 112,
+          "comparison_grid_cells": 2379,
+          "comparison": "Local annulus on the same dates and fixed measured support",
+          "series": [
+            {
+              "date": "2026-06-30",
+              "polarization": "HH",
+              "focal_median_db": -10.2145414352417,
+              "nearby_median_db": -7.560181617736816,
+              "focal_minus_nearby_db": -2.654359817504883,
+              "contrast_shift_from_baseline_db": -0.6356680393218994
+            },
+            {
+              "date": "2026-06-30",
+              "polarization": "HV",
+              "focal_median_db": -15.231145858764648,
+              "nearby_median_db": -12.345303535461426,
+              "focal_minus_nearby_db": -2.8858423233032227,
+              "contrast_shift_from_baseline_db": 0.18512392044067383
+            },
+            {
+              "date": "2026-07-24",
+              "polarization": "HH",
+              "focal_median_db": -9.284477233886719,
+              "nearby_median_db": -7.396711826324463,
+              "focal_minus_nearby_db": -1.8877654075622559,
+              "contrast_shift_from_baseline_db": 0.13092637062072754
+            },
+            {
+              "date": "2026-07-24",
+              "polarization": "HV",
+              "focal_median_db": -15.205730438232422,
+              "nearby_median_db": -12.313118934631348,
+              "focal_minus_nearby_db": -2.892611503601074,
+              "contrast_shift_from_baseline_db": 0.17835474014282227
+            },
+            {
+              "date": "2026-08-29",
+              "polarization": "HH",
+              "focal_median_db": -9.682384490966797,
+              "nearby_median_db": -7.6410346031188965,
+              "focal_minus_nearby_db": -2.0413498878479004,
+              "contrast_shift_from_baseline_db": -0.022658109664916992
+            },
+            {
+              "date": "2026-08-29",
+              "polarization": "HV",
+              "focal_median_db": -15.565051078796387,
+              "nearby_median_db": -12.315730094909668,
+              "focal_minus_nearby_db": -3.2493209838867188,
+              "contrast_shift_from_baseline_db": -0.17835474014282227
+            },
+            {
+              "date": "2026-09-22",
+              "polarization": "HH",
+              "focal_median_db": -8.176220893859863,
+              "nearby_median_db": -6.180187225341797,
+              "focal_minus_nearby_db": -1.9960336685180664,
+              "contrast_shift_from_baseline_db": 0.022658109664916992
+            },
+            {
+              "date": "2026-09-22",
+              "polarization": "HV",
+              "focal_median_db": -15.545112609863281,
+              "nearby_median_db": -11.906981468200684,
+              "focal_minus_nearby_db": -3.6381311416625977,
+              "contrast_shift_from_baseline_db": -0.5671648979187012
+            },
+            {
+              "date": "2026-10-28",
+              "polarization": "HH",
+              "focal_median_db": -9.304128646850586,
+              "nearby_median_db": -7.202219009399414,
+              "focal_minus_nearby_db": -2.101909637451172,
+              "contrast_shift_from_baseline_db": -0.08321785926818848
+            },
+            {
+              "date": "2026-10-28",
+              "polarization": "HV",
+              "focal_median_db": -16.24281120300293,
+              "nearby_median_db": -12.327535629272461,
+              "focal_minus_nearby_db": -3.9152755737304688,
+              "contrast_shift_from_baseline_db": -0.8443093299865723
+            }
+          ],
+          "largest_contrast_steps": [
+            {
+              "polarization": "HH",
+              "dates": ["2026-06-30", "2026-07-24"],
+              "change_db": 0.766594409942627
+            },
+            {
+              "polarization": "HV",
+              "dates": ["2026-08-29", "2026-09-22"],
+              "change_db": -0.3888101577758789
+            }
+          ]
+        },
+        "excluded_unusable_dates": []
+      },
+      "aoiSummary": {
+        "cells_in_area": 1043456,
+        "cells_with_measurement": 1043456,
+        "cells_departing_from_baseline": 175453,
+        "departing_fraction": 0.16814604544896958,
+        "area_covered_fraction": 0.9951,
+        "median_target_minus_baseline_db": {
+          "HH": 0.025899410247802734,
+          "HV": -0.05521249771118164
+        },
+        "reason": null,
+        "definition": "Cells where the target departs from the observed baseline by more than the diagnostic half-width in any polarization; descriptive, not a classification."
+      },
+      "layers": [
+        {
+          "id": "display_2026-06-30_HH",
+          "title": "2026-06-30 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-06-30_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-06-30_HV",
+          "title": "2026-06-30 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-06-30_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-07-24_HH",
+          "title": "2026-07-24 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-07-24_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-07-24_HV",
+          "title": "2026-07-24 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-07-24_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-08-29_HH",
+          "title": "2026-08-29 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-08-29_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-08-29_HV",
+          "title": "2026-08-29 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-08-29_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-09-22_HH",
+          "title": "2026-09-22 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-09-22_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-09-22_HV",
+          "title": "2026-09-22 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-09-22_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-10-28_HH",
+          "title": "2026-10-28 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-10-28_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-10-28_HV",
+          "title": "2026-10-28 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_2026-10-28_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_agriculture_populations_focal_supported",
+          "title": "agriculture populations focal supported",
+          "kind": "diagnostic",
+          "units": "diagnostic mask",
+          "colormap": "diagnostic_categories",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_agriculture_populations_focal_supported",
+          "legend": {
+            "0": "outside population",
+            "1": "in population"
+          },
+          "valueRange": [0, 1]
+        },
+        {
+          "id": "display_agriculture_populations_matched_focal",
+          "title": "agriculture populations matched focal",
+          "kind": "diagnostic",
+          "units": "diagnostic mask",
+          "colormap": "diagnostic_categories",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_agriculture_populations_matched_focal",
+          "legend": {
+            "0": "outside population",
+            "1": "in population"
+          },
+          "valueRange": [0, 1]
+        },
+        {
+          "id": "display_agriculture_populations_matched_control",
+          "title": "agriculture populations matched control",
+          "kind": "diagnostic",
+          "units": "diagnostic mask",
+          "colormap": "diagnostic_categories",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_agriculture_populations_matched_control",
+          "legend": {
+            "0": "outside population",
+            "1": "in population"
+          },
+          "valueRange": [0, 1]
+        },
+        {
+          "id": "display_agriculture_step_magnitude_db_HH",
+          "title": "agriculture step magnitude db HH",
+          "kind": "diagnostic",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_agriculture_step_magnitude_db_HH",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_agriculture_step_magnitude_db_HV",
+          "title": "agriculture step magnitude db HV",
+          "kind": "diagnostic",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_agriculture_step_magnitude_db_HV",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_agriculture_step_magnitude_db_HV_over_HH",
+          "title": "agriculture step magnitude db HV over HH",
+          "kind": "diagnostic",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_agriculture_step_magnitude_db_HV_over_HH",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_baseline_change_HH",
+          "title": "baseline change HH",
+          "kind": "change",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_baseline_change_HH",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_baseline_change_HV",
+          "title": "baseline change HV",
+          "kind": "change",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_baseline_change_HV",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_change_HH",
+          "title": "change HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_change_HH",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_change_HV",
+          "title": "change HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-98.08276834256327, 32.019438520258944, -97.97331812171234, 32.11263948979812],
+          "url": "/api/v1/explorations/exp_69490c432c96467e/layers/display_change_HV",
+          "legend": null,
+          "valueRange": [-8, 8]
+        }
+      ],
+      "quality": {
+        "revision": "75f94b85d46b311f28c91c44",
+        "gridWidth": 1024,
+        "gridHeight": 1024,
+        "postingMeters": [10, 10],
+        "maturityMixed": true,
+        "windowTruncated": false
+      },
+      "limitations": [
+        "Diagnostic evidence from measured L-band radar backscatter, not a validated classifier.",
+        "Departures are measured against the scene's own observed baseline, which may include change.",
+        "No forecast, probability, cause, area in hectares or displacement is reported."
+      ],
+      "scientificStatus": "diagnostic",
+      "timings": {
+        "prefetch_s": 198.241,
+        "measure_s": 9.6,
+        "total_s": 207.909,
+        "elapsed_s": 227.303,
+        "render_s": 15.228
+      },
+      "isDemo": false,
+      "fireContext": null,
+      "insar": null
+    },
+    "error": null
+  }
+}
