@@ -1,0 +1,23 @@
+{
+  "places": [
+    {
+      "id": "n4295615569",
+      "name": "Qadirabad",
+      "displayName": "Qadirabad, Phalia Tehsil, Mandi Bahauddin District, Gujrat Division, Punjab, Pakistan",
+      "kind": "town",
+      "point": [73.5025289, 32.297263],
+      "bbox": [73.4625289, 32.257263, 73.5425289, 32.337263],
+      "importance": 0.16
+    },
+    {
+      "id": "n9553230120",
+      "name": "Qadirabad",
+      "displayName": "Qadirabad, Khyber Pakhtunkhwa, Pakistan",
+      "kind": "village",
+      "point": [71.8238762, 34.3535318],
+      "bbox": null,
+      "importance": 0.1
+    }
+  ],
+  "attribution": "© OpenStreetMap contributors"
+}

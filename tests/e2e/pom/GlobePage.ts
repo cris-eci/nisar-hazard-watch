@@ -8,6 +8,11 @@ import { ONBOARDING_KEY } from "@/features/onboarding/onboardingState";
 // Frame 47-3 (ascending, HH+HV, over Colombia); its mocked plan lists 39 dates.
 export const LIVE_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };
 
+const PLACES_URL = "**/api/v1/places**";
+
+const readMock = (name: string): string =>
+  readFileSync(new URL(`../mocks/${name}.json`, import.meta.url), "utf8");
+
 const PLAN_MOCK = readFileSync(
   new URL("../mocks/observation-plan-47-3.json", import.meta.url),
   "utf8",
@@ -50,6 +55,15 @@ export class GlobePage {
   readonly areaSize: Locator;
   readonly areaNotice: Locator;
   readonly useSquare: Locator;
+  readonly searchButton: Locator;
+  readonly searchMenu: Locator;
+  readonly searchInput: Locator;
+  readonly searchError: Locator;
+  readonly placeCard: Locator;
+  readonly placeNoFrame: Locator;
+  readonly placeAnalyse: Locator;
+  // Every place search the page sent, in order.
+  readonly placeRequests: string[] = [];
 
   constructor(page: Page) {
     this.page = page;
@@ -80,6 +94,37 @@ export class GlobePage {
     this.areaSize = page.getByTestId("area-size");
     this.areaNotice = page.getByTestId("area-notice");
     this.useSquare = page.getByTestId("area-use-square");
+    this.searchButton = page.getByTestId("search-button");
+    this.searchMenu = page.getByTestId("search-menu");
+    this.searchInput = page.getByTestId("place-input");
+    this.searchError = page.getByTestId("place-error");
+    this.placeCard = page.getByTestId("place-card");
+    this.placeNoFrame = page.getByTestId("place-no-frame");
+    this.placeAnalyse = page.getByTestId("place-analyse");
+  }
+
+  placeOption(index: number): Locator {
+    return this.page.getByTestId(`place-option-${index}`);
+  }
+
+  // Answers every place search with a recorded answer; `failures` problem+json 502s come first.
+  async mockPlaces({ mock = "places-qadirabad", failures = 0 } = {}): Promise<void> {
+    await this.page.route(PLACES_URL, (route) => {
+      this.placeRequests.push(route.request().url());
+      const failing = this.placeRequests.length <= failures;
+      return route.fulfill({
+        status: failing ? 502 : 200,
+        contentType: failing ? "application/problem+json" : "application/json",
+        body: failing
+          ? JSON.stringify({
+              title: "Place search unavailable",
+              detail: "the place search did not answer correctly",
+              reasonCode: "UPSTREAM_GEOCODER_ERROR",
+              status: 502,
+            })
+          : readMock(mock),
+      });
+    });
   }
 
   tool(id: "point" | "rectangle" | "polygon"): Locator {
