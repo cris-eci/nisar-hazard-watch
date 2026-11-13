@@ -1,0 +1,548 @@
+{
+  "source": "NISAR Hazard Watch exploration computed by the backend on NISAR L-band scenes. Diagnostic evidence, not a validated classifier; no cause, probability, hectares or displacement is reported.",
+  "exploration": {
+    "id": "exp_9b5cdf2f90764702",
+    "status": "succeeded",
+    "stage": "done",
+    "lens": "wildfire",
+    "source": "L",
+    "cache": "hit",
+    "etaSeconds": 140,
+    "etaRemainingSeconds": null,
+    "elapsedSeconds": 337.3,
+    "stages": [
+      {
+        "name": "planning",
+        "state": "done",
+        "seconds": 0.52,
+        "budgetSeconds": 2
+      },
+      {
+        "name": "reading",
+        "state": "done",
+        "seconds": 292.424,
+        "budgetSeconds": 105
+      },
+      {
+        "name": "analysing",
+        "state": "done",
+        "seconds": 8.195,
+        "budgetSeconds": 15
+      },
+      {
+        "name": "rendering",
+        "state": "done",
+        "seconds": 12.139,
+        "budgetSeconds": 15
+      }
+    ],
+    "progress": {
+      "scenesRead": 5,
+      "scenesTotal": 5
+    },
+    "plan": {
+      "status": "ready",
+      "seriesKey": "005_A_026_4005_DHDH",
+      "dates": ["2026-06-26", "2026-07-20", "2026-08-25", "2026-09-18", "2026-10-24"],
+      "maturityMixed": true,
+      "notes": []
+    },
+    "result": {
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-121.08092576153572, 47.339201566800504],
+            [-120.94545858672838, 47.3368524396845],
+            [-120.94187632277239, 47.42893417496954],
+            [-121.0775793290026, 47.43129084083674],
+            [-121.08092576153572, 47.339201566800504]
+          ]
+        ]
+      },
+      "areaKm2": 104.883,
+      "windowStart": "2026-06-14",
+      "windowEnd": "2026-11-13",
+      "scenes": [
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_024_005_A_026_4005_DHDH_A_20260626T125544_20260626T125619_P05023_N_F_J_001",
+          "acquiredAt": "2026-06-26T12:55:44Z",
+          "track": 5,
+          "direction": "A",
+          "frame": 26,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_026_005_A_026_4005_DHDH_A_20260720T125542_20260720T125618_P05023_N_F_J_001",
+          "acquiredAt": "2026-07-20T12:55:42Z",
+          "track": 5,
+          "direction": "A",
+          "frame": 26,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_029_005_A_026_4005_DHDH_A_20260825T125541_20260825T125616_P05023_N_F_J_001",
+          "acquiredAt": "2026-08-25T12:55:41Z",
+          "track": 5,
+          "direction": "A",
+          "frame": 26,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_031_005_A_026_4005_DHDH_A_20260918T125541_20260918T125616_P05023_F_F_J_001",
+          "acquiredAt": "2026-09-18T12:55:41Z",
+          "track": 5,
+          "direction": "A",
+          "frame": 26,
+          "mode": "DHDH",
+          "maturity": "provisional",
+          "configuration": "PR"
+        },
+        {
+          "granuleId": "NISAR_L2_PR_GCOV_034_005_A_026_4005_DHDH_A_20261024T125541_20261024T125617_P05036_N_F_J_001",
+          "acquiredAt": "2026-10-24T12:55:41Z",
+          "track": 5,
+          "direction": "A",
+          "frame": 26,
+          "mode": "DHDH",
+          "maturity": "validated",
+          "configuration": "PR"
+        }
+      ],
+      "observations": [
+        {
+          "date": "2026-06-26",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_024_005_A_026_4005_DHDH_A_20260626T125544_20260626T125619_P05023_N_F_J_001"
+        },
+        {
+          "date": "2026-07-20",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_026_005_A_026_4005_DHDH_A_20260720T125542_20260720T125618_P05023_N_F_J_001"
+        },
+        {
+          "date": "2026-08-25",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_029_005_A_026_4005_DHDH_A_20260825T125541_20260825T125616_P05023_N_F_J_001"
+        },
+        {
+          "date": "2026-09-18",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_031_005_A_026_4005_DHDH_A_20260918T125541_20260918T125616_P05023_F_F_J_001"
+        },
+        {
+          "date": "2026-10-24",
+          "status": "observed",
+          "granule_id": "NISAR_L2_PR_GCOV_034_005_A_026_4005_DHDH_A_20261024T125541_20261024T125617_P05036_N_F_J_001"
+        }
+      ],
+      "lens": {
+        "status": "evaluated",
+        "reason": null,
+        "target_date": "2026-10-24",
+        "baseline_dates": ["2026-06-26", "2026-07-20", "2026-08-25", "2026-09-18"],
+        "assessment_dates": ["2026-10-24"],
+        "point": {
+          "status": "observed_departure",
+          "target_minus_baseline_db": {
+            "HH": -7.498748540878296,
+            "HV": 0.4878349304199219
+          },
+          "diagnostic_half_width_db": {
+            "HH": 7.468194038629532,
+            "HV": 5.739094482278824
+          },
+          "cross_pol_history": {
+            "pattern": null,
+            "decline_dates": 0,
+            "assessed_dates": 1
+          }
+        },
+        "radar": {
+          "polarizations": ["HH", "HV"],
+          "posting_m": 10,
+          "grid": {
+            "epsg": 32610,
+            "width": 1024,
+            "height": 1024,
+            "bounds_native": [645000, 5244640, 655240, 5254880],
+            "pixel_spacing_m": [10, 10]
+          },
+          "cells": 1048312,
+          "layer": {
+            "href": null,
+            "role": "target_minus_observed_baseline_db",
+            "dates": ["2026-10-24"],
+            "units": "dB",
+            "polarizations": ["HH", "HV"]
+          },
+          "layers": [
+            {
+              "href": "/v2/jobs/fc35c60044fd4ce0900830e2525866fc/layers/cross_pol_decline_count.tif",
+              "role": "cross_pol_decline_count",
+              "units": "observations",
+              "resampling": "nearest"
+            }
+          ],
+          "comparator": "Target minus median of the prior measured dates",
+          "grid_cells": 1048576,
+          "common_cells": 1048312,
+          "cross_pol_history": {
+            "rule": "Cross-polarized change below the negative median/MAD diagnostic bound",
+            "status": "insufficient_assessment_dates",
+            "samples": [
+              {
+                "date": "2026-10-24",
+                "decline_cells": 96043,
+                "median_change_db": -0.8309669494628906
+              }
+            ],
+            "polarization": "HV"
+          },
+          "mad_departure_cells": 213825,
+          "diagnostic_half_width_db": "max(3, 3 × max(1.4826 × MAD, 1))",
+          "median_target_minus_baseline_db": {
+            "HH": -0.9665963649749756,
+            "HV": -0.8309669494628906
+          }
+        },
+        "evidence": {
+          "status": "unavailable"
+        },
+        "id": "wildfire",
+        "version": "1.0",
+        "fire_context": {
+          "status": "unavailable"
+        },
+        "temporal_analysis": {
+          "dates": ["2026-06-26", "2026-07-20", "2026-08-25", "2026-09-18", "2026-10-24"],
+          "spectral": {
+            "reason": "Need at least six observed dates",
+            "status": "insufficient_temporal_support"
+          },
+          "stochastic": {
+            "status": "experimental",
+            "channels": {
+              "HH": {
+                "series": [
+                  {
+                    "date": "2026-06-26",
+                    "latent_median_db": -6.2615177621350515,
+                    "observed_mean_db": -6.220770877712085,
+                    "conditional_80_db": [-6.318171291718528, -6.186018936751787],
+                    "conditional_95_db": [-6.37033121425529, -6.14682725909021]
+                  },
+                  {
+                    "date": "2026-07-20",
+                    "latent_median_db": -6.2639192611435295,
+                    "observed_mean_db": -6.25882120708339,
+                    "conditional_80_db": [-6.326841090176105, -6.200034933414528],
+                    "conditional_95_db": [-6.34859368999156, -6.174602789861836]
+                  },
+                  {
+                    "date": "2026-08-25",
+                    "latent_median_db": -6.260894123822607,
+                    "observed_mean_db": -6.342845510297095,
+                    "conditional_80_db": [-6.339956275904079, -6.203324965080312],
+                    "conditional_95_db": [-6.365100890307242, -6.182835623132355]
+                  },
+                  {
+                    "date": "2026-09-18",
+                    "latent_median_db": -6.253850333893334,
+                    "observed_mean_db": -5.434942100272256,
+                    "conditional_80_db": [-6.313150671143795, -6.193514748118603],
+                    "conditional_95_db": [-6.3637288295360195, -6.170656976234714]
+                  },
+                  {
+                    "date": "2026-10-24",
+                    "latent_median_db": -6.253530114647118,
+                    "observed_mean_db": -7.023839643682883,
+                    "conditional_80_db": [-6.314273638797014, -6.199406159383686],
+                    "conditional_95_db": [-6.351028813001561, -6.163902465480162]
+                  }
+                ],
+                "status": "fit_returned",
+                "supported_cells": 1048312
+              },
+              "HV": {
+                "series": [
+                  {
+                    "date": "2026-06-26",
+                    "latent_median_db": -12.939314908614811,
+                    "observed_mean_db": -12.91339183351603,
+                    "conditional_80_db": [-12.997779770716315, -12.872264760179235],
+                    "conditional_95_db": [-13.033060217884843, -12.836167680122616]
+                  },
+                  {
+                    "date": "2026-07-20",
+                    "latent_median_db": -12.929689375891087,
+                    "observed_mean_db": -12.912656232142705,
+                    "conditional_80_db": [-12.995207259097212, -12.863256845640272],
+                    "conditional_95_db": [-13.027713425909457, -12.840323136953263]
+                  },
+                  {
+                    "date": "2026-08-25",
+                    "latent_median_db": -12.937293663769918,
+                    "observed_mean_db": -12.99168898041075,
+                    "conditional_80_db": [-13.017135174227446, -12.877853387968234],
+                    "conditional_95_db": [-13.053430835993376, -12.856602613252665]
+                  },
+                  {
+                    "date": "2026-09-18",
+                    "latent_median_db": -12.944689310625673,
+                    "observed_mean_db": -12.267490522902838,
+                    "conditional_80_db": [-12.995481550929256, -12.890579087761969],
+                    "conditional_95_db": [-13.024660573542427, -12.853831476620826]
+                  },
+                  {
+                    "date": "2026-10-24",
+                    "latent_median_db": -12.9476398224061,
+                    "observed_mean_db": -13.618631170983717,
+                    "conditional_80_db": [-13.01478309137517, -12.872496113996048],
+                    "conditional_95_db": [-13.041085747631923, -12.8530112847744]
+                  }
+                ],
+                "status": "fit_returned",
+                "supported_cells": 1048312
+              }
+            },
+            "calibrated": false,
+            "interpretation": "Conditional empirical-Bayes latent-state distribution at observed dates. The representative regional process uses the fitted pixel covariance. Bands omit parameter and model uncertainty. Residual scale is not measured sensor noise."
+          },
+          "common_cells": 1048312,
+          "elapsed_days": [0, 24, 60, 84, 120],
+          "observation_noise_db": null,
+          "acquisition_gaps_days": [24, 36, 24, 36]
+        },
+        "observation_bracket": ["2026-09-18", "2026-10-24"],
+        "excluded_unusable_dates": []
+      },
+      "aoiSummary": {
+        "cells_in_area": 1044483,
+        "cells_with_measurement": 1044219,
+        "cells_departing_from_baseline": 212924,
+        "departing_fraction": 0.20390741788839314,
+        "area_covered_fraction": 0.9961,
+        "median_target_minus_baseline_db": {
+          "HH": -0.9663095474243164,
+          "HV": -0.8308582305908203
+        },
+        "reason": null,
+        "definition": "Cells where the target departs from the observed baseline by more than the diagnostic half-width in any polarization; descriptive, not a classification."
+      },
+      "layers": [
+        {
+          "id": "display_2026-06-26_HH",
+          "title": "2026-06-26 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-06-26_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-06-26_HV",
+          "title": "2026-06-26 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-06-26_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-07-20_HH",
+          "title": "2026-07-20 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-07-20_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-07-20_HV",
+          "title": "2026-07-20 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-07-20_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-08-25_HH",
+          "title": "2026-08-25 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-08-25_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-08-25_HV",
+          "title": "2026-08-25 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-08-25_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-09-18_HH",
+          "title": "2026-09-18 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-09-18_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-09-18_HV",
+          "title": "2026-09-18 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-09-18_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-10-24_HH",
+          "title": "2026-10-24 HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-10-24_HH",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_2026-10-24_HV",
+          "title": "2026-10-24 HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "gray",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_2026-10-24_HV",
+          "legend": null,
+          "valueRange": [-30, 0]
+        },
+        {
+          "id": "display_baseline_change_HH",
+          "title": "baseline change HH",
+          "kind": "change",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_baseline_change_HH",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_baseline_change_HV",
+          "title": "baseline change HV",
+          "kind": "change",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_baseline_change_HV",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_change_HH",
+          "title": "change HH",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_change_HH",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_change_HV",
+          "title": "change HV",
+          "kind": "observed",
+          "units": "dB",
+          "colormap": "RdBu_r",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_change_HV",
+          "legend": null,
+          "valueRange": [-8, 8]
+        },
+        {
+          "id": "display_cross_pol_decline_count_cross_pol_decline_count",
+          "title": "cross pol decline count cross pol decline count",
+          "kind": "observed",
+          "units": "observations",
+          "colormap": "viridis",
+          "bounds": [-121.08053868156655, 47.336798971151374, -120.94148874315, 47.43123780764235],
+          "url": "/api/v1/explorations/exp_9b5cdf2f90764702/layers/display_cross_pol_decline_count_cross_pol_decline_count",
+          "legend": null,
+          "valueRange": [0, 1]
+        }
+      ],
+      "quality": {
+        "revision": "75f94b85d46b311f28c91c44",
+        "gridWidth": 1024,
+        "gridHeight": 1024,
+        "maturityMixed": true,
+        "postingMeters": [10, 10],
+        "windowTruncated": true
+      },
+      "limitations": [
+        "Diagnostic evidence from measured L-band radar backscatter, not a validated classifier.",
+        "Departures are measured against the scene's own observed baseline, which may include change.",
+        "No forecast, probability, cause, area in hectares or displacement is reported.",
+        "A radar change over burnt land is consistent with vegetation loss; it does not establish a fire as the cause.",
+        "The analysed window is limited to about 10 km around the centre of the area; cells beyond it are not measured."
+      ],
+      "scientificStatus": "diagnostic",
+      "timings": {
+        "total_s": 300.666,
+        "render_s": 12.139,
+        "elapsed_s": 316.997,
+        "measure_s": 8.195,
+        "prefetch_s": 292.424
+      },
+      "isDemo": false,
+      "fireContext": {
+        "status": "available",
+        "source": "NASA FIRMS · VIIRS 375 m active-fire detections",
+        "windowStart": "2026-09-18T12:55:41Z",
+        "windowEnd": "2026-10-24T12:55:41Z",
+        "detections": 0,
+        "lowConfidenceExcluded": 0,
+        "firstDetection": null,
+        "lastDetection": null,
+        "peakFrpMw": null,
+        "satellites": [],
+        "products": ["VIIRS_NOAA20_NRT", "VIIRS_NOAA20_SP", "VIIRS_SNPP_NRT", "VIIRS_SNPP_SP"],
+        "note": "No active-fire detections were found inside the area between the two radar passes. Thermal sensors miss small, short or cloud-covered fires, so this does not rule a fire out."
+      },
+      "insar": null
+    },
+    "error": null
+  }
+}
