@@ -669,10 +669,6 @@ test.describe("Report: live answer", () => {
   });
 });
 
-// Half a time-lapse step: a poll never jumps over a pass, and it reaches the next one in two ticks.
-const TICK_MS = 550;
-const POLL = { intervals: [100] };
-
 test.describe("Explorer: raw passes, layer dock and the time-lapse (#20)", () => {
   let globe: GlobePage;
 
@@ -738,48 +734,66 @@ test.describe("Explorer: raw passes, layer dock and the time-lapse (#20)", () =>
   test("Play runs the five passes every 1.1 s and stops on the target; the stamp shows each date", async ({
     page,
   }) => {
-    await page.clock.install();
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
-    await expect(globe.timelineReadout).toHaveText("12 Sep 2026 · baseline · pass 3 of 5");
-    await page.clock.pauseAt((await page.evaluate(() => Date.now())) + 1000);
-
     await globe.timelinePasses("base").first().click();
-    const play = page.getByTestId("timeline-play");
-    await expect(play).toHaveAttribute("aria-label", "Play the 5 passes");
-    await play.click();
-    await expect(play).toHaveAttribute("aria-label", "Pause time-lapse");
-    const stamp = page.getByTestId("timelapse-stamp");
-    await expect(stamp).toContainText("14 JUL 2026");
-    await expect(stamp).toContainText("PASS 1 OF 5 · BASELINE");
+    await expect(globe.timelineReadout).toHaveText("14 Jul 2026 · baseline · pass 1 of 5");
 
-    const frames = [
-      "19 Aug 2026 · baseline · pass 2 of 5",
-      "12 Sep 2026 · baseline · pass 3 of 5",
-      "18 Oct 2026 · baseline · pass 4 of 5",
-      "11 Nov 2026 · target · pass 5 of 5",
-    ];
-    // React arms each step's timer after it renders, so the fake clock moves in small ticks until the
-    // next pass shows; the 1.1 s spacing itself is the unit-tested stepper.
-    const advanceTo = async (line: string) =>
-      expect
-        .poll(async () => {
-          await page.clock.runFor(TICK_MS);
-          return globe.timelineReadout.textContent();
-        }, POLL)
-        .toBe(line);
-    for (const line of frames) await advanceTo(line);
-    await expect(stamp).toContainText("PASS 5 OF 5 · TARGET");
+    // Real time, not page.clock: a fake clock also drives requestAnimationFrame, so every tick made
+    // Cesium render dozens of SwiftShader frames and slow CI ran out of time. The page records every
+    // render where the readout, the stamp or the Play label changed, so nothing is missed however
+    // slowly the test itself runs.
+    await page.evaluate(() => {
+      const text = (id: string) =>
+        document.querySelector(`[data-testid="${id}"]`)?.textContent ?? "";
+      const label = () =>
+        document.querySelector('[data-testid="timeline-play"]')?.getAttribute("aria-label") ?? "";
+      const now = () => ({
+        line: text("timeline-readout"),
+        stamp: text("timelapse-stamp"),
+        play: label(),
+        at: performance.now(),
+      });
+      const steps = [now()];
+      new MutationObserver(() => {
+        const step = now();
+        const last = steps.at(-1);
+        if (last?.line !== step.line || last.stamp !== step.stamp || last.play !== step.play)
+          steps.push(step);
+      }).observe(document.body, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+        attributes: true,
+      });
+      Object.assign(window, { lapseSteps: steps });
+    });
+    type Step = { line: string; stamp: string; play: string; at: number };
+    const recorded = () =>
+      page.evaluate(() => (window as unknown as { lapseSteps: Step[] }).lapseSteps);
+
+    await page.getByTestId("timeline-play").click();
+    // Four steps of 1.1 s plus the one that ends on the target; generous for slow software WebGL.
+    await expect.poll(async () => (await recorded()).length, { timeout: 30_000 }).toBe(7);
+
+    const PLAY = "Play the 5 passes";
+    const PAUSE = "Pause time-lapse";
+    const steps = await recorded();
+    expect(steps.map(({ line, stamp, play }) => [line, stamp, play])).toEqual([
+      ["14 Jul 2026 · baseline · pass 1 of 5", "", PLAY],
+      ["14 Jul 2026 · baseline · pass 1 of 5", "14 JUL 2026PASS 1 OF 5 · BASELINE", PAUSE],
+      ["19 Aug 2026 · baseline · pass 2 of 5", "19 AUG 2026PASS 2 OF 5 · BASELINE", PAUSE],
+      ["12 Sep 2026 · baseline · pass 3 of 5", "12 SEP 2026PASS 3 OF 5 · BASELINE", PAUSE],
+      ["18 Oct 2026 · baseline · pass 4 of 5", "18 OCT 2026PASS 4 OF 5 · BASELINE", PAUSE],
+      ["11 Nov 2026 · target · pass 5 of 5", "11 NOV 2026PASS 5 OF 5 · TARGET", PAUSE],
+      ["11 Nov 2026 · target · pass 5 of 5", "", PLAY],
+    ]);
+    // A timer never fires early: from Play on, each step comes at least one step after the last.
+    for (let index = 2; index < steps.length; index += 1) {
+      const gap = (steps[index]?.at ?? 0) - (steps[index - 1]?.at ?? 0);
+      expect(gap).toBeGreaterThanOrEqual(1000);
+    }
     // 18 Oct and 11 Nov have no image: the HH row is off, nothing else is drawn in their place.
     await expect(page.getByTestId("dock-row-hh")).toBeDisabled();
-
-    await expect
-      .poll(async () => {
-        await page.clock.runFor(TICK_MS);
-        return play.getAttribute("aria-label");
-      }, POLL)
-      .toBe("Play the 5 passes");
-    await expect(globe.timelineReadout).toHaveText("11 Nov 2026 · target · pass 5 of 5");
-    await expect(stamp).toHaveCount(0);
   });
 
   test("a manual pass pick stops the time-lapse and keeps that pass", async ({ page }) => {
