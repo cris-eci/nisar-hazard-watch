@@ -83,6 +83,46 @@ test.describe("Explorer: lens buttons and the lens result card", () => {
     expect((await globe.panel.boundingBox())?.width).toBe(400);
   });
 
+  test("Nova answers from the lens card's visible fields and names them", async ({ page }) => {
+    await globe.mockExplorations({ first: succeededView() });
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+    await expect(page.getByTestId("lens-card")).toBeVisible();
+
+    await page.getByTestId("nova-bubble").click();
+    const nova = page.getByTestId("nova");
+    await expect(nova).toContainText("Did water appear here? · Within its usual range");
+    await nova
+      .getByTestId("nova-suggestion")
+      .filter({ hasText: "What happened at my pixel?" })
+      .click();
+    const reply = nova.getByTestId("nova-answer").last();
+    await expect(reply).toContainText("HH −1.2 dB (band ±3.0 dB · inside)");
+    await expect(reply.getByTestId("nova-fields")).toHaveText(
+      "On screen · AT THE PIXEL YOU CLICKED",
+    );
+
+    await nova.getByTestId("nova-input").fill("Were there fires?");
+    await nova.getByTestId("nova-send").click();
+    await expect(nova.getByTestId("nova-nodata").last()).toContainText("I can't say");
+  });
+
+  test("on a phone the 48 px Nova bubble sits above the result sheet", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await globe.mockExplorations({ first: succeededView() });
+    await globe.goto(`?frame=${LIVE_FRAME.id}`);
+    await expect(page.getByTestId("lens-card")).toBeVisible();
+
+    const bubble = page.getByTestId("nova-bubble");
+    await expect(async () => {
+      const box = await bubble.boundingBox();
+      const sheet = await globe.panel.boundingBox();
+      expect(box?.width).toBe(48);
+      expect((box?.y ?? Infinity) + (box?.height ?? 0)).toBeLessThanOrEqual(sheet?.y ?? 0);
+    }).toPass();
+    await bubble.click();
+    await expect(page.getByTestId("nova")).toBeVisible();
+  });
+
   test("a question link picks its lens exactly like its button", async ({ page }) => {
     const api = await globe.mockExplorations({
       answers: [runningView(), runningView({ lens: "vegetation_disturbance" })],
