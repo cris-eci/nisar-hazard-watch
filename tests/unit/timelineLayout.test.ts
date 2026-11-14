@@ -5,6 +5,7 @@ import {
   axisPct,
   barHeight,
   BAR_MAX_PX,
+  formatDay,
   layoutTimeline,
   monthTicks,
   readoutOf,
@@ -98,5 +99,13 @@ describe("pass timeline layout", () => {
     expect(readoutOf(kumamoto, layout, true, layout.targetIndex).line).toBe(
       "Baseline (1 pass, 21 Jul) ↔ Target 14 Aug 2026",
     );
+  });
+});
+
+describe("formatDay", () => {
+  // Regression (#20): newer ICU prints "12 Sept 2026" in en-GB; COPY-v8 writes "12 Sep 2026".
+  it("writes September with three letters, like every other month", () => {
+    expect(formatDay("2026-09-12")).toBe("12 Sep 2026");
+    expect(formatDay("2026-09-12", false)).toBe("12 Sep");
   });
 });

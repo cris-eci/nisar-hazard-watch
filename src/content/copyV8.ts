@@ -166,12 +166,16 @@ export const STEP_4 = {
   dockLandCover: "Land cover",
   dockGrey: "Grey: no measurement",
   dockOpacity: "Opacity",
+  // Not in COPY-v8: approved by Cristian for #20, where a pass has no image for a channel.
+  noImage: "No image",
+  noPassImage: (pol: "HH" | "HV") => `No ${pol} image for this pass`,
   lensTitle: "LOOK THROUGH A LENS",
   lensOrAsk: "Or ask",
   // Decision 2 (docs/design/README.md) overrides "no lens": ground motion stays a visible entry.
   lensFooter:
     "Ground motion has no lens. Where an interferometric pair exists, coherence (0–1) appears as a raw layer.",
-  timelinePass: (date: string, role: "target" | "baseline", k: number, n: number) =>
+  // "measured" is not in COPY-v8: Cristian approved it (#20) for a pass that is neither baseline nor target.
+  timelinePass: (date: string, role: "target" | "baseline" | "measured", k: number, n: number) =>
     `${date} · ${role} · pass ${k} of ${n}`,
   timelineWindow: (direction: string, from: string, to: string) =>
     `${direction} · ${from} – ${to} · ONLY MEASURED DATES`,
