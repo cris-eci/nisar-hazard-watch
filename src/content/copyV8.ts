@@ -99,6 +99,8 @@ export const STEP_2 = {
   waitValue: "1–4 min",
   waitSub: "plus any queue",
   catalogLabel: (direction: string) => `IN THE CATALOG · ${direction}`,
+  // #25: the backend's series key didn't say the direction, so none is printed.
+  catalogLabelPlain: "IN THE CATALOG",
   catalogWindow: "LAST 5 MONTHS",
   // Only when a gap longer than 24 days exists.
   gapNote: (n: number, date: string) =>

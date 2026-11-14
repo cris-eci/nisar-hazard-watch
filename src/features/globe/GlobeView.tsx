@@ -77,7 +77,8 @@ type GlobeViewProps = {
   // Bumped by the "Whole globe" button: fly home even when nothing is open.
   homeRequest: number;
   onOpenCase: (item: Case) => void;
-  onAsk: (frame: Frame, point: LonLat) => void;
+  // Any clicked point on the globe; frame is undefined where no NISAR frame lies (v8 no-data).
+  onAsk: (point: LonLat, frame: Frame | undefined) => void;
   // While a tool is on, the globe draws instead of asking; undefined hands the clicks back.
   drawTool: DrawTool | undefined;
   draft: DraftView | undefined;
@@ -227,7 +228,7 @@ export const GlobeView = ({
       }
       const point = pickLonLat(viewer, position);
       const frame = point && frameUnder(latest.current.frames, point);
-      if (point !== undefined && frame !== undefined) latest.current.onAsk(frame, point);
+      if (point !== undefined) latest.current.onAsk(point, frame);
     }, ScreenSpaceEventType.LEFT_CLICK);
     handler.setInputAction(
       () => latest.current.drawTool !== undefined && latest.current.onDraw({ type: "finish" }),
@@ -298,7 +299,9 @@ export const GlobeView = ({
     return () => removeEntities(viewer, entities);
   }, [viewer, frame]);
 
-  const outlineKey = outline && `${outline.ring.join(";")}|${outline.label}|${outline.processing}`;
+  const outlineKey =
+    outline &&
+    `${outline.ring.join(";")}|${outline.label}|${outline.processing}|${outline.spot === true}`;
   useEffect(() => {
     if (viewer === undefined || outline === undefined) return;
     const entities = addChipOutline(viewer, outline);

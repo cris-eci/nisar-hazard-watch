@@ -10,6 +10,7 @@ import { ExplorationMock, INSAR_PAIRS } from "./explorationMock";
 export const LIVE_FRAME = { id: "47-3", title: "Track 47 · Frame 3" };
 
 const PLACES_URL = "**/api/v1/places**";
+const COVERAGE_URL = "**/api/v1/coverage**";
 
 const readMock = (name: string): string =>
   readFileSync(new URL(`../mocks/${name}.json`, import.meta.url), "utf8");
@@ -60,10 +61,11 @@ export class GlobePage {
   readonly searchInput: Locator;
   readonly searchError: Locator;
   readonly placeCard: Locator;
-  readonly placeNoFrame: Locator;
+  readonly spotNearest: Locator;
   readonly placeAnalyse: Locator;
   // Every place search the page sent, in order.
   readonly placeRequests: string[] = [];
+  readonly coverageRequests: string[] = [];
   readonly jobModal: Locator;
   readonly jobRemaining: Locator;
   readonly jobProgress: Locator;
@@ -108,7 +110,7 @@ export class GlobePage {
     this.searchInput = page.getByTestId("place-input");
     this.searchError = page.getByTestId("place-error");
     this.placeCard = page.getByTestId("place-card");
-    this.placeNoFrame = page.getByTestId("place-no-frame");
+    this.spotNearest = page.getByTestId("spot-nearest");
     this.placeAnalyse = page.getByTestId("place-analyse");
     this.jobModal = page.getByTestId("job-modal");
     this.jobRemaining = page.getByTestId("job-remaining");
@@ -155,6 +157,26 @@ export class GlobePage {
   }
 
   // Answers every place search with a recorded answer; `failures` problem+json 502s come first.
+  // Answers every coverage check with a real recorded answer; `failures` 502s come first.
+  async mockCoverage({ mock = "coverage-qadirabad", failures = 0 } = {}): Promise<void> {
+    await this.page.route(COVERAGE_URL, (route) => {
+      this.coverageRequests.push(route.request().url());
+      const failing = this.coverageRequests.length <= failures;
+      return route.fulfill({
+        status: failing ? 502 : 200,
+        contentType: failing ? "application/problem+json" : "application/json",
+        body: failing
+          ? JSON.stringify({
+              title: "Scene catalog unavailable",
+              detail: "the scene catalog did not answer",
+              reasonCode: "UPSTREAM_CATALOG_ERROR",
+              status: 502,
+            })
+          : readMock(mock),
+      });
+    });
+  }
+
   async mockPlaces({ mock = "places-qadirabad", failures = 0 } = {}): Promise<void> {
     await this.page.route(PLACES_URL, (route) => {
       this.placeRequests.push(route.request().url());
@@ -217,6 +239,11 @@ export class GlobePage {
 
   async hoverLand(): Promise<void> {
     await this.page.mouse.move(FREE_CENTRE.x + OFF_CENTRE_PX, FREE_CENTRE.y);
+  }
+
+  // With nothing open the camera rests over the Atlantic (−20°, 18°): its centre is open ocean.
+  async clickOcean(): Promise<void> {
+    await this.page.mouse.click(FREE_CENTRE.x, FREE_CENTRE.y);
   }
 
   async clickLand(): Promise<void> {

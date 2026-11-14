@@ -9,6 +9,7 @@ test.describe("Explorer: place search", () => {
     globe = new GlobePage(page);
     await globe.skipOnboarding();
     await globe.mockObservationPlan();
+    await globe.mockCoverage();
   });
 
   test("typing sends nothing; Enter searches once and lists the places with their credit", async ({
@@ -39,7 +40,7 @@ test.describe("Explorer: place search", () => {
     ).toBeVisible();
   });
 
-  test("arrow keys and Enter pick a place; the card names its frame and Analyse asks the radar", async ({
+  test("arrow keys and Enter pick a place; the spot card shows the catalog and Analyze asks the radar", async ({
     page,
   }) => {
     test.slow();
@@ -56,7 +57,7 @@ test.describe("Explorer: place search", () => {
 
     await expect(globe.searchMenu).toBeHidden();
     await expect(globe.placeCard).toContainText("Qadirabad");
-    await expect(page.getByTestId("place-frame")).toContainText("Track 84 · Frame 18");
+    await expect(page.getByTestId("spot-area")).toContainText("10.24 km square");
     await expect(globe.startCard).toBeHidden();
 
     await globe.placeAnalyse.click();
@@ -65,7 +66,11 @@ test.describe("Explorer: place search", () => {
     await expect(page).toHaveURL(/frame=84-18/);
   });
 
-  test("a place outside every NISAR frame says so and cannot be analysed", async () => {
+  test("a place with no catalog coverage shows the no-data state, not Analyze", async ({
+    page,
+  }) => {
+    // Registered after beforeEach's land answer, so this one wins.
+    await globe.mockCoverage({ mock: "coverage-open-ocean" });
     await globe.mockPlaces({ mock: "places-open-ocean" });
     await globe.goto();
     await globe.searchInput.click();
@@ -73,8 +78,9 @@ test.describe("Explorer: place search", () => {
     await globe.searchInput.press("Enter");
     await globe.placeOption(0).click();
 
-    await expect(globe.placeNoFrame).toContainText("No NISAR frame covers this place");
-    await expect(globe.placeAnalyse).toBeDisabled();
+    await expect(globe.placeCard).toHaveAttribute("data-state", "noCoverage");
+    await expect(page.getByTestId("place-title")).toHaveText("No NISAR data here");
+    await expect(globe.placeAnalyse).toHaveCount(0);
   });
 
   test("no match shows an empty state and the globe stays usable", async ({ page }) => {
@@ -131,15 +137,16 @@ test.describe("Explorer: place search", () => {
     await expect(globe.startCard).toBeVisible();
   });
 
-  test("pasted coordinates resolve on the spot without asking the geocoder", async ({ page }) => {
+  test("pasted coordinates resolve on the spot without asking the geocoder", async () => {
     await globe.mockPlaces();
     await globe.goto();
     await globe.searchInput.fill("32.30, 73.50");
     await globe.searchInput.press("Enter");
 
     await expect(globe.placeCard).toContainText("32.30° N, 73.50° E");
-    await expect(page.getByTestId("place-frame")).toContainText("Track 84 · Frame 18");
+    await expect(globe.placeAnalyse).toBeEnabled();
     expect(globe.placeRequests).toHaveLength(0);
+    expect(globe.coverageRequests[0]).toContain("lon=73.5&lat=32.3");
   });
 
   test("a query that names a known case lists it as INSTANT and opens it", async ({ page }) => {

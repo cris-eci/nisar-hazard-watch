@@ -1,0 +1,12 @@
+{
+  "plan": {
+    "status": "noCoverage",
+    "seriesKey": null,
+    "dates": [],
+    "maturityMixed": false,
+    "notes": ["no NISAR L-band GCOV scene covers this area in the planning window"]
+  },
+  "areaKm2": 104.725,
+  "warnings": [],
+  "precomputedCase": null
+}

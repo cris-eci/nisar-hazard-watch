@@ -32,7 +32,9 @@ const fold = (text: string): string =>
     .toLowerCase()
     .trim();
 
-const countryOf = (item: Case): string => item.place.split(", ").at(-1) ?? item.place;
+// "Qadirabad, Pakistan": the case's name and the country that ends its place.
+export const caseName = (item: Case): string =>
+  `${item.name}, ${item.place.split(", ").at(-1) ?? item.place}`;
 
 // Cases whose name appears in the query or whose name and place contain it ("Qadirabad",
 // "qadirabad pakistan", "Chenab").
@@ -58,7 +60,7 @@ export const placeRow = (place: Place): SearchRow => ({
 export const caseRow = (item: Case): SearchRow => ({
   kind: "case",
   id: `case:${item.id}`,
-  name: `${item.name}, ${countryOf(item)}`,
+  name: caseName(item),
   sub: TOP_BAR.searchCaseSub(item.hazard, item.when),
   where: undefined,
   tag: TOP_BAR.tagInstant,
