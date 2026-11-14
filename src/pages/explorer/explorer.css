@@ -1715,6 +1715,161 @@
   color: var(--muted);
 }
 
+/* Live dock (v8, #20): raw thumbnails, the v8 rows, then every other layer of the job. */
+.x-dock--live {
+  max-height: calc(100% - 72px - 190px);
+  overflow: auto;
+}
+
+.x-raw {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.x-raw__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.x-raw__thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.x-raw__thumb:disabled {
+  cursor: default;
+}
+
+.x-raw__img,
+.x-raw__empty {
+  width: 100%;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background: #0e1930;
+}
+
+.x-raw__img {
+  display: block;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.x-raw__thumb[aria-pressed="true"] .x-raw__img {
+  border-color: var(--gold);
+}
+
+.x-raw__empty {
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(235, 233, 228, 0.18);
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+}
+
+.x-raw__label {
+  font-size: 12px;
+}
+
+.x-raw__scale {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--muted);
+}
+
+.x-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.x-rows__row {
+  min-height: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  column-gap: 8px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(235, 233, 228, 0.14);
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+  color: var(--ink-3);
+  cursor: pointer;
+}
+
+.x-rows__row[aria-pressed="true"] {
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+.x-rows__row:disabled {
+  cursor: not-allowed;
+  border-style: dashed;
+  color: var(--faint);
+}
+
+.x-rows__tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.x-rows__why {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* Time-lapse stamp under the footprint (SPECS-v8 §4); positioned from the globe every frame. */
+.x-stamp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  margin: 10px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+  pointer-events: none;
+  text-shadow: 0 1px 6px #04070e;
+  font-family: var(--mono);
+}
+
+.x-stamp__date {
+  font-size: 30px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.x-stamp__pass {
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+
+.x-stamp__pass[data-target="true"] {
+  color: var(--gold);
+}
+
 /* Pass timeline */
 .x-timeline-wrap {
   position: absolute;
@@ -1760,6 +1915,18 @@
   display: grid;
   place-items: center;
   cursor: pointer;
+}
+
+/* v8 Play: white 38 px, desktop only (the reference switches to mobile under 700 px). */
+.x-tl__play--v8 {
+  width: 38px;
+  height: 38px;
+}
+
+@media (max-width: 699px) {
+  .x-tl__play--v8 {
+    display: none;
+  }
 }
 
 .x-tl__readout {

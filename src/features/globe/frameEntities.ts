@@ -12,6 +12,7 @@ import {
   type Entity,
   type Viewer,
 } from "cesium";
+import { gsap } from "gsap";
 
 import type { BBox, Frame, LonLat } from "@/features/frames/frame.types";
 import type { Ring } from "@/features/geo/geo.types";
@@ -115,4 +116,49 @@ export const addDrapeLayer = (
 
 export const removeLayer = (viewer: Viewer, layer: ImageryLayer): void => {
   if (!viewer.isDestroyed()) viewer.imageryLayers.remove(layer);
+};
+
+// SPECS-v8 §4: the time-lapse crossfades 700 ms (CSS "ease" is close to power1.inOut).
+const CROSSFADE_SECONDS = 0.7;
+
+// Fades `from` out and `to` in, then drops `from`. It waits for the new image to load so the fade
+// never runs into an empty tile. The returned function ends it at once (next change or unmount).
+export const crossfadeLayers = (
+  viewer: Viewer,
+  from: ImageryLayer,
+  to: ImageryLayer | undefined,
+  alpha: number,
+  done: () => void,
+): (() => void) => {
+  const state = { t: 0 };
+  let tween: gsap.core.Tween | undefined;
+  let finished = false;
+  const unlisten: Array<() => void> = [];
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    tween?.kill();
+    for (const stop of unlisten) stop();
+    removeLayer(viewer, from);
+    if (to !== undefined) to.alpha = alpha;
+    done();
+  };
+  const start = () => {
+    if (finished) return;
+    tween = gsap.to(state, {
+      t: 1,
+      duration: CROSSFADE_SECONDS,
+      ease: "power1.inOut",
+      onUpdate: () => {
+        from.alpha = (1 - state.t) * alpha;
+        if (to !== undefined) to.alpha = state.t * alpha;
+      },
+      onComplete: finish,
+    });
+  };
+  if (to === undefined || to.ready) start();
+  else {
+    unlisten.push(to.readyEvent.addEventListener(start), to.errorEvent.addEventListener(finish));
+  }
+  return finish;
 };
