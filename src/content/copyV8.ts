@@ -31,9 +31,14 @@ export const TOP_BAR = {
   wordmark: "NISAR Hazard Watch",
   searchPlaceholder: "Search a place or paste coordinates",
   searchPlaceholderMobile: "Search a place",
-  searchLiveSub: (lat: string, lon: string) => `${lat}° N, ${lon}° E · live analysis`,
+  // COPY writes `{lat}° N, {lon}° E`; callers pass formatLonLat, whose hemisphere letters follow
+  // the sign (#24), so a southern or western point never reads "−25° N".
+  searchLiveSub: (coordinates: string) => `${coordinates} · live analysis`,
   searchCaseSub: (hazard: string, monthYear: string) => `Known case · ${hazard} · ${monthYear}`,
-  // Decision 8 (docs/design/README.md) overrides fixed waits: the UI shows the backend's estimate.
+  // The kind line of a pasted point on the place card (#24, new copy).
+  coordinatesKind: "coordinates",
+  // Before a job starts there is no backend estimate (decision 8 governs the waiting bar), so the
+  // search keeps COPY's tag.
   tagLive: "1–4 MIN",
   tagInstant: "INSTANT",
   ascending: "Ascending",

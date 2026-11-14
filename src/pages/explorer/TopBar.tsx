@@ -1,15 +1,13 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode, type Ref } from "react";
 
+import { TOP_BAR } from "@/content/copyV8";
 import { Icon } from "@/features/case-panel/icons";
-import { HazardIcon } from "@/features/cases/HazardIcon";
-import type { IconId } from "@/features/cases/cases";
-import { Link } from "@/lib/Link";
-import { VERSION } from "@/pages/explorer/StartCard";
+import type { Case } from "@/features/cases/cases";
 import { PlaceSearch } from "@/features/search/PlaceSearch";
 import type { Place } from "@/features/search/placesApi";
 import { BrandMark } from "@/lib/BrandMark";
-
-export type ContextChip = { icon: IconId; name: string; when: string };
+import { Link } from "@/lib/Link";
+import { VERSION } from "@/pages/explorer/StartCard";
 
 export type DownloadItem = {
   id: "png" | "json" | "csv" | "pdf";
@@ -21,9 +19,12 @@ export type DownloadItem = {
 };
 
 type TopBarProps = {
-  context: ContextChip | undefined;
+  // L | S and Ascending / Descending, right after the search pill (SPECS-v8 top bar).
+  switches: ReactNode;
   // The area tools sit between the mode switch and the page links.
   tools: ReactNode;
+  cases: readonly Case[];
+  searchInputRef: Ref<HTMLInputElement>;
   helpOpen: boolean;
   downloadOpen: boolean;
   searchOpen: boolean;
@@ -35,6 +36,7 @@ type TopBarProps = {
   onDownload: (open: boolean) => void;
   onSearch: (open: boolean) => void;
   onPickPlace: (place: Place) => void;
+  onOpenCase: (item: Case) => void;
   onStory: (on: boolean) => void;
   onReplayTour: () => void;
   onShowReal: (on: boolean) => void;
@@ -48,8 +50,10 @@ const toggleFullScreen = () => {
 };
 
 export const TopBar = ({
-  context,
+  switches,
   tools,
+  cases,
+  searchInputRef,
   helpOpen,
   downloadOpen,
   searchOpen,
@@ -61,6 +65,7 @@ export const TopBar = ({
   onDownload,
   onSearch,
   onPickPlace,
+  onOpenCase,
   onStory,
   onReplayTour,
   onShowReal,
@@ -88,17 +93,21 @@ export const TopBar = ({
     <header className="x-top">
       <Link to="/" className="x-pill x-pill--mark">
         <BrandMark />
-        NISAR Hazard Watch
+        {TOP_BAR.wordmark}
       </Link>
-      {context !== undefined && !story && (
-        <span className="x-pill x-context" data-testid="context-chip">
-          <span className="x-context__icon">
-            <HazardIcon id={context.icon} size={14} />
-          </span>
-          {context.name}
-          <span className="x-context__when">{context.when}</span>
-        </span>
+      {!story && (
+        <div className="x-help x-top__search" ref={searchRef}>
+          <PlaceSearch
+            cases={cases}
+            open={searchOpen}
+            onOpen={onSearch}
+            onPick={onPickPlace}
+            onOpenCase={onOpenCase}
+            inputRef={searchInputRef}
+          />
+        </div>
       )}
+      {switches}
       <span className="x-top__fill" />
       <div role="group" aria-label="Mode" className="x-mode">
         <button
@@ -107,7 +116,7 @@ export const TopBar = ({
           onClick={() => onStory(true)}
           data-testid="mode-tour"
         >
-          Guided tour
+          {TOP_BAR.modeTour}
         </button>
         <button
           type="button"
@@ -115,50 +124,27 @@ export const TopBar = ({
           onClick={() => onStory(false)}
           data-testid="mode-explore"
         >
-          Explore
+          {TOP_BAR.modeExplore}
         </button>
       </div>
       <span className="x-top__fill" />
       {tools}
       <Link to="/cases" className="x-pill x-top__nav" testId="nav-cases">
-        Cases
+        {TOP_BAR.linkCases}
       </Link>
       <Link to="/method" className="x-pill x-top__nav" testId="nav-method">
-        Method
+        {TOP_BAR.linkMethod}
       </Link>
       <button
         type="button"
         className="x-icon-button"
         onClick={onWholeGlobe}
-        aria-label="Whole globe"
-        title="Whole globe"
+        aria-label={TOP_BAR.wholeGlobe}
+        title={TOP_BAR.wholeGlobe}
         data-testid="whole-globe"
       >
         <Icon name="globe" size={18} />
       </button>
-      <div className="x-help" ref={searchRef}>
-        <button
-          type="button"
-          className="x-icon-button"
-          onClick={() => onSearch(!searchOpen)}
-          aria-label="Search a place"
-          title="Search a place"
-          aria-expanded={searchOpen}
-          data-testid="search-button"
-        >
-          <Icon name="search" size={18} />
-        </button>
-        {searchOpen && (
-          <div
-            className="x-menu x-menu--search"
-            role="dialog"
-            aria-label="Search a place"
-            data-testid="search-menu"
-          >
-            <PlaceSearch onPick={onPickPlace} />
-          </div>
-        )}
-      </div>
       <div className="x-help" ref={helpRef}>
         <button
           type="button"

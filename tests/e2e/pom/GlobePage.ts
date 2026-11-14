@@ -55,7 +55,7 @@ export class GlobePage {
   readonly areaSize: Locator;
   readonly areaNotice: Locator;
   readonly useSquare: Locator;
-  readonly searchButton: Locator;
+  readonly searchPill: Locator;
   readonly searchMenu: Locator;
   readonly searchInput: Locator;
   readonly searchError: Locator;
@@ -103,7 +103,7 @@ export class GlobePage {
     this.areaSize = page.getByTestId("area-size");
     this.areaNotice = page.getByTestId("area-notice");
     this.useSquare = page.getByTestId("area-use-square");
-    this.searchButton = page.getByTestId("search-button");
+    this.searchPill = page.getByTestId("place-search");
     this.searchMenu = page.getByTestId("search-menu");
     this.searchInput = page.getByTestId("place-input");
     this.searchError = page.getByTestId("place-error");

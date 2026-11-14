@@ -32,8 +32,11 @@ export const PlaceCard = ({ place, frame, onAnalyse, onClose }: PlaceCardProps) 
         <Icon name="close" size={16} />
       </button>
     </header>
-    <p className="x-place__where">{place.displayName}</p>
-    <p className="x-place__meta">{formatLonLat(place.point)}</p>
+    {/* A pasted point is titled by its own coordinates: a line that only repeats the title hides. */}
+    {place.displayName !== place.name && <p className="x-place__where">{place.displayName}</p>}
+    {formatLonLat(place.point) !== place.name && (
+      <p className="x-place__meta">{formatLonLat(place.point)}</p>
+    )}
     {frame === undefined ? (
       <div className="x-problem" role="status" data-testid="place-no-frame">
         <p className="x-problem__title">No NISAR frame covers this place</p>

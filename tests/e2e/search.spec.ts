@@ -16,9 +16,11 @@ test.describe("Explorer: place search", () => {
   }) => {
     await globe.mockPlaces();
     await globe.goto();
-    await globe.searchButton.click();
-    await expect(globe.searchMenu).toBeVisible();
-    await expect(globe.searchInput).toBeFocused();
+    await expect(globe.searchInput).toHaveAttribute(
+      "placeholder",
+      "Search a place or paste coordinates",
+    );
+    await globe.searchInput.click();
 
     await globe.searchInput.pressSequentially("Qadirabad");
     await page.waitForTimeout(800);
@@ -30,6 +32,8 @@ test.describe("Explorer: place search", () => {
     expect(globe.placeRequests[0]).toContain("q=Qadirabad");
     expect(globe.placeRequests[0]).toContain("limit=6");
     await expect(globe.placeOption(0)).toContainText("Phalia Tehsil");
+    await expect(globe.placeOption(0)).toContainText("32.30° N, 73.50° E · live analysis");
+    await expect(page.getByTestId("place-tag-0")).toHaveText("1–4 MIN");
     await expect(
       globe.searchMenu.getByRole("link", { name: "© OpenStreetMap contributors" }),
     ).toBeVisible();
@@ -41,7 +45,7 @@ test.describe("Explorer: place search", () => {
     test.slow();
     await globe.mockPlaces();
     await globe.goto();
-    await globe.searchButton.click();
+    await globe.searchInput.click();
     await globe.searchInput.fill("Qadirabad");
     await globe.searchInput.press("Enter");
     await expect(globe.placeOption(0)).toBeVisible();
@@ -64,7 +68,7 @@ test.describe("Explorer: place search", () => {
   test("a place outside every NISAR frame says so and cannot be analysed", async () => {
     await globe.mockPlaces({ mock: "places-open-ocean" });
     await globe.goto();
-    await globe.searchButton.click();
+    await globe.searchInput.click();
     await globe.searchInput.fill("South Atlantic");
     await globe.searchInput.press("Enter");
     await globe.placeOption(0).click();
@@ -82,7 +86,7 @@ test.describe("Explorer: place search", () => {
       }),
     );
     await globe.goto();
-    await globe.searchButton.click();
+    await globe.searchInput.click();
     await globe.searchInput.fill("Nowhereville");
     await globe.searchInput.press("Enter");
 
@@ -95,7 +99,7 @@ test.describe("Explorer: place search", () => {
   test("a failing search says so and Try again repeats it", async () => {
     await globe.mockPlaces({ failures: 1 });
     await globe.goto();
-    await globe.searchButton.click();
+    await globe.searchInput.click();
     await globe.searchInput.fill("Qadirabad");
     await globe.searchInput.press("Enter");
 
@@ -111,17 +115,48 @@ test.describe("Explorer: place search", () => {
     await globe.mockPlaces();
     await globe.goto();
     await page.getByTestId("search-cta").click();
+    await expect(globe.searchInput).toBeFocused();
+    await globe.searchInput.fill("Qadirabad");
+    await globe.searchInput.press("Enter");
     await expect(globe.searchMenu).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(globe.searchMenu).toBeHidden();
 
-    await globe.searchButton.click();
-    await globe.searchInput.fill("Qadirabad");
+    await globe.searchInput.click();
     await globe.searchInput.press("Enter");
     await globe.placeOption(0).click();
     await expect(globe.placeCard).toBeVisible();
     await page.getByTestId("place-close").click();
     await expect(globe.placeCard).toBeHidden();
     await expect(globe.startCard).toBeVisible();
+  });
+
+  test("pasted coordinates resolve on the spot without asking the geocoder", async ({ page }) => {
+    await globe.mockPlaces();
+    await globe.goto();
+    await globe.searchInput.fill("32.30, 73.50");
+    await globe.searchInput.press("Enter");
+
+    await expect(globe.placeCard).toContainText("32.30° N, 73.50° E");
+    await expect(page.getByTestId("place-frame")).toContainText("Track 84 · Frame 18");
+    expect(globe.placeRequests).toHaveLength(0);
+  });
+
+  test("a query that names a known case lists it as INSTANT and opens it", async ({ page }) => {
+    await globe.mockPlaces();
+    await globe.goto();
+    await globe.searchInput.fill("Qadirabad");
+    await globe.searchInput.press("Enter");
+
+    const caseRow = globe.placeOption(2);
+    await expect(caseRow).toContainText("Qadirabad, Pakistan");
+    await expect(caseRow).toContainText("Known case · flood · Jul 2026");
+    await expect(page.getByTestId("place-tag-2")).toHaveText("INSTANT");
+
+    for (const _ of [0, 1, 2]) await globe.searchInput.press("ArrowDown");
+    await expect(caseRow).toHaveAttribute("aria-selected", "true");
+    await globe.searchInput.press("Enter");
+    await expect(globe.searchMenu).toBeHidden();
+    await expect(globe.panelTitle).toContainText("Qadirabad");
   });
 });
