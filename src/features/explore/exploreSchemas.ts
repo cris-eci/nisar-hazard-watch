@@ -73,6 +73,43 @@ const surroundingSchema = z.looseObject({
     .catch(undefined),
 });
 
+// OPERA optical second witness (#22). The real fixture only has the unavailable answer
+// (`{status: "insufficient_data", reason: "optical_evidence_unavailable"}`). The ready keys below
+// (`groups`, `pre`/`post`, `matched_controls.co_pol_contrast`, `point_state`) follow the v7/v8
+// provenance notes and must be checked against a real ready job (Barh); until then a block that
+// doesn't parse is dropped, so the UI hides it instead of showing a guess.
+const opticalSnapshotSchema = z.looseObject({ date: z.string(), sensor: z.string() });
+
+const opticalGroupSchema = z.looseObject({
+  id: z.string(),
+  cells: z.number(),
+  signature_cells: z.number(),
+});
+
+const contrastSchema = z.looseObject({
+  median_db: z.number(),
+  interval_db: z.tuple([z.number(), z.number()]),
+});
+
+const waterComparisonSchema = z.looseObject({
+  status: z.string(),
+  reason: z.string().nullable().optional(),
+  pre: opticalSnapshotSchema.nullable().optional().catch(undefined),
+  post: opticalSnapshotSchema.nullable().optional().catch(undefined),
+  groups: z.array(opticalGroupSchema).nullable().optional().catch(undefined),
+  matched_controls: z
+    .looseObject({
+      pairs: z.number(),
+      co_pol_contrast: contrastSchema.nullable().optional().catch(undefined),
+    })
+    .nullable()
+    .optional()
+    .catch(undefined),
+  point_state: z.string().nullable().optional(),
+});
+
+const confounderSchema = z.looseObject({ id: z.string(), status: z.string() });
+
 const evaluationSchema = z.looseObject({
   grid: z
     .looseObject({ pixel_spacing_m: z.array(z.number()) })
@@ -100,6 +137,8 @@ const evaluationSchema = z.looseObject({
     .optional()
     .catch(undefined),
   surrounding_comparison: surroundingSchema.nullable().optional().catch(undefined),
+  water_comparison: waterComparisonSchema.nullable().optional().catch(undefined),
+  confounders: z.array(confounderSchema).optional().catch(undefined),
 });
 
 const lensSchema = z.looseObject({
@@ -256,8 +295,25 @@ export type Surroundings = {
   annulusM: [number, number] | undefined;
 };
 
+export type OpticalGroup = { id: string; cells: number; signatureCells: number };
+
+export type WaterComparison = {
+  status: string;
+  reason: string | undefined;
+  pre: { date: string; sensor: string } | undefined;
+  post: { date: string; sensor: string } | undefined;
+  groups: OpticalGroup[] | undefined;
+  matchedPairs: number | undefined;
+  coPolContrast: { medianDb: number; intervalDb: [number, number] } | undefined;
+  pointState: string | undefined;
+};
+
+export type Confounder = { id: string; status: string };
+
 export type LensEvaluation = {
   targetDate: string | undefined;
+  // The last baseline pass: the radar bracket's first date.
+  lastBaselineDate: string | undefined;
   baselinePasses: number | undefined;
   pixelSpacingM: number | undefined;
   // The backend's own reading of each signature at the clicked pixel.
@@ -266,6 +322,32 @@ export type LensEvaluation = {
   coPolBrightening: Signature | undefined;
   dualDarkeningMaxChangeDb: { co: number; cross: number } | undefined;
   surroundings: Surroundings | undefined;
+  water: WaterComparison | undefined;
+  confounders: Confounder[];
+};
+
+type RawWater = z.infer<typeof waterComparisonSchema>;
+
+const waterOf = (raw: RawWater | null | undefined): WaterComparison | undefined => {
+  if (raw == null) return undefined;
+  const contrast = raw.matched_controls?.co_pol_contrast;
+  return {
+    status: raw.status,
+    reason: raw.reason ?? undefined,
+    pre: raw.pre ?? undefined,
+    post: raw.post ?? undefined,
+    groups: raw.groups?.map((group) => ({
+      id: group.id,
+      cells: group.cells,
+      signatureCells: group.signature_cells,
+    })),
+    matchedPairs: raw.matched_controls?.pairs,
+    coPolContrast:
+      contrast == null
+        ? undefined
+        : { medianDb: contrast.median_db, intervalDb: contrast.interval_db },
+    pointState: raw.point_state ?? undefined,
+  };
 };
 
 type RawSignature = z.infer<typeof signatureSchema>;
@@ -287,6 +369,7 @@ export const lensEvaluationOf = (result: ExplorationResult): LensEvaluation | un
   const around = evaluation.surrounding_comparison;
   return {
     targetDate: lens.target_date,
+    lastBaselineDate: lens.baseline_dates?.at(-1),
     baselinePasses: lens.baseline_dates?.length,
     pixelSpacingM: evaluation.grid?.pixel_spacing_m[0],
     pixelDualDarkening: evaluation.point?.signature_states?.["dual_darkening"],
@@ -306,5 +389,7 @@ export const lensEvaluationOf = (result: ExplorationResult): LensEvaluation | un
             focalRadiusM: around.focal_radius_m,
             annulusM: around.comparison_annulus_m,
           },
+    water: waterOf(evaluation.water_comparison),
+    confounders: evaluation.confounders ?? [],
   };
 };

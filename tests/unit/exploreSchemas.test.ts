@@ -62,6 +62,7 @@ describe("lensEvaluationOf", () => {
   it("reads the real evaluation in camelCase", () => {
     expect(evaluationOf(REAL)).toEqual({
       targetDate: "2026-11-11",
+      lastBaselineDate: "2026-10-18",
       baselinePasses: 4,
       pixelSpacingM: 10,
       pixelDualDarkening: "absent_on_sampled_support",
@@ -88,6 +89,25 @@ describe("lensEvaluationOf", () => {
         focalRadiusM: 60,
         annulusM: [120, 300],
       },
+      water: {
+        status: "insufficient_data",
+        reason: "optical_evidence_unavailable",
+        pre: undefined,
+        post: undefined,
+        groups: undefined,
+        matchedPairs: undefined,
+        coPolContrast: undefined,
+        pointState: undefined,
+      },
+      confounders: [
+        "existing_water",
+        "rain_or_soil_moisture",
+        "freeze_thaw",
+        "wind",
+        "incidence_and_track",
+        "speckle_and_noise",
+        "layover_or_shadow",
+      ].map((id) => ({ id, status: "unavailable" })),
     });
   });
 
