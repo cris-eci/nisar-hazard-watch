@@ -34,13 +34,22 @@ import { areaKm2Of, centreOf, ringAreaKm2, ringOf } from "@/features/geo/measure
 import { toGeoJson } from "@/features/geo/serialize";
 import { ringOfBox, squareAround, squareBounds } from "@/features/geo/square";
 import type { Drape } from "@/features/globe/frameEntities";
-import { GlobeView, type GlobeScene } from "@/features/globe/GlobeView";
+import { GlobeView, type GlobeScene, type GlobeStamp } from "@/features/globe/GlobeView";
 import { isLiveLens, type ExplorationRequest } from "@/features/explore/exploreApi";
 import type { InsarChoice } from "@/features/insar/insarApi";
 import { InsarPairPicker } from "@/features/insar/InsarPairPicker";
 import { insarFromParams } from "@/features/insar/insarLink";
 import { explorationCsv, explorationJson } from "@/features/explore/exploreExport";
-import { defaultLayerId, liveLayers } from "@/features/explore/exploreLayers";
+import {
+  defaultView,
+  measuredPasses,
+  nextStep,
+  playStart,
+  shownLayer,
+  timeLapseSteps,
+  type DockPick,
+} from "@/features/explore/exploreDock";
+import { liveLayers } from "@/features/explore/exploreLayers";
 import type { ExplorationView } from "@/features/explore/exploreSchemas";
 import { exploreSubject } from "@/features/explore/exploreSubject";
 import { exploreTimeline } from "@/features/explore/exploreTimeline";
@@ -74,6 +83,7 @@ import type { Place } from "@/features/search/placesApi";
 import { StoryMode } from "@/features/story/StoryMode";
 import { PassTimeline } from "@/features/timeline/PassTimeline";
 import { formatDay } from "@/features/timeline/timelineLayout";
+import { STEP_4, passOf } from "@/content/copyV8";
 import { useAsync } from "@/lib/useAsync";
 import { AreaGuide, type AreaIssue } from "@/pages/explorer/AreaGuide";
 import { AreaTools } from "@/pages/explorer/AreaTools";
@@ -109,6 +119,8 @@ const CHIP_ZOOM = 3.2;
 const REGION_KM = 240;
 const REGION_ZOOM = 1;
 const DEFAULT_OPACITY = 85;
+// SPECS-v8 §4: the time-lapse advances one pass every 1.1 s.
+const TIME_LAPSE_MS = 1100;
 // Chapter 1 shows the Punjab plains around the Chenab (SPECS §5: ~2,600 km altitude).
 const STORY_REGION_KM = 900;
 const STORY_REGION_SECONDS = 2.2;
@@ -350,8 +362,14 @@ export const ExplorerPage = () => {
     () => (phase === "done" && exploredView !== undefined ? liveLayers(exploredView) : []),
     [phase, exploredView],
   );
-  const [layerChoice, setLayerChoice] = useState<{ runKey: string; id: string | undefined }>();
-  const layerId = layerChoice?.runKey === runKey ? layerChoice.id : defaultLayerId(layers);
+  // The dock's pick and the selected pass belong to one run; a new run starts from its defaults.
+  const [dockChoice, setDockChoice] = useState<{
+    runKey: string;
+    pick: DockPick;
+    date: string | undefined;
+  }>();
+  // The run whose time-lapse is playing; any other run (or none) means stopped.
+  const [lapseFor, setLapseFor] = useState("");
 
   const openCase = useCallback((item: Case) => {
     setSelection({ kind: "case", item });
@@ -573,7 +591,13 @@ export const ExplorerPage = () => {
     chooseTool,
   ]);
 
+  const openSheet = () => {
+    setLapseFor("");
+    setSheetOpen(true);
+  };
+
   const chooseLens = (lens: LensId) => {
+    setLapseFor("");
     if (selection === undefined) return;
     if (selection.kind === "case") {
       if (lens === selection.item.lens) return;
@@ -636,7 +660,54 @@ export const ExplorerPage = () => {
         : undefined,
     [phase, exploredView, framePlan.plan],
   );
-  const liveLayer = layers.find((layer) => layer.id === layerId);
+  const livePasses = useMemo(() => measuredPasses(liveTimeline?.passes ?? []), [liveTimeline]);
+  const dockDefault = useMemo(() => defaultView(layers, livePasses), [layers, livePasses]);
+  const dockView = dockChoice?.runKey === runKey ? dockChoice : dockDefault;
+  const liveLayer = shownLayer(layers, dockView.pick, dockView.date);
+  const layerId = liveLayer?.id;
+  const lapsePlaying = lapseFor !== "" && lapseFor === runKey;
+  const stopLapse = () => setLapseFor("");
+  const setDock = (pick: DockPick, date: string | undefined = dockView.date) =>
+    setDockChoice({ runKey, pick, date });
+  // Any pick of a layer that is not a pass channel stops the time-lapse; HH ↔ HV keeps it going.
+  const pickDock = (pick: DockPick) => {
+    if (pick?.kind !== "pass") stopLapse();
+    setDock(pick);
+  };
+  const pickPass = (date: string) => {
+    stopLapse();
+    setDock(dockView.pick, date);
+  };
+  const lapsePol = dockView.pick?.kind === "pass" ? dockView.pick.pol : "HH";
+  const lapseSteps = useMemo(
+    () => timeLapseSteps(livePasses, layers, lapsePol),
+    [livePasses, layers, lapsePol],
+  );
+  const lapseIndex = lapseSteps.findIndex((step) => step.date === dockView.date);
+  const togglePlay = () => {
+    if (lapsePlaying) {
+      stopLapse();
+      return;
+    }
+    const start = lapseSteps[playStart(lapseIndex, lapseSteps.length)];
+    if (start === undefined) return;
+    setDock({ kind: "pass", pol: lapsePol }, start.date);
+    setLapseFor(runKey);
+  };
+  // One step every 1.1 s; the step after the target ends the time-lapse on the target.
+  useEffect(() => {
+    if (!lapsePlaying) return;
+    const timer = window.setTimeout(() => {
+      const next = nextStep(lapseIndex, lapseSteps.length);
+      const step = next === undefined ? undefined : lapseSteps[next];
+      if (step === undefined) setLapseFor("");
+      else setDockChoice({ runKey, pick: { kind: "pass", pol: lapsePol }, date: step.date });
+    }, TIME_LAPSE_MS);
+    return () => window.clearTimeout(timer);
+  }, [lapsePlaying, lapseIndex, lapseSteps, lapsePol, runKey]);
+  const lapseStep = lapsePlaying ? lapseSteps[lapseIndex] : undefined;
+  // Under the footprint the user asked about, which is the box the images cover.
+  const lapseBox = live === undefined ? undefined : boundsOf(ringOf(live.area));
 
   const tourItem = storyCase();
   const storyItem = story ? tourItem : undefined;
@@ -646,6 +717,16 @@ export const ExplorerPage = () => {
           place,
           liveDrape: liveLayer && { url: liveLayer.href, bounds: liveLayer.bounds },
           gridMetres: gridMetresOf(exploredView),
+          stamp: lapseStep &&
+            lapseBox && {
+              date: formatDay(lapseStep.date).toUpperCase(),
+              pass:
+                lapseStep.role === undefined
+                  ? passOf(lapseStep.k, lapseStep.n)
+                  : STEP_4.playStampPass(lapseStep.k, lapseStep.n, lapseStep.role),
+              target: lapseStep.role === "TARGET",
+              box: lapseBox,
+            },
         })
       : storyScene(storyItem, chapter, opacity);
   const context: ContextChip | undefined =
@@ -977,7 +1058,11 @@ export const ExplorerPage = () => {
                 onCancel={() => void exploration.cancel()}
               />
             }
-            onToggle={() => (sheetOpen ? setSheetOpen(false) : setCollapsed(!collapsed))}
+            onToggle={() => {
+              stopLapse();
+              if (sheetOpen) setSheetOpen(false);
+              else setCollapsed(!collapsed);
+            }}
             onClose={close}
           >
             {item?.pending === true && <PendingSummary item={item} />}
@@ -987,13 +1072,13 @@ export const ExplorerPage = () => {
                 view={exploredView}
                 layers={layers}
                 shownLayerId={layerId}
-                onShowLayer={(id) => setLayerChoice({ runKey, id })}
+                onShowLayer={(id) => pickDock(id === undefined ? undefined : { kind: "layer", id })}
                 reduce={reduceMotion}
-                onMore={() => setSheetOpen(true)}
+                onMore={openSheet}
               />
             )}
             {subject !== undefined && !showLensCard && (
-              <ResultSummary subject={subject} mode={mode} onMore={() => setSheetOpen(true)} />
+              <ResultSummary subject={subject} mode={mode} onMore={openSheet} />
             )}
             {item !== undefined && item.pending !== true && item.lens === "insar" && (
               <button
@@ -1062,9 +1147,13 @@ export const ExplorerPage = () => {
         {showLiveDock && (
           <LiveLayerDock
             layers={layers}
-            selectedId={layerId}
+            pick={dockView.pick}
+            date={dockView.date}
+            passes={livePasses}
+            shownId={layerId}
             opacity={opacity}
-            onSelect={(id) => setLayerChoice({ runKey, id })}
+            onPick={pickDock}
+            onPair={() => chooseLens("insar")}
             onOpacity={setOpacity}
           />
         )}
@@ -1077,7 +1166,17 @@ export const ExplorerPage = () => {
 
         {showLiveTimeline && (
           <div className="x-timeline-wrap" data-collapsed={collapsed}>
-            <PassTimeline key={runKey} data={liveTimeline} demo={false} />
+            <PassTimeline
+              key={runKey}
+              data={liveTimeline}
+              demo={false}
+              live={{
+                date: dockView.date,
+                playing: lapsePlaying,
+                onPick: pickPass,
+                onPlay: togglePlay,
+              }}
+            />
           </div>
         )}
 
@@ -1186,6 +1285,8 @@ type SceneExtras = {
   liveDrape?: Drape | undefined;
   // Posting the service reported for the live result, in metres.
   gridMetres?: number | undefined;
+  // The time-lapse stamp, while it plays.
+  stamp?: GlobeStamp | undefined;
 };
 
 const gridMetresOf = (view: ExplorationView | undefined): number | undefined => {
@@ -1201,7 +1302,7 @@ const sceneOf = (
   opacity: number,
   extras: SceneExtras = {},
 ): GlobeScene => {
-  const { place, liveDrape, gridMetres: liveGrid } = extras;
+  const { place, liveDrape, gridMetres: liveGrid, stamp } = extras;
   const empty: GlobeScene = {
     target: undefined,
     outline: undefined,
@@ -1210,6 +1311,7 @@ const sceneOf = (
     selectedCaseId: undefined,
     drape: undefined,
     drapeAlpha: opacity / 100,
+    stamp: undefined,
   };
   if (selection === undefined) return place === undefined ? empty : placeScene(place, empty);
   if (selection.kind === "live") {
@@ -1229,6 +1331,7 @@ const sceneOf = (
       point: selection.point,
       frame: selection.frame,
       drape: liveDrape,
+      stamp,
     };
   }
   const { item } = selection;
