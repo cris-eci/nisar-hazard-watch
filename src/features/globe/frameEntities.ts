@@ -41,25 +41,37 @@ export const addFrameEntities = (
     });
   });
 
-export type ChipOutline = { ring: Ring; label: string; processing: boolean };
+export type ChipOutline = {
+  ring: Ring;
+  label: string;
+  processing: boolean;
+  // A picked spot not yet asked about (v8 step 2): gold dash over a dark border.
+  spot?: boolean;
+};
 
 // The processed area: solid gold once measured, a gold dash while the radar job runs (SPECS §2.6).
 // A square chip is four corners; a drawn polygon has as many as it was given.
 export const addChipOutline = (
   viewer: Viewer,
-  { ring, label, processing }: ChipOutline,
+  { ring, label, processing, spot = false }: ChipOutline,
 ): Entity[] => {
   const [west, , , north] = boundsOf(ring);
   const first = ring[0];
   const positions = Cartesian3.fromDegreesArray((first ? [...ring, first] : ring).flat());
+  // Decision 3: a dark border under the dash keeps it readable on light ground (sand, cloud).
+  const border = spot
+    ? [viewer.entities.add({ polyline: { positions, width: 5, material: SPACE } })]
+    : [];
   return [
+    ...border,
     viewer.entities.add({
       polyline: {
         positions,
-        width: processing ? 2.5 : 3,
-        material: processing
-          ? new PolylineDashMaterialProperty({ color: GOLD, dashLength: 12 })
-          : GOLD,
+        width: processing || spot ? 2.5 : 3,
+        material:
+          processing || spot
+            ? new PolylineDashMaterialProperty({ color: GOLD, dashLength: 12 })
+            : GOLD,
       },
     }),
     viewer.entities.add({

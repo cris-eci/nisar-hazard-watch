@@ -14,6 +14,12 @@ export const LIVE_LENSES: readonly LensId[] = [
 
 export const isLiveLens = (lens: LensId): boolean => LIVE_LENSES.includes(lens);
 
+export type Direction = "ascending" | "descending";
+
+// The backend picks the radar series itself until it accepts a direction (B2). Until then the
+// top bar's Ascending / Descending switch stays hidden: a choice that isn't sent would mislead.
+export const DIRECTION_CHOICE_READY = false;
+
 // S-band is a precomputed layer for a short list of areas later; today only L-band is on demand.
 export type ExplorationRequest = {
   lens: LensId;

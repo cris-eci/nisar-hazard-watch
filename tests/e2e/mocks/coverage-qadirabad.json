@@ -1,0 +1,12 @@
+{
+  "plan": {
+    "status": "ready",
+    "seriesKey": "084_A_018_4005_DHDH",
+    "dates": ["2026-07-14", "2026-08-19", "2026-09-12", "2026-10-18", "2026-11-11"],
+    "maturityMixed": true,
+    "notes": []
+  },
+  "areaKm2": 104.89,
+  "warnings": [],
+  "precomputedCase": null
+}

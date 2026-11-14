@@ -28,14 +28,19 @@ import {
   type DrawState,
 } from "@/features/geo/drawMachine";
 import type { Area, DrawTool } from "@/features/geo/geo.types";
-import { AOI_SIDE_KM, formatKm2, levelOf } from "@/features/geo/limits";
+import { formatKm2, levelOf } from "@/features/geo/limits";
 import { boundsOf } from "@/features/geo/longitude";
 import { areaKm2Of, centreOf, ringAreaKm2, ringOf } from "@/features/geo/measure";
 import { toGeoJson } from "@/features/geo/serialize";
 import { ringOfBox, squareAround, squareBounds } from "@/features/geo/square";
 import type { Drape } from "@/features/globe/frameEntities";
 import { GlobeView, type GlobeScene, type GlobeStamp } from "@/features/globe/GlobeView";
-import { isLiveLens, type ExplorationRequest } from "@/features/explore/exploreApi";
+import {
+  DIRECTION_CHOICE_READY,
+  isLiveLens,
+  type Direction,
+  type ExplorationRequest,
+} from "@/features/explore/exploreApi";
 import type { InsarChoice } from "@/features/insar/insarApi";
 import { InsarPairPicker } from "@/features/insar/InsarPairPicker";
 import { insarFromParams } from "@/features/insar/insarLink";
@@ -78,8 +83,11 @@ import {
   STORY_ADVANCE_MS,
   storyCase,
 } from "@/features/story/chapters";
+import { coordinatePlace } from "@/features/search/coordinates";
 import { placeFraming } from "@/features/search/placeFraming";
 import type { Place } from "@/features/search/placesApi";
+import { fetchCoverage } from "@/features/spot/coverageApi";
+import { nearestCase, squareSideKm } from "@/features/spot/spot";
 import { StoryMode } from "@/features/story/StoryMode";
 import { PassTimeline } from "@/features/timeline/PassTimeline";
 import { formatDay } from "@/features/timeline/timelineLayout";
@@ -87,13 +95,14 @@ import { STEP_4, passOf } from "@/content/copyV8";
 import { useAsync } from "@/lib/useAsync";
 import { AreaGuide, type AreaIssue } from "@/pages/explorer/AreaGuide";
 import { AreaTools } from "@/pages/explorer/AreaTools";
-import { PlaceCard } from "@/pages/explorer/PlaceCard";
+import { DirectionSwitch } from "@/pages/explorer/DirectionSwitch";
+import { SpotCard } from "@/pages/explorer/SpotCard";
 import { LEGEND, type DrapeKind } from "@/pages/explorer/drapeLegend";
 import { LayerDock } from "@/pages/explorer/LayerDock";
 import { LiveLayerDock } from "@/pages/explorer/LiveLayerDock";
 import { SourceSwitch } from "@/pages/explorer/SourceSwitch";
 import { HintPill, StartCard } from "@/pages/explorer/StartCard";
-import { TopBar, type ContextChip, type DownloadItem } from "@/pages/explorer/TopBar";
+import { TopBar, type DownloadItem } from "@/pages/explorer/TopBar";
 
 type Selection =
   | { kind: "case"; item: Case }
@@ -232,7 +241,10 @@ export const ExplorerPage = () => {
   const drawRef = useRef(draw);
   const [areaIssue, setAreaIssue] = useState<AreaIssue>();
   const [searchOpen, setSearchOpen] = useState(false);
-  // A place picked from the search bar, waiting for the user to ask about it.
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  // Sent with the question once the backend accepts it (DIRECTION_CHOICE_READY).
+  const [direction, setDirection] = useState<Direction>("ascending");
+  // A picked spot (v8 step 2): a search hit or a clicked point, waiting for "Analyze this spot".
   const [place, setPlace] = useState<Place>();
   const [collapsed, setCollapsed] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -309,6 +321,24 @@ export const ExplorerPage = () => {
     () => (place === undefined ? undefined : frameUnder(frames, place.point)),
     [frames, place],
   );
+  // What the catalog holds at the spot: free, so it runs on every pick.
+  const { state: coverage, retry: retryCoverage } = useAsync(
+    (signal) =>
+      place === undefined
+        ? Promise.reject(new Error("no spot"))
+        : fetchCoverage(place.point, signal),
+    place?.id,
+  );
+  const nearest = useMemo(
+    () => (place === undefined ? undefined : nearestCase(place.point, CASES)),
+    [place],
+  );
+  // The footprint, sized by the backend, appears once the catalog answers that it has passes here.
+  // Without coverage nothing is drawn and the camera stays put: no close-up of open ocean.
+  const spotSideKm =
+    coverage?.status === "success" && coverage.data.plan.status !== "noCoverage"
+      ? squareSideKm(coverage.data.areaKm2)
+      : undefined;
   const framesRef = useRef(frames);
   useEffect(() => {
     framesRef.current = frames;
@@ -393,12 +423,15 @@ export const ExplorerPage = () => {
     },
     [openCase],
   );
-  const onGlobeAsk = useCallback(
-    (frame: Frame, point: LonLat) => {
-      if (!storyRef.current) ask(frame, point);
-    },
-    [ask],
-  );
+  // A click picks a spot (step 2); the question runs only from "Analyze this spot".
+  const onGlobeAsk = useCallback((point: LonLat) => {
+    if (storyRef.current) return;
+    setSelection(undefined);
+    setSheetOpen(false);
+    setCollapsed(false);
+    setAreaIssue(undefined);
+    setPlace(coordinatePlace(point));
+  }, []);
 
   const chooseTool = useCallback((tool: DrawTool | undefined) => {
     const next = startTool(tool);
@@ -715,6 +748,7 @@ export const ExplorerPage = () => {
     storyItem === undefined
       ? sceneOf(selection, !running, drapeKind, opacity, {
           place,
+          spotSideKm,
           liveDrape: liveLayer && { url: liveLayer.href, bounds: liveLayer.bounds },
           gridMetres: gridMetresOf(exploredView),
           stamp: lapseStep &&
@@ -729,17 +763,6 @@ export const ExplorerPage = () => {
             },
         })
       : storyScene(storyItem, chapter, opacity);
-  const context: ContextChip | undefined =
-    item !== undefined
-      ? { icon: item.hazard, name: item.name, when: item.when }
-      : live !== undefined
-        ? {
-            icon: findLens(live.lens)?.icon ?? "flood",
-            name: liveName(live),
-            when: "Live question",
-          }
-        : undefined;
-
   const draft = draftOf(draw);
   const draftKm2 = draft?.closed === true ? ringAreaKm2(draft.ring) : 0;
   const draftView = draft && { ...draft, km2: draftKm2, level: levelOf(draftKm2) };
@@ -944,17 +967,17 @@ export const ExplorerPage = () => {
         )}
 
         <TopBar
-          context={context}
-          tools={
-            <>
-              <AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />
-              <div className="x-switches">
-                <SourceSwitch />
-                {/* #24 puts Ascending / Descending here. */}
-                <span className="x-switches__slot" aria-hidden="true" />
-              </div>
-            </>
+          switches={
+            <div className="x-switches">
+              <SourceSwitch />
+              {DIRECTION_CHOICE_READY && (
+                <DirectionSwitch direction={direction} onChange={setDirection} />
+              )}
+            </div>
           }
+          tools={<AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />}
+          cases={CASES}
+          searchInputRef={searchInputRef}
           helpOpen={helpOpen}
           downloadOpen={downloadOpen}
           downloads={downloads}
@@ -984,6 +1007,10 @@ export const ExplorerPage = () => {
             }
           }}
           onPickPlace={pickPlace}
+          onOpenCase={(picked) => {
+            setSearchOpen(false);
+            openCase(picked);
+          }}
           onStory={(on) => {
             if (on && !story) startStory();
             if (!on && story) exitStory();
@@ -1017,17 +1044,21 @@ export const ExplorerPage = () => {
               onOpen={openCase}
               onRetryFrames={retryFrames}
               onStory={startStory}
-              onSearch={() => setSearchOpen(true)}
+              onSearch={() => searchInputRef.current?.focus()}
             />
             {draw.tool === undefined && <HintPill />}
           </>
         )}
 
         {selection === undefined && !story && place !== undefined && (
-          <PlaceCard
+          <SpotCard
             place={place}
-            frame={placeFrame}
+            coverage={coverage}
+            nearest={nearest}
+            canAsk={placeFrame !== undefined}
             onAnalyse={() => askArea({ kind: "point", point: place.point })}
+            onRetry={retryCoverage}
+            onOpenCase={openCase}
             onClose={close}
           />
         )}
@@ -1266,21 +1297,26 @@ const storyScene = (item: Case, chapter: number, opacity: number): GlobeScene =>
   };
 };
 
-// A searched place: the camera goes there and the square the radar would read is drawn.
-const placeScene = (place: Place, empty: GlobeScene): GlobeScene => ({
-  ...empty,
-  target: { key: `place|${place.id}`, ...placeFraming(place) },
-  outline: {
-    ring: squareAround(place.point, AOI_SIDE_KM),
-    label: `${AOI_SIDE_KM} km square · ${place.name}`,
-    processing: false,
-  },
-  point: place.point,
-});
+// A picked spot: the point at once; the camera and the dashed square once there is coverage.
+const placeScene = (place: Place, sideKm: number | undefined, empty: GlobeScene): GlobeScene =>
+  sideKm === undefined
+    ? { ...empty, point: place.point }
+    : {
+        ...empty,
+        target: { key: `place|${place.id}`, ...placeFraming(place) },
+        outline: {
+          ring: squareAround(place.point, sideKm),
+          label: `${sideKm.toFixed(2)} km square · ${place.name}`,
+          processing: false,
+          spot: true,
+        },
+        point: place.point,
+      };
 
 type SceneExtras = {
-  // A searched place waiting to be asked about.
+  // A picked spot waiting to be asked about, and its footprint's side (none without coverage).
   place?: Place | undefined;
+  spotSideKm?: number | undefined;
   // The layer of the live result drawn on the globe.
   liveDrape?: Drape | undefined;
   // Posting the service reported for the live result, in metres.
@@ -1302,7 +1338,7 @@ const sceneOf = (
   opacity: number,
   extras: SceneExtras = {},
 ): GlobeScene => {
-  const { place, liveDrape, gridMetres: liveGrid, stamp } = extras;
+  const { place, spotSideKm, liveDrape, gridMetres: liveGrid, stamp } = extras;
   const empty: GlobeScene = {
     target: undefined,
     outline: undefined,
@@ -1313,7 +1349,8 @@ const sceneOf = (
     drapeAlpha: opacity / 100,
     stamp: undefined,
   };
-  if (selection === undefined) return place === undefined ? empty : placeScene(place, empty);
+  if (selection === undefined)
+    return place === undefined ? empty : placeScene(place, spotSideKm, empty);
   if (selection.kind === "live") {
     const { area } = selection;
     const ring = ringOf(area);

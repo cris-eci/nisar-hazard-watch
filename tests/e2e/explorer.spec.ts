@@ -232,11 +232,14 @@ test.describe("Explorer: live questions", () => {
     await expect(globe.panelTitle).toHaveText("Qadirabad, Pakistan");
   });
 
-  test("hovering land shows its NISAR frame and a click asks about it", async ({ page }) => {
+  test("hovering land shows its NISAR frame; a click picks the spot and Analyze asks about it", async ({
+    page,
+  }) => {
     // Close-up imagery tiles render slowly in software WebGL.
     test.slow();
     const globe = new GlobePage(page);
     await globe.mockObservationPlan();
+    await globe.mockCoverage();
     await globe.mockExplorations({ first: succeededView() });
     await globe.goto(`?frame=${LIVE_FRAME.id}`);
     await expect(globe.panelMeta).toContainText(LIVE_FRAME.title);
@@ -247,7 +250,126 @@ test.describe("Explorer: live questions", () => {
 
     const before = await globe.panelTitle.textContent();
     await globe.clickLand();
+    // Step 2: the click only checks the catalog; nothing runs until Analyze.
+    await expect(globe.placeCard).toHaveAttribute("data-state", "ready");
+    await expect(globe.panel).toBeHidden();
+    await globe.placeAnalyse.click();
     await expect(globe.panelTitle).not.toHaveText(before ?? "");
     await expect(globe.panelMeta).toContainText(LIVE_FRAME.title);
+  });
+});
+
+test.describe("Explorer: v8 top bar", () => {
+  let globe: GlobePage;
+
+  test.beforeEach(async ({ page }) => {
+    globe = new GlobePage(page);
+    await globe.skipOnboarding();
+    await globe.mockObservationPlan();
+  });
+
+  test("search pill and L | S follow the wordmark; an open case adds no context pill", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await globe.goto("?case=qadirabad");
+    await expect(globe.panel).toBeVisible();
+    await expect(globe.searchPill).toBeVisible();
+    await expect(page.getByTestId("source-switch")).toBeVisible();
+    await expect(page.getByTestId("context-chip")).toHaveCount(0);
+    // Hidden until the backend accepts a direction: a choice that isn't sent would mislead.
+    await expect(page.getByTestId("direction-switch")).toHaveCount(0);
+
+    const pill = await globe.searchPill.boundingBox();
+    expect(pill?.width).toBeCloseTo(340, 0);
+  });
+
+  test("the mode switch hides below 1280 px and the page links below 1120 px", async ({ page }) => {
+    await page.setViewportSize({ width: 1300, height: 900 });
+    await globe.goto();
+    await expect(page.getByTestId("mode-explore")).toBeVisible();
+    await expect(page.getByTestId("nav-cases")).toBeVisible();
+
+    await page.setViewportSize({ width: 1200, height: 900 });
+    await expect(page.getByTestId("mode-explore")).toBeHidden();
+    await expect(page.getByTestId("nav-cases")).toBeVisible();
+
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await expect(page.getByTestId("nav-cases")).toBeHidden();
+    await expect(page.getByTestId("nav-method")).toBeHidden();
+  });
+});
+
+test.describe("Explorer: pick a spot (step 2)", () => {
+  let globe: GlobePage;
+
+  test.beforeEach(async ({ page }) => {
+    globe = new GlobePage(page);
+    await globe.skipOnboarding();
+    await globe.mockObservationPlan();
+  });
+
+  test("a land spot shows the catalog's real dates, the 36-day gap and the expected wait", async ({
+    page,
+  }) => {
+    await globe.mockCoverage();
+    await globe.goto();
+    await globe.searchInput.fill("32.30, 73.50");
+    await globe.searchInput.press("Enter");
+
+    await expect(globe.placeCard).toHaveAttribute("data-state", "ready");
+    await expect(globe.placeCard).toContainText("NEW SPOT · LIVE ANALYSIS");
+    await expect(page.getByTestId("spot-area")).toHaveText(/AREA\s*10\.24 km square/);
+    await expect(page.getByTestId("spot-wait")).toContainText("1–4 min");
+    await expect(page.getByTestId("spot-wait")).toContainText("plus any queue");
+    await expect(page.getByTestId("spot-catalog")).toContainText("IN THE CATALOG · ASCENDING");
+    await expect(page.getByTestId("spot-catalog")).toContainText("LAST 5 MONTHS");
+    await expect(page.getByTestId("spot-catalog").getByRole("listitem")).toHaveCount(5);
+    await expect(page.getByTestId("spot-gap")).toContainText(
+      "The 36-day gap after 14 Jul is real.",
+    );
+    await expect(globe.placeAnalyse).toHaveText(/Analyze this spot/);
+
+    await page.getByTestId("spot-cases").click();
+    await expect(globe.placeCard).toBeHidden();
+    await expect(globe.startCard).toBeVisible();
+  });
+
+  test("an ocean click shows No NISAR data here and the nearest known case", async ({ page }) => {
+    await globe.mockCoverage({ mock: "coverage-open-ocean" });
+    await globe.goto();
+    await globe.clickOcean();
+
+    await expect(globe.placeCard).toHaveAttribute("data-state", "noCoverage");
+    await expect(globe.placeCard).toContainText("CLICKED POINT · NO COVERAGE");
+    await expect(page.getByTestId("place-title")).toHaveText("No NISAR data here");
+    await expect(page.getByTestId("spot-nodata")).toHaveText(
+      "The catalog has no compatible passes at this point. Over open ocean NISAR data isn't analyzed here.",
+    );
+    await expect(globe.spotNearest).toContainText(/Nearest known case · about [\d,]+ km/);
+    expect(globe.coverageRequests).toHaveLength(1);
+
+    await page.getByTestId("spot-another").click();
+    await expect(globe.placeCard).toBeHidden();
+    await expect(globe.startCard).toBeVisible();
+
+    await globe.clickOcean();
+    await globe.spotNearest.click();
+    await expect(globe.panel).toBeVisible();
+    await expect(globe.placeCard).toBeHidden();
+  });
+
+  test("a catalog that doesn't answer says so and Try again asks once more", async ({ page }) => {
+    await globe.mockCoverage({ failures: 1 });
+    await globe.goto();
+    await globe.searchInput.fill("32.30, 73.50");
+    await globe.searchInput.press("Enter");
+
+    await expect(page.getByTestId("spot-error")).toContainText(
+      "We couldn't reach the radar archive",
+    );
+    await page.getByTestId("spot-error").getByRole("button", { name: "Try again" }).click();
+    await expect(globe.placeCard).toHaveAttribute("data-state", "ready");
+    expect(globe.coverageRequests).toHaveLength(2);
   });
 });

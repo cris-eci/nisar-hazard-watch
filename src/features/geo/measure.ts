@@ -19,6 +19,16 @@ export const ringAreaKm2 = (ring: Ring): number => {
   return Math.abs((sum * EARTH_RADIUS_KM * EARTH_RADIUS_KM) / 2);
 };
 
+// Great-circle distance (haversine): what "about {km} km" to the nearest case measures.
+export const greatCircleKm = ([lon1, lat1]: LonLat, [lon2, lat2]: LonLat): number => {
+  const dLat = radians(lat2 - lat1);
+  const dLon = radians(lon2 - lon1);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(radians(lat1)) * Math.cos(radians(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.min(1, Math.sqrt(h)));
+};
+
 export const ringOf = (area: Area): Ring =>
   area.kind === "point" ? squareAround(area.point, AOI_SIDE_KM) : area.ring;
 
