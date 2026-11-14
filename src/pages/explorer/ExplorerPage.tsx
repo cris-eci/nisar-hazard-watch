@@ -35,7 +35,12 @@ import { toGeoJson } from "@/features/geo/serialize";
 import { ringOfBox, squareAround, squareBounds } from "@/features/geo/square";
 import type { Drape } from "@/features/globe/frameEntities";
 import { GlobeView, type GlobeScene, type GlobeStamp } from "@/features/globe/GlobeView";
-import { isLiveLens, type ExplorationRequest } from "@/features/explore/exploreApi";
+import {
+  DIRECTION_CHOICE_READY,
+  isLiveLens,
+  type Direction,
+  type ExplorationRequest,
+} from "@/features/explore/exploreApi";
 import type { InsarChoice } from "@/features/insar/insarApi";
 import { InsarPairPicker } from "@/features/insar/InsarPairPicker";
 import { insarFromParams } from "@/features/insar/insarLink";
@@ -87,13 +92,14 @@ import { STEP_4, passOf } from "@/content/copyV8";
 import { useAsync } from "@/lib/useAsync";
 import { AreaGuide, type AreaIssue } from "@/pages/explorer/AreaGuide";
 import { AreaTools } from "@/pages/explorer/AreaTools";
+import { DirectionSwitch } from "@/pages/explorer/DirectionSwitch";
 import { PlaceCard } from "@/pages/explorer/PlaceCard";
 import { LEGEND, type DrapeKind } from "@/pages/explorer/drapeLegend";
 import { LayerDock } from "@/pages/explorer/LayerDock";
 import { LiveLayerDock } from "@/pages/explorer/LiveLayerDock";
 import { SourceSwitch } from "@/pages/explorer/SourceSwitch";
 import { HintPill, StartCard } from "@/pages/explorer/StartCard";
-import { TopBar, type ContextChip, type DownloadItem } from "@/pages/explorer/TopBar";
+import { TopBar, type DownloadItem } from "@/pages/explorer/TopBar";
 
 type Selection =
   | { kind: "case"; item: Case }
@@ -232,6 +238,9 @@ export const ExplorerPage = () => {
   const drawRef = useRef(draw);
   const [areaIssue, setAreaIssue] = useState<AreaIssue>();
   const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  // Sent with the question once the backend accepts it (DIRECTION_CHOICE_READY).
+  const [direction, setDirection] = useState<Direction>("ascending");
   // A place picked from the search bar, waiting for the user to ask about it.
   const [place, setPlace] = useState<Place>();
   const [collapsed, setCollapsed] = useState(false);
@@ -729,17 +738,6 @@ export const ExplorerPage = () => {
             },
         })
       : storyScene(storyItem, chapter, opacity);
-  const context: ContextChip | undefined =
-    item !== undefined
-      ? { icon: item.hazard, name: item.name, when: item.when }
-      : live !== undefined
-        ? {
-            icon: findLens(live.lens)?.icon ?? "flood",
-            name: liveName(live),
-            when: "Live question",
-          }
-        : undefined;
-
   const draft = draftOf(draw);
   const draftKm2 = draft?.closed === true ? ringAreaKm2(draft.ring) : 0;
   const draftView = draft && { ...draft, km2: draftKm2, level: levelOf(draftKm2) };
@@ -944,17 +942,17 @@ export const ExplorerPage = () => {
         )}
 
         <TopBar
-          context={context}
-          tools={
-            <>
-              <AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />
-              <div className="x-switches">
-                <SourceSwitch />
-                {/* #24 puts Ascending / Descending here. */}
-                <span className="x-switches__slot" aria-hidden="true" />
-              </div>
-            </>
+          switches={
+            <div className="x-switches">
+              <SourceSwitch />
+              {DIRECTION_CHOICE_READY && (
+                <DirectionSwitch direction={direction} onChange={setDirection} />
+              )}
+            </div>
           }
+          tools={<AreaTools tool={draw.tool} disabledWhy={toolsOffWhy} onTool={chooseTool} />}
+          cases={CASES}
+          searchInputRef={searchInputRef}
           helpOpen={helpOpen}
           downloadOpen={downloadOpen}
           downloads={downloads}
@@ -984,6 +982,10 @@ export const ExplorerPage = () => {
             }
           }}
           onPickPlace={pickPlace}
+          onOpenCase={(picked) => {
+            setSearchOpen(false);
+            openCase(picked);
+          }}
           onStory={(on) => {
             if (on && !story) startStory();
             if (!on && story) exitStory();
@@ -1017,7 +1019,7 @@ export const ExplorerPage = () => {
               onOpen={openCase}
               onRetryFrames={retryFrames}
               onStory={startStory}
-              onSearch={() => setSearchOpen(true)}
+              onSearch={() => searchInputRef.current?.focus()}
             />
             {draw.tool === undefined && <HintPill />}
           </>

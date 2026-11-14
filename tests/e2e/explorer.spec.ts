@@ -251,3 +251,44 @@ test.describe("Explorer: live questions", () => {
     await expect(globe.panelMeta).toContainText(LIVE_FRAME.title);
   });
 });
+
+test.describe("Explorer: v8 top bar", () => {
+  let globe: GlobePage;
+
+  test.beforeEach(async ({ page }) => {
+    globe = new GlobePage(page);
+    await globe.skipOnboarding();
+    await globe.mockObservationPlan();
+  });
+
+  test("search pill and L | S follow the wordmark; an open case adds no context pill", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await globe.goto("?case=qadirabad");
+    await expect(globe.panel).toBeVisible();
+    await expect(globe.searchPill).toBeVisible();
+    await expect(page.getByTestId("source-switch")).toBeVisible();
+    await expect(page.getByTestId("context-chip")).toHaveCount(0);
+    // Hidden until the backend accepts a direction: a choice that isn't sent would mislead.
+    await expect(page.getByTestId("direction-switch")).toHaveCount(0);
+
+    const pill = await globe.searchPill.boundingBox();
+    expect(pill?.width).toBeCloseTo(340, 0);
+  });
+
+  test("the mode switch hides below 1280 px and the page links below 1120 px", async ({ page }) => {
+    await page.setViewportSize({ width: 1300, height: 900 });
+    await globe.goto();
+    await expect(page.getByTestId("mode-explore")).toBeVisible();
+    await expect(page.getByTestId("nav-cases")).toBeVisible();
+
+    await page.setViewportSize({ width: 1200, height: 900 });
+    await expect(page.getByTestId("mode-explore")).toBeHidden();
+    await expect(page.getByTestId("nav-cases")).toBeVisible();
+
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await expect(page.getByTestId("nav-cases")).toBeHidden();
+    await expect(page.getByTestId("nav-method")).toBeHidden();
+  });
+});
