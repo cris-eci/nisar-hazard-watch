@@ -2,6 +2,7 @@ import {
   Cartesian3,
   EasingFunction,
   Rectangle,
+  SceneTransforms,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
   type Cartesian2,
@@ -30,6 +31,7 @@ import {
   addDrapeLayer,
   addFrameEntities,
   addPointEntity,
+  crossfadeLayers,
   HOVER_COLOR,
   INK,
   removeEntities,
@@ -52,6 +54,9 @@ const SPIN_RADIANS_PER_TICK = -0.0005;
 // `seconds` overrides the flight time (the story's region view flies a little slower).
 export type CameraTarget = { key: string; box: BBox; zoom: number; seconds?: number };
 
+// The time-lapse stamp under the footprint (SPECS-v8 §4), shown while it plays.
+export type GlobeStamp = { date: string; pass: string; target: boolean; box: BBox };
+
 export type GlobeScene = {
   target: CameraTarget | undefined;
   outline: ChipOutline | undefined;
@@ -60,6 +65,7 @@ export type GlobeScene = {
   selectedCaseId: string | undefined;
   drape: Drape | undefined;
   drapeAlpha: number;
+  stamp: GlobeStamp | undefined;
 };
 
 type GlobeViewProps = {
@@ -310,20 +316,61 @@ export const GlobeView = ({
   }, [viewer, pointKey]);
 
   const layerRef = useRef<ImageryLayer>(undefined);
+  const [fading, setFading] = useState(false);
   const drapeKey = scene.drape && `${scene.drape.url}|${scene.drape.bounds.join(",")}`;
   const alphaRef = useRef(scene.drapeAlpha);
   alphaRef.current = scene.drapeAlpha;
+  // One drape at a time; a change crossfades from the previous one (instant under reduced motion).
   useEffect(() => {
-    if (viewer === undefined || scene.drape === undefined) return;
-    const layer = addDrapeLayer(viewer, scene.drape, alphaRef.current);
-    layerRef.current = layer;
-    return () => {
-      layerRef.current = undefined;
-      removeLayer(viewer, layer);
-    };
+    if (viewer === undefined) return;
+    const previous = layerRef.current;
+    const alpha = alphaRef.current;
+    const instant = previous === undefined || latest.current.reduceMotion;
+    const next =
+      scene.drape === undefined
+        ? undefined
+        : addDrapeLayer(viewer, scene.drape, instant ? alpha : 0);
+    layerRef.current = next;
+    if (instant) {
+      if (previous !== undefined) removeLayer(viewer, previous);
+      return;
+    }
+    setFading(true);
+    return crossfadeLayers(viewer, previous, next, alpha, () => setFading(false));
     // drapeKey stands in for the drape object, which is rebuilt on every render.
     // oxlint-disable-next-line react/exhaustive-deps
   }, [viewer, drapeKey]);
+
+  useEffect(
+    () => () => {
+      if (viewer !== undefined && layerRef.current !== undefined)
+        removeLayer(viewer, layerRef.current);
+      layerRef.current = undefined;
+    },
+    [viewer],
+  );
+
+  // The stamp follows the footprint's south edge as the camera moves, without a React render per frame.
+  const stampRef = useRef<HTMLParagraphElement>(null);
+  const stampKey = scene.stamp?.box.join(",");
+  useEffect(() => {
+    const box = scene.stamp?.box;
+    if (viewer === undefined || box === undefined) return;
+    const [west, south, east] = box;
+    const anchor = Cartesian3.fromDegrees((west + east) / 2, south);
+    const place = () => {
+      const element = stampRef.current;
+      const at = SceneTransforms.worldToWindowCoordinates(viewer.scene, anchor);
+      if (element === null) return;
+      element.style.visibility = at === undefined ? "hidden" : "visible";
+      if (at !== undefined)
+        element.style.transform = `translate(${at.x}px, ${at.y}px) translateX(-50%)`;
+    };
+    place();
+    return viewer.scene.postRender.addEventListener(place);
+    // stampKey stands in for the box, which is rebuilt on every render.
+    // oxlint-disable-next-line react/exhaustive-deps
+  }, [viewer, stampKey]);
 
   // The slider only changes alpha: re-adding the layer would flash the base map.
   useEffect(() => {
@@ -363,8 +410,21 @@ export const GlobeView = ({
   }, [viewer, homeRequest]);
 
   return (
-    <div className="x-globe" data-testid="globe" onMouseLeave={() => setHover(undefined)}>
+    <div
+      className="x-globe"
+      data-testid="globe"
+      data-crossfade={fading ? "on" : undefined}
+      onMouseLeave={() => setHover(undefined)}
+    >
       <div ref={containerRef} className="x-globe" />
+      {scene.stamp !== undefined && (
+        <p className="x-stamp" ref={stampRef} data-testid="timelapse-stamp">
+          <span className="x-stamp__date">{scene.stamp.date}</span>
+          <span className="x-stamp__pass" data-target={scene.stamp.target}>
+            {scene.stamp.pass}
+          </span>
+        </p>
+      )}
       {hover !== undefined && <GlobeTooltip content={hover.content} x={hover.x} y={hover.y} />}
     </div>
   );
