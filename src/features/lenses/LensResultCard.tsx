@@ -15,13 +15,8 @@ import { isCardLens } from "@/features/lenses/lensSlots";
 import { LENS_SLOTS } from "@/features/lenses/lensSlotsRegistry";
 import { lensReasons } from "@/features/lenses/reasons";
 import { surroundingsRow } from "@/features/lenses/surroundings";
+import { cardVerdictOf, VERDICT_LABEL } from "@/features/lenses/verdictLabel";
 import { popIn, revealBlocks } from "@/lib/motion";
-
-const VERDICT_LABEL: Record<Verdict, string> = {
-  departure: STEP_6.verdictDeparture,
-  within: STEP_6.verdictWithin,
-  insufficient: STEP_6.verdictNotEnough,
-};
 
 const SURROUNDINGS_GLYPH = {
   same: "within",
@@ -85,7 +80,7 @@ export const LensResultCard = ({
     onShowLayer,
     reduce,
   });
-  const verdict: Verdict = subject.verdict === "measured" ? "insufficient" : subject.verdict;
+  const verdict: Verdict = cardVerdictOf(subject);
   const surroundings = surroundingsRow(evaluation);
 
   // Sections rise in when the result mounts or the lens changes; final state at once when reduced.

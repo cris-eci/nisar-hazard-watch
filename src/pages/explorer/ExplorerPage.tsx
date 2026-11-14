@@ -55,6 +55,7 @@ import { PlanState } from "@/features/live/LiveSummary";
 import { useFramePlan } from "@/features/live/useFramePlan";
 import { NovaChat } from "@/features/nova/NovaChat";
 import type { NovaContext } from "@/features/nova/novaAnswer";
+import { cardFactsOf } from "@/features/nova/novaFacts";
 import { Onboarding } from "@/features/onboarding/Onboarding";
 import {
   hasSeenOnboarding,
@@ -677,11 +678,17 @@ export const ExplorerPage = () => {
 
   const lensId = item?.lens ?? live?.lens;
   const lensChip = lensId === undefined ? "" : (findLens(lensId)?.chip ?? "");
+  // Nova reads the v8 lens card through the same pure functions the card draws with.
+  const cardFacts =
+    showLensCard && subject !== undefined && exploredView !== undefined
+      ? cardFactsOf(subject, exploredView)
+      : undefined;
   const novaContext: NovaContext = {
     subject,
     pending: item?.pending === true ? item : undefined,
     running: live !== undefined && running,
     mode,
+    card: cardFacts,
   };
   const lookingAt =
     item !== undefined
@@ -693,8 +700,10 @@ export const ExplorerPage = () => {
               : VERDICT[item.verdict].label
         }`
       : live !== undefined
-        ? `${formatLonLat(live.point)} · ${lensChip} · ${
-            subject === undefined ? "processing" : VERDICT[subject.verdict].label
+        ? `${formatLonLat(live.point)} · ${cardFacts?.question ?? lensChip} · ${
+            subject === undefined
+              ? "processing"
+              : (cardFacts?.verdict.text ?? VERDICT[subject.verdict].label)
           }`
         : "the whole globe";
 
