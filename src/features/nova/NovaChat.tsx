@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Icon } from "@/features/case-panel/icons";
 import type { ChartMode } from "@/features/charts/chartTokens";
 import { NovaGlyph } from "@/features/nova/NovaGlyph";
+import { useBubbleLift } from "@/features/nova/useBubbleLift";
 import {
   novaAnswer,
   suggestionsFor,
@@ -29,7 +30,7 @@ type NovaChatProps = {
   onOpen: (open: boolean) => void;
 };
 
-// The bottom-right bubble and its 380 × 540 chat (SPECS §1, §3 "Nova no-data", §6).
+// The bottom-right bubble and its 380 × 540 chat (SPECS §1, §3 "Nova no-data", §6; SPECS-v8 §10).
 export const NovaChat = ({
   open,
   context,
@@ -42,6 +43,8 @@ export const NovaChat = ({
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const listRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLButtonElement>(null);
+  const lift = useBubbleLift(bubbleRef);
   const nextId = useRef(0);
   // The reply reads what is on screen when it lands, not when the question was asked.
   const latest = useRef(context);
@@ -131,7 +134,7 @@ export const NovaChat = ({
           </div>
           <div className="x-nova__foot">
             <div className="x-nova__chips">
-              {suggestionsFor(hasSelection).map((label) => (
+              {suggestionsFor(hasSelection, context.card !== undefined).map((label) => (
                 <button
                   key={label}
                   type="button"
@@ -172,7 +175,9 @@ export const NovaChat = ({
       )}
       <button
         type="button"
+        ref={bubbleRef}
         className="x-nova-bubble"
+        style={lift === undefined ? undefined : { bottom: lift }}
         onClick={() => onOpen(!open)}
         aria-label={open ? "Close Nova" : "Ask Nova"}
         aria-expanded={open}
@@ -201,6 +206,11 @@ const Reply = ({ reply }: { reply: NovaReply | undefined }) => {
   return (
     <div className="x-nova__answer" data-testid="nova-answer">
       <p>{reply.text}</p>
+      {reply.fields.length > 0 && (
+        <p className="x-nova__fields" data-testid="nova-fields">
+          On screen · {reply.fields.join(" · ")}
+        </p>
+      )}
       <div className="x-nova__cites">
         {reply.cites.map((cite) => (
           <a key={cite.href} href={cite.href} target="_blank" rel="noopener">

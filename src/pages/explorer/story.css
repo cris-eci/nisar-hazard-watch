@@ -577,6 +577,14 @@
   gap: 6px;
 }
 
+.x-nova__fields {
+  margin: 0 0 8px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
 .explorer .x-nova__cites a {
   display: inline-flex;
   align-items: center;
@@ -813,11 +821,10 @@
     display: none;
   }
 
+  /* SPECS-v8 §10: 48 px, above the sheet; useBubbleLift sets `bottom` from the card's height. */
   .x-nova-bubble {
-    top: 64px;
-    bottom: auto;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
   }
 
   .x-nova-bubble .x-nova-glyph svg {
