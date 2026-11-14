@@ -30,6 +30,8 @@ const CARD_ORDER = [
   "lens-slot-extra",
   "lens-pixel",
   "lens-why-two",
+  // #22: the real answer has no optical snapshot, so the OPERA witness says UNAVAILABLE.
+  "lens-slot-witness",
   "lens-surroundings",
   "more-info",
 ];
@@ -55,7 +57,11 @@ test.describe("Explorer: lens buttons and the lens result card", () => {
       .locator(":scope > [data-rv]")
       .evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-testid")));
     expect(order).toEqual(CARD_ORDER);
-    await expect(page.getByTestId("lens-slot-witness")).toHaveCount(0);
+    await expect(page.getByTestId("lens-witness")).toHaveAttribute("data-state", "unavailable");
+    await expect(page.getByTestId("lens-witness-text")).toHaveText(
+      "No OPERA snapshot with enough clear cells within 4 days of the radar dates. The radar result stands on its own.",
+    );
+    // No ready optical comparison, so no driver can be weighed.
     await expect(page.getByTestId("lens-slot-drivers")).toHaveCount(0);
 
     await expect(card.getByTestId("lens-head")).toContainText("LENS · FLOOD & WETLAND");

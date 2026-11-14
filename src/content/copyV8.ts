@@ -1,6 +1,6 @@
 // Visible strings of design v8 (docs/design/v8/COPY-v8.md), verbatim. Components read them from here.
 // `{x}` placeholders are small functions; callers pass values from the API, never invented ones.
-// Not here: §6.5 possible drivers (Barh-only, #21) and §8 errors (v8-data.js, the waiting issue).
+// §6.5 possible drivers are DRIVERS (#22). Not here: §8 errors (v8-data.js, the waiting issue).
 
 import type { LensId } from "@/features/cases/cases";
 
@@ -301,6 +301,64 @@ export const LENS_CARD = {
   // §6 insufficient template with the patch radius and the plural from the answer.
   surroundingsInsufficient: (r: number, n: number, posting: string, k: number) =>
     `The ${r} m patch holds ${formatCount(n)} ${n === 1 ? "cell" : "cells"} on this ${posting} grid; the comparison needs ${formatCount(k)}.`,
+} as const;
+
+// §6 second witness (#22). Group labels are v8-data.js `LIVE.optical.groups`; the snapshot line and
+// the point-state words are new and wait for Cristian's approval.
+export const WITNESS = {
+  groupNewWater: "New open water",
+  groupStableWater: "Water on both dates",
+  groupStayedDry: "Stayed dry",
+  groupMixed: "Mixed or partial",
+  snapshots: (preSensor: string, preDate: string, postSensor: string, postDate: string) =>
+    `${preSensor} ${preDate} → ${postSensor} ${postDate}`,
+  whiskerTitle: "HH",
+  whiskerInterval: (low: string, high: string) => `Between ${low} and ${high} dB.`,
+  pointState: {
+    new_water: "new open water",
+    stable_water: "water on both dates",
+    stable_dry: "stayed dry",
+    mixed: "mixed or partial",
+    insufficient_data: "not enough clear view",
+  } as Record<string, string>,
+} as const;
+
+// §6.5 possible drivers (flood). FOR/AGAINST are COPY-v8's Barh lines with the API's numbers as
+// parameters; Barh-only words that no field backs ("in the monsoon", "Barh sits on the Ganges",
+// "river channel, ponds", "changed less than the new-water cells") are left out.
+export const DRIVERS = {
+  kicker: "POSSIBLE DRIVERS",
+  intro: "What could make the echo change like this, weighed against the evidence above.",
+  forLabel: "FOR",
+  againstLabel: "AGAINST",
+  fit: { fitsBest: "FITS BEST", partly: "PARTLY", weak: "WEAK" },
+  flooding: {
+    title: "River flooding",
+    for: (n: number, d1: string, d2: string, pct: number) =>
+      `Optical shows ${formatCount(n)} cells turned to open water between ${d1} and ${d2}; ${pct}% of them meet the radar rule.`,
+    against: "No river-gauge or flood-bulletin record was checked.",
+  },
+  existingWater: {
+    title: "Water that was already there",
+    for: (n: number) => `${formatCount(n)} cells were water on both optical dates.`,
+    against: (k: number) => `Only ${formatCount(k)} of them meet the rule.`,
+  },
+  wetSoil: {
+    title: "Wet soil or crops after rain",
+    for: "Rain in the window can darken fields.",
+    against: (n: number, k: number) =>
+      `Of ${formatCount(n)} cells that stayed dry in the optical images, ${formatCount(k)} ${k === 1 ? "meets" : "meet"} the rule.`,
+  },
+  footerSettle: "A river gauge, rain record or field report would settle it.",
+  footerNotChecked: (...items: string[]) => `Not checked here: ${items.join(", ")}.`,
+  // `confounders[].id` in words; existing water and rain are the driver cards themselves.
+  confounder: {
+    wind: "wind on water",
+    incidence_and_track: "look angle",
+    speckle_and_noise: "speckle",
+    layover_or_shadow: "terrain shadow",
+    freeze_thaw: "freeze and thaw",
+  } as Record<string, string>,
 } as const;
 
 // 7 · More information
